@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { KpiRow } from '@/components/shared/KpiCard'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { FactoryMap } from '@/components/shared/FactoryMap'
+import { MapaRede } from '@/components/shared/MapaRede'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
@@ -241,7 +241,7 @@ export function VisaoGeralPage() {
             <div className="flex items-stretch gap-0 px-5 pb-4">
               <div className="min-w-0 flex-1">
                 {modoPanorama === 'mapa' ? (
-                  <FactoryMap fabricas={fabricasOperacionais} onSelecionarFabrica={aoSelecionarFabrica} />
+                  <MapaRede fabricas={fabricasOperacionais} onSelecionarFabrica={aoSelecionarFabrica} />
                 ) : (
                   <div className="overflow-hidden rounded-xl border border-line">
                     <DataTable

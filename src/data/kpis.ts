@@ -7,9 +7,6 @@ import {
   formatPontosPercentuais,
 } from '@/lib/format'
 import type { KpiCardData } from './types'
-import { alertas } from './alertas'
-import { materiais } from './materiais'
-import { lotes } from './lotes'
 import { equipamentos } from './equipamentos'
 import { ordensManutencao } from './manutencao'
 import { acoesAgentes, agentes } from './agentes'
@@ -18,19 +15,6 @@ import { relatorios } from './relatorios'
 import { personas } from './personas'
 
 // ── Valores derivados dos próprios mocks — uma única fonte de verdade ────────
-
-const impactoMateriais = alertas
-  .filter((a) => a.area === 'Materiais')
-  .reduce((soma, a) => soma + a.impactoEstimado, 0)
-
-const coberturaMediaMateriais =
-  materiais.reduce((soma, m) => soma + m.coberturaDias, 0) / materiais.length
-const materiaisCriticos = materiais.filter((m) => m.status === 'Crítico').length
-const materiaisAtencao = materiais.filter((m) => m.status === 'Atenção').length
-const materiaisBloqueados = materiais.filter((m) => m.status === 'Bloqueado').length
-
-const lotesEmAnalise = lotes.filter((l) => l.status === 'Em análise').length
-const lotesBloqueados = lotes.filter((l) => l.status === 'Bloqueado').length
 
 const disponibilidadeMedia =
   equipamentos.reduce((soma, e) => soma + e.disponibilidade, 0) / equipamentos.length
@@ -419,61 +403,59 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
   '/qualidade': [
     {
       id: 'qa-fila',
-      label: 'Lotes na fila',
-      valor: formatNumero(lotes.length),
-      sublabel: 'fila de liberação QA',
-      sparkline: serieSparkline('kpi-qa-fila', 12, { base: 6, ruido: 0.15, decimais: 0, min: 2 }),
-    },
-    {
-      id: 'qa-analise',
-      label: 'Em análise',
-      valor: formatNumero(lotesEmAnalise),
-      sublabel: 'inclui o 2456789A (Alta)',
-      sparkline: serieSparkline('kpi-qa-analise', 12, { base: 2, ruido: 0.25, decimais: 0, min: 0, max: 4 }),
-    },
-    {
-      id: 'qa-bloqueados',
-      label: 'Bloqueados',
-      valor: formatNumero(lotesBloqueados),
-      sublabel: '2456793E reprovado',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-qa-bloqueados', 12, { base: 1, ruido: 0.4, decimais: 0, min: 0, max: 2 }),
-    },
-    {
-      id: 'qa-tempo',
-      label: 'Tempo médio de liberação',
-      valor: '4 h 12 min',
-      delta: '+38 min',
+      label: 'Lotes Aguardando Liberação',
+      valor: formatNumero(18),
+      delta: '+2',
       deltaGoodWhen: 'down',
-      sublabel: 'vs média do mês',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-qa-tempo', 12, { base: 220, tendencia: 30, ruido: 0.06 }),
+      sublabel: 'rede · vs ontem',
+      sparkline: serieSparkline('kpi-qa-fila-rede', 12, { base: 15, tendencia: 2.4, ruido: 0.1, decimais: 0, min: 10 }),
     },
     {
-      id: 'qa-aprovacao',
-      label: 'Taxa de aprovação',
-      valor: formatPercent(96.8),
-      delta: formatPontosPercentuais(-0.6),
+      id: 'qa-rft',
+      label: 'Right First Time',
+      valor: formatPercent(97.4),
+      delta: formatPontosPercentuais(1.2),
       deltaGoodWhen: 'up',
-      sublabel: 'últimos 30 dias',
-      sparkline: serieSparkline('kpi-qa-aprovacao', 12, { base: 97.5, tendencia: -0.6, ruido: 0.006 }),
-    },
-    {
-      id: 'qa-reprovados',
-      label: 'Reprovados na semana',
-      valor: formatNumero(1),
-      sublabel: 'lote 2456793E (Apracur)',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-qa-reprovados', 12, { base: 0.6, ruido: 0.6, decimais: 0, min: 0, max: 2 }),
+      sublabel: 'vs último mês',
+      sparkline: serieSparkline('kpi-qa-rft', 12, { base: 96, tendencia: 1.3, ruido: 0.006 }),
     },
     {
       id: 'qa-desvios',
-      label: 'Desvios abertos',
-      valor: formatNumero(3),
+      label: 'Desvios Abertos',
+      valor: formatNumero(11),
+      delta: '+2',
+      deltaGoodWhen: 'down',
+      sublabel: 'vs última semana',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-qa-desvios-abertos', 12, { base: 8.5, tendencia: 2.2, ruido: 0.15, decimais: 0, min: 5 }),
+    },
+    {
+      id: 'qa-inspecao',
+      label: 'Taxa de Aprovação na Inspeção',
+      valor: formatPercent(98.1),
+      delta: formatPontosPercentuais(0.9),
+      deltaGoodWhen: 'up',
+      sublabel: 'vs último mês',
+      sparkline: serieSparkline('kpi-qa-inspecao', 12, { base: 97, tendencia: 1, ruido: 0.005 }),
+    },
+    {
+      id: 'qa-capas',
+      label: 'CAPAs em Andamento',
+      valor: formatNumero(9),
       delta: '+1',
       deltaGoodWhen: 'down',
       sublabel: 'vs última semana',
-      sparkline: serieSparkline('kpi-qa-desvios', 12, { base: 2.4, tendencia: 0.8, ruido: 0.3, decimais: 0, min: 0 }),
+      sparkline: serieSparkline('kpi-qa-capas', 12, { base: 7.5, tendencia: 1.4, ruido: 0.15, decimais: 0, min: 4 }),
+    },
+    {
+      id: 'qa-criticos',
+      label: 'Alertas Críticos',
+      valor: formatNumero(3),
+      delta: '+1',
+      deltaGoodWhen: 'down',
+      sublabel: 'vs ontem',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-qa-criticos', 12, { base: 2, tendencia: 1, ruido: 0.4, decimais: 0, min: 0, max: 4 }),
     },
   ],
   '/manutencao': [
@@ -539,59 +521,71 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
   ],
   '/materiais': [
     {
-      id: 'mt-itens',
-      label: 'Itens monitorados',
-      valor: formatNumero(materiais.length),
-      sublabel: 'APIs, excipientes e embalagem',
-      sparkline: serieSparkline('kpi-mt-itens', 12, { base: 10, ruido: 0.04, decimais: 0 }),
+      id: 'mt-monitorados',
+      label: 'Materiais Monitorados',
+      valor: formatNumero(418),
+      delta: '+18',
+      deltaGoodWhen: 'up',
+      sublabel: 'rede · vs último mês',
+      sparkline: serieSparkline('kpi-mt-monitorados', 12, { base: 396, tendencia: 20, ruido: 0.02, decimais: 0 }),
+    },
+    {
+      id: 'mt-prontidao',
+      label: 'Prontidão de Materiais',
+      valor: formatPercent(93.2),
+      delta: formatPontosPercentuais(2.1),
+      deltaGoodWhen: 'up',
+      sublabel: 'vs última semana',
+      sparkline: serieSparkline('kpi-mt-prontidao', 12, { base: 90.8, tendencia: 2.3, ruido: 0.01 }),
     },
     {
       id: 'mt-criticos',
-      label: 'Críticos',
-      valor: formatNumero(materiaisCriticos),
-      sublabel: 'Ibuprofeno API · Blister Alu/Alu',
+      label: 'SKUs Críticos',
+      valor: formatNumero(16),
+      delta: '+2',
+      deltaGoodWhen: 'down',
+      sublabel: 'rede · vs ontem',
       tone: 'danger',
-      sparkline: serieSparkline('kpi-mt-criticos', 12, { base: 1, tendencia: 1, ruido: 0.4, decimais: 0, min: 0, max: 3 }),
+      sparkline: serieSparkline('kpi-mt-criticos', 12, { base: 13, tendencia: 2.5, ruido: 0.12, decimais: 0, min: 9 }),
     },
     {
-      id: 'mt-atencao',
-      label: 'Em atenção',
-      valor: formatNumero(materiaisAtencao),
-      sublabel: 'cobertura entre 2 e 4 dias',
+      id: 'mt-ordens-risco',
+      label: 'Ordens com Risco por Material',
+      valor: formatNumero(11),
+      delta: '+1',
+      deltaGoodWhen: 'down',
+      sublabel: 'vs ontem',
       tone: 'warning',
-      sparkline: serieSparkline('kpi-mt-atencao', 12, { base: 3, ruido: 0.25, decimais: 0, min: 1, max: 5 }),
-    },
-    {
-      id: 'mt-bloqueados',
-      label: 'Bloqueados',
-      valor: formatNumero(materiaisBloqueados),
-      sublabel: 'Sacarose · aguardando CoA',
-      sparkline: serieSparkline('kpi-mt-bloqueados', 12, { base: 0.8, ruido: 0.5, decimais: 0, min: 0, max: 2 }),
+      sparkline: serieSparkline('kpi-mt-ordens-risco', 12, { base: 9, tendencia: 1.6, ruido: 0.14, decimais: 0, min: 6 }),
     },
     {
       id: 'mt-cobertura',
-      label: 'Cobertura média',
-      valor: `${formatNumero(coberturaMediaMateriais, 1)} dias`,
-      delta: '-0,8 dia',
+      label: 'Cobertura Média',
+      valor: `${formatNumero(24.8, 1)} dias`,
+      delta: `+${formatNumero(1.6, 1)}`,
       deltaGoodWhen: 'up',
-      sublabel: 'vs última semana',
+      sublabel: 'dias · vs última semana',
+      sparkline: serieSparkline('kpi-mt-cobertura-media', 12, { base: 23, tendencia: 1.7, ruido: 0.02 }),
+    },
+    {
+      id: 'mt-vencimento',
+      label: 'Lotes Próximos do Vencimento',
+      valor: formatNumero(9),
+      delta: '+2',
+      deltaGoodWhen: 'down',
+      sublabel: 'próximos 60 dias',
       tone: 'warning',
-      sparkline: serieSparkline('kpi-mt-cobertura', 12, { base: 5.6, tendencia: -0.8, ruido: 0.05 }),
+      sparkline: serieSparkline('kpi-mt-vencimento', 12, { base: 7, tendencia: 1.8, ruido: 0.2, decimais: 0, min: 3 }),
     },
     {
-      id: 'mt-risco',
-      label: 'Valor em risco',
-      valor: formatMoedaCompacta(impactoMateriais),
-      sublabel: 'alertas de materiais ativos',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-mt-risco', 12, { base: 380, tendencia: 95, ruido: 0.08 }),
-    },
-    {
-      id: 'mt-transito',
-      label: 'Pedidos em trânsito',
-      valor: formatNumero(4),
-      sublabel: 'próxima chegada: 21/mai',
-      sparkline: serieSparkline('kpi-mt-transito', 12, { base: 4, ruido: 0.2, decimais: 0, min: 1, max: 7 }),
+      id: 'mt-otif',
+      label: 'OTIF de Abastecimento',
+      valor: formatPercent(97.1),
+      delta: formatPontosPercentuais(1.8),
+      deltaGoodWhen: 'up',
+      sublabel: 'vs último mês',
+      tone: 'success',
+      sparkline: serieSparkline('kpi-mt-otif', 12, { base: 95.2, tendencia: 1.9, ruido: 0.008 }),
     },
   ],
   '/custos': [

@@ -31,8 +31,23 @@ import {
   planoPorLinha,
   skusRisco,
 } from './planejamento'
-import { materiais } from './materiais'
-import { lotes } from './lotes'
+import {
+  PRONTIDAO_ABASTECIMENTO_SCORE,
+  eventosMateriais,
+  materiais,
+  ordensImpactadas,
+  prontidaoAbastecimento,
+  tendenciaMaterial24h,
+} from './materiais'
+import {
+  PRONTIDAO_QUALIDADE_SCORE,
+  desviosRanking,
+  lotes,
+  mapaQualidadeAreas,
+  prontidaoQualidade,
+  statusDaAreaQualidade,
+  tendenciaQualidade24h,
+} from './lotes'
 import { equipamentos } from './equipamentos'
 import { ordensManutencao } from './manutencao'
 import {
@@ -230,6 +245,57 @@ describe('materiais', () => {
     expect(materiais.find((m) => m.id === 'MAT-API-001')?.prontidaoPercent).toBe(62)
     expect(materiais.find((m) => m.id === 'MAT-EMB-021')?.prontidaoPercent).toBe(68)
   })
+
+  it('timeline da tela tem 6 eventos com hora válida e severidades conhecidas', () => {
+    expect(eventosMateriais).toHaveLength(6)
+    semDuplicatas(eventosMateriais.map((evento) => evento.id))
+    for (const evento of eventosMateriais) {
+      expect(evento.hora).toMatch(/^\d{2}:\d{2}$/)
+      expect(['Crítica', 'Alta', 'Média', 'Baixa']).toContain(evento.severidade)
+      expect(evento.titulo.length).toBeGreaterThan(10)
+    }
+  })
+
+  it('ordens impactadas referenciam ordens-âncora e materiais existentes', () => {
+    expect(ordensImpactadas).toHaveLength(4)
+    for (const impacto of ordensImpactadas) {
+      expect(idsOrdens.has(impacto.ordemId)).toBe(true)
+      expect(idsMateriais.has(impacto.materialId)).toBe(true)
+    }
+    expect(ordensImpactadas[0]).toMatchObject({
+      ordemId: 'OF-045678',
+      materialId: 'MAT-API-001',
+      impacto: 'Atraso de 6 h',
+      risco: 'Alto',
+    })
+    expect(ordensImpactadas[1]).toMatchObject({ ordemId: 'OF-045682', impacto: 'Atraso de 4 h', risco: 'Alto' })
+  })
+
+  it('prontidão de abastecimento tem 5 itens e score 91', () => {
+    expect(prontidaoAbastecimento).toHaveLength(5)
+    for (const item of prontidaoAbastecimento) {
+      expect(item.percent).toBeGreaterThanOrEqual(0)
+      expect(item.percent).toBeLessThanOrEqual(100)
+    }
+    expect(PRONTIDAO_ABASTECIMENTO_SCORE).toBe(91)
+  })
+
+  it('tendência 24 h é determinística, com 24 pontos e estoque nunca negativo', () => {
+    const ibuprofeno = materiais.find((material) => material.id === 'MAT-API-001')
+    expect(ibuprofeno).toBeDefined()
+    if (!ibuprofeno) return
+    const primeira = tendenciaMaterial24h(ibuprofeno)
+    const segunda = tendenciaMaterial24h(ibuprofeno)
+    expect(primeira).toHaveLength(24)
+    expect(segunda).toEqual(primeira)
+    for (const ponto of primeira) {
+      expect(ponto.estoque).toBeGreaterThanOrEqual(0)
+      expect(ponto.cobertura).toBeGreaterThanOrEqual(0)
+    }
+    // O último ponto converge para o estoque atual (320 kg) e a cobertura de ~1,4 dia.
+    const ultimo = primeira[primeira.length - 1]
+    expect(Math.abs(ultimo.estoque - ibuprofeno.estoque)).toBeLessThan(ibuprofeno.estoque * 0.15)
+  })
 })
 
 describe('lotes de qualidade', () => {
@@ -249,6 +315,50 @@ describe('lotes de qualidade', () => {
     for (const parametro of lote?.parametros ?? []) expect(parametro.situacao).toBe('Dentro da faixa')
     expect(lote?.documentos).toHaveLength(4)
     expect(lote?.documentos?.find((documento) => documento.nome === 'Laudo')?.status).toBe('Pendente')
+  })
+
+  it('todo lote tem próxima ação e início na data-base da demo', () => {
+    for (const lote of lotes) {
+      expect(lote.proximaAcao.length).toBeGreaterThan(5)
+      expect(lote.inicio).toBeDefined()
+      expect(lote.inicio?.getMonth()).toBe(4)
+      expect(lote.inicio?.getDate()).toBe(19)
+    }
+    const buscopan = lotes.find((item) => item.id === '2456789A')
+    expect(buscopan?.inicio?.getHours()).toBe(6)
+    expect(buscopan?.inicio?.getMinutes()).toBe(15)
+    expect(buscopan?.esperaMinutos).toBe(138)
+  })
+
+  it('mapa da qualidade cobre 6 áreas e aplica a regra Normal ≥90 · Atenção 80–89 · Crítico <80', () => {
+    expect(mapaQualidadeAreas).toHaveLength(6)
+    expect(statusDaAreaQualidade(92)).toBe('Normal')
+    expect(statusDaAreaQualidade(86)).toBe('Atenção')
+    expect(statusDaAreaQualidade(78)).toBe('Crítico')
+    const revestimento = mapaQualidadeAreas.find((area) => area.area === 'Revestimento L05')
+    expect(revestimento?.percent).toBe(78)
+    expect(statusDaAreaQualidade(revestimento?.percent ?? 0)).toBe('Crítico')
+  })
+
+  it('ranking de desvios tem 6 itens em ordem decrescente de ocorrências', () => {
+    expect(desviosRanking).toHaveLength(6)
+    semDuplicatas(desviosRanking.map((desvio) => desvio.id))
+    for (let i = 1; i < desviosRanking.length; i++) {
+      expect(desviosRanking[i].quantidade).toBeLessThanOrEqual(desviosRanking[i - 1].quantidade)
+    }
+    expect(desviosRanking[0]).toMatchObject({ desvio: 'Peso fora da faixa', quantidade: 27, percent: 28 })
+  })
+
+  it('prontidão de qualidade tem 6 itens e score 92; tendência 24 h fica na faixa esperada', () => {
+    expect(prontidaoQualidade).toHaveLength(6)
+    expect(PRONTIDAO_QUALIDADE_SCORE).toBe(92)
+    expect(tendenciaQualidade24h).toHaveLength(24)
+    for (const ponto of tendenciaQualidade24h) {
+      expect(ponto.aprovacao).toBeGreaterThanOrEqual(95)
+      expect(ponto.aprovacao).toBeLessThanOrEqual(99.5)
+      expect(ponto.desvios).toBeGreaterThanOrEqual(0)
+      expect(ponto.liberados).toBeGreaterThanOrEqual(0)
+    }
   })
 })
 

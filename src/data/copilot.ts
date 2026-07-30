@@ -129,7 +129,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
       'Priorizar a liberação do lote 2456789A — destrava a embalagem da L12.',
       'Concluir a investigação do 2456791C junto com a análise das microparadas.',
     ],
-    botoes: ['Priorizar lote 2456789A', 'Ver investigação'],
+    botoes: ['Simular Impacto', 'Priorizar Lotes', 'Acionar Qualidade'],
   },
   '/manutencao': {
     tela: '/manutencao',
@@ -169,7 +169,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
       'Priorizar transferência de Ibuprofeno API de Goiânia — chega em 24 h.',
       'Liberar o blister substituto homologado e retomar a L15 em 21/mai.',
     ],
-    botoes: ['Priorizar transferência', 'Liberar substituto'],
+    botoes: ['Simular impacto', 'Acionar suprimentos', 'Priorizar materiais'],
   },
   '/custos': {
     tela: '/custos',

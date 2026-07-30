@@ -185,9 +185,38 @@ export interface Material {
   status: StatusMaterial
   /** Prontidão para as ordens da semana, em % (visão executiva). */
   prontidaoPercent: number
+  /** Quantidade em pedidos abertos, na unidade do material. */
+  pedidosAbertos: number
+  /** Variação do estoque vs semana anterior, em %. */
+  variacaoEstoquePercent: number
   proximaAcao: string
   linhasAfetadas?: string[]
   ordensAfetadas?: string[]
+}
+
+export interface EventoMaterial {
+  id: string
+  /** Hora do evento: "09:58". */
+  hora: string
+  titulo: string
+  severidade: SeveridadeAlerta
+}
+
+export interface OrdemImpactada {
+  ordemId: string
+  materialId: string
+  impacto: 'Atraso de 6 h' | 'Atraso de 4 h' | 'Sem impacto'
+  risco: 'Alto' | 'Médio' | 'Baixo'
+}
+
+export interface PontoTendenciaMaterial {
+  label: string
+  /** Consumo acumulado nas últimas 24 h (kg ou unidade do material). */
+  consumo: number
+  /** Estoque projetado (unidade do material). */
+  estoque: number
+  /** Cobertura em dias. */
+  cobertura: number
 }
 
 // ── Qualidade (lotes) ────────────────────────────────────────────────────────
@@ -223,9 +252,36 @@ export interface Lote {
   esperaMinutos?: number
   resultado?: 'Aprovado' | 'Reprovado'
   analista: string
+  /** Início da produção do lote. */
+  inicio?: Date
+  /** Próxima ação da fila: "Revisar resultados", "Enviar CoA"… */
+  proximaAcao: string
   parametros?: ParametroLote[]
   documentos?: DocumentoLote[]
   observacao?: string
+}
+
+export interface AreaQualidade {
+  area: string
+  percent: number
+}
+
+export interface DesvioRanking {
+  id: string
+  desvio: string
+  severidade: 'Alta' | 'Média' | 'Baixa'
+  quantidade: number
+  percent: number
+}
+
+export interface PontoTendenciaQualidade {
+  label: string
+  /** Taxa de aprovação em %. */
+  aprovacao: number
+  /** Desvios abertos no bucket. */
+  desvios: number
+  /** Lotes liberados no bucket. */
+  liberados: number
 }
 
 // ── Manutenção ───────────────────────────────────────────────────────────────
