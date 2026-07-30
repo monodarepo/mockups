@@ -78,7 +78,7 @@ export interface OrdemProducao {
 
 // ── Sequenciamento (blocos de Gantt) ─────────────────────────────────────────
 
-export type TipoBloco = 'producao' | 'setup' | 'limpeza' | 'manutencao' | 'parada'
+export type TipoBloco = 'producao' | 'setup' | 'limpeza' | 'manutencao' | 'parada' | 'folga'
 
 export interface BlocoSequencia {
   id: string
@@ -89,6 +89,21 @@ export interface BlocoSequencia {
   rotulo: string
   inicio: Date
   fim: Date
+  /** Bloco sob risco — borda vermelha e ícone no Gantt. */
+  risco?: boolean
+  motivoRisco?: string
+}
+
+// ── Restrições do sequenciamento ─────────────────────────────────────────────
+
+export type TipoRestricao = 'material' | 'manutencao' | 'qualidade' | 'capacidade' | 'setup' | 'folga'
+
+export interface Restricao {
+  id: string
+  tipo: TipoRestricao
+  titulo: string
+  detalhe: string
+  severidade: SeveridadeAlerta
 }
 
 // ── Materiais ────────────────────────────────────────────────────────────────

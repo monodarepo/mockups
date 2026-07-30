@@ -1,4 +1,4 @@
-import type { BlocoSequencia, OrdemProducao } from './types'
+import type { OrdemProducao } from './types'
 
 /** Data em maio/2025 — única data-base da simulação. */
 const dt = (dia: number, hora = 0, minuto = 0) => new Date(2025, 4, dia, hora, minuto)
@@ -67,7 +67,7 @@ export const ordens: OrdemProducao[] = [
     fabricaId: 'anapolis',
     linhaId: 'L05',
     inicio: dt(20, 7, 30),
-    fim: dt(22, 10),
+    fim: dt(24, 6),
     quantidade: 1_000_000,
     unidade: 'DRG',
     prioridade: 'Média',
@@ -102,25 +102,26 @@ export const ordens: OrdemProducao[] = [
     produtoId: 'apracur',
     fabricaId: 'anapolis',
     linhaId: 'L03',
-    inicio: dt(22, 7),
-    fim: dt(23, 12),
+    inicio: dt(25, 7),
+    fim: dt(26, 10),
     quantidade: 450_000,
     unidade: 'CAPS',
     prioridade: 'Média',
     status: 'Planejada',
-    situacao: 'No prazo',
+    situacao: 'Atenção',
     progresso: 0,
     produzido: 0,
-    prontidaoMateriais: 88,
+    prontidaoMateriais: 64,
     operador: 'Rafael Costa',
+    observacao: 'Cápsula gelatina programada para chegar em 26/mai, 09:00 — início sob risco.',
   },
   {
     id: 'OF-045685',
     produtoId: 'tylenol-750',
     fabricaId: 'anapolis',
     linhaId: 'L05',
-    inicio: dt(22, 13),
-    fim: dt(24, 8),
+    inicio: dt(21, 15),
+    fim: dt(23, 6),
     quantidade: 900_000,
     unidade: 'COMP',
     prioridade: 'Média',
@@ -136,8 +137,8 @@ export const ordens: OrdemProducao[] = [
     produtoId: 'novalgina',
     fabricaId: 'anapolis',
     linhaId: 'L08',
-    inicio: dt(21, 17),
-    fim: dt(23, 12),
+    inicio: dt(23, 15),
+    fim: dt(25, 10),
     quantidade: 750_000,
     unidade: 'COMP',
     prioridade: 'Média',
@@ -153,8 +154,8 @@ export const ordens: OrdemProducao[] = [
     produtoId: 'advil',
     fabricaId: 'anapolis',
     linhaId: 'L08',
-    inicio: dt(23, 15),
-    fim: dt(25, 10),
+    inicio: dt(21, 17),
+    fim: dt(23, 12),
     quantidade: 650_000,
     unidade: 'COMP',
     prioridade: 'Baixa',
@@ -172,8 +173,8 @@ export const ordens: OrdemProducao[] = [
     produtoId: 'addera-d3',
     fabricaId: 'anapolis',
     linhaId: 'L03',
-    inicio: dt(24, 7),
-    fim: dt(25, 9),
+    inicio: dt(22, 7),
+    fim: dt(23, 9),
     quantidade: 300_000,
     unidade: 'CAPS',
     prioridade: 'Baixa',
@@ -270,114 +271,3 @@ export const ORDENS_ANCORA = [
   'OF-045686',
   'OF-045687',
 ] as const
-
-// ── Blocos de sequência (Gantt) ────────────────────────────────────────────
-
-let seqBloco = 0
-function bloco(
-  linhaId: string,
-  tipo: BlocoSequencia['tipo'],
-  inicio: Date,
-  fim: Date,
-  rotulo: string,
-  ordemId?: string,
-): BlocoSequencia {
-  seqBloco += 1
-  const base = { id: `BL-${String(seqBloco).padStart(3, '0')}`, linhaId, tipo, rotulo, inicio, fim }
-  return ordemId ? { ...base, ordemId } : base
-}
-
-/** Sequência vigente (plano-base) da semana 20–26/mai. */
-export const blocosSequencia: BlocoSequencia[] = [
-  // L12 — Comprimidos
-  bloco('L12', 'setup', dt(20, 6), dt(20, 8), 'Setup Buscopan Composto'),
-  bloco('L12', 'producao', dt(20, 8), dt(22, 16), 'Buscopan Composto', 'OF-045678'),
-  bloco('L12', 'limpeza', dt(22, 16), dt(22, 19), 'Limpeza completa'),
-  bloco('L12', 'manutencao', dt(26, 8), dt(26, 16), 'Preventiva Compressora L12'),
-  // L08 — Sólidos
-  bloco('L08', 'setup', dt(20, 5), dt(20, 6), 'Setup Neosaldina'),
-  bloco('L08', 'producao', dt(20, 6), dt(21, 14), 'Neosaldina', 'OF-045679'),
-  bloco('L08', 'limpeza', dt(21, 14), dt(21, 16), 'Limpeza completa'),
-  bloco('L08', 'setup', dt(21, 16), dt(21, 17), 'Setup Novalgina'),
-  bloco('L08', 'producao', dt(21, 17), dt(23, 12), 'Novalgina', 'OF-045686'),
-  bloco('L08', 'limpeza', dt(23, 12), dt(23, 14), 'Limpeza completa'),
-  bloco('L08', 'setup', dt(23, 14), dt(23, 15), 'Setup Advil'),
-  bloco('L08', 'producao', dt(23, 15), dt(25, 10), 'Advil', 'OF-045687'),
-  // L03 — Cápsulas
-  bloco('L03', 'setup', dt(20, 6), dt(20, 7), 'Setup Benegrip Multi'),
-  bloco('L03', 'producao', dt(20, 7), dt(21, 18), 'Benegrip Multi', 'OF-045680'),
-  bloco('L03', 'limpeza', dt(21, 18), dt(21, 20), 'Limpeza completa'),
-  bloco('L03', 'setup', dt(22, 6), dt(22, 7), 'Setup Apracur'),
-  bloco('L03', 'producao', dt(22, 7), dt(23, 12), 'Apracur', 'OF-045683'),
-  bloco('L03', 'limpeza', dt(23, 12), dt(23, 14), 'Limpeza completa'),
-  bloco('L03', 'setup', dt(24, 6), dt(24, 7), 'Setup Addera D3'),
-  bloco('L03', 'producao', dt(24, 7), dt(25, 9), 'Addera D3', 'OF-045684'),
-  // L05 — Drágeas
-  bloco('L05', 'setup', dt(20, 6), dt(20, 7, 30), 'Setup Dorflex'),
-  bloco('L05', 'producao', dt(20, 7, 30), dt(22, 10), 'Dorflex', 'OF-045681'),
-  bloco('L05', 'limpeza', dt(22, 10), dt(22, 12), 'Limpeza completa'),
-  bloco('L05', 'setup', dt(22, 12), dt(22, 13), 'Setup Tylenol 750mg'),
-  bloco('L05', 'producao', dt(22, 13), dt(24, 8), 'Tylenol 750mg', 'OF-045685'),
-  // L15 — Pó
-  bloco('L15', 'parada', dt(20, 6), dt(21, 12), 'Aguardando Blister Alu/Alu 10cp'),
-  bloco('L15', 'setup', dt(21, 12), dt(21, 13), 'Setup Rinosoro'),
-  bloco('L15', 'producao', dt(21, 13), dt(23, 6), 'Rinosoro', 'OF-045682'),
-  // Goiânia
-  bloco('P23', 'setup', dt(20, 6), dt(20, 7), 'Setup Benegripe'),
-  bloco('P23', 'producao', dt(20, 7), dt(22, 12), 'Benegripe', 'OF-045688'),
-  bloco('P26', 'setup', dt(21, 6), dt(21, 7), 'Setup Novalgina'),
-  bloco('P26', 'producao', dt(21, 7), dt(23, 10), 'Novalgina', 'OF-045689'),
-  // Jacareí
-  bloco('P28', 'setup', dt(22, 6), dt(22, 7), 'Setup Dorflex'),
-  bloco('P28', 'producao', dt(22, 7), dt(24, 12), 'Dorflex', 'OF-045690'),
-  bloco('P30', 'setup', dt(24, 6), dt(24, 7), 'Setup Buscopan Composto'),
-  bloco('P30', 'producao', dt(24, 7), dt(26, 10), 'Buscopan Composto', 'OF-045691'),
-]
-
-/**
- * Sequência otimizada pelo Agente de Sequenciamento: agrupa famílias na L03,
- * encurta setups e antecipa a preditiva da Compressora L12 para a janela de
- * menor impacto (21/mai à noite). Economia total: 45 h de setup na semana.
- */
-export const blocosSequenciaOtimizada: BlocoSequencia[] = [
-  // L12 — preditiva antecipada para 21/mai (evita a falha prevista de 78%)
-  bloco('L12', 'setup', dt(20, 6, 30), dt(20, 8), 'Setup Buscopan Composto'),
-  bloco('L12', 'producao', dt(20, 8), dt(22, 16), 'Buscopan Composto', 'OF-045678'),
-  bloco('L12', 'manutencao', dt(21, 22), dt(22, 4), 'Preditiva Compressora L12 (OT-245689)'),
-  bloco('L12', 'limpeza', dt(22, 16), dt(22, 18, 30), 'Limpeza completa'),
-  // L08 — mesma família em sequência (Neosaldina → Novalgina), setups reduzidos
-  bloco('L08', 'setup', dt(20, 5, 15), dt(20, 6), 'Setup Neosaldina'),
-  bloco('L08', 'producao', dt(20, 6), dt(21, 14), 'Neosaldina', 'OF-045679'),
-  bloco('L08', 'setup', dt(21, 14), dt(21, 14, 30), 'Troca rápida — mesma família'),
-  bloco('L08', 'producao', dt(21, 14, 30), dt(23, 9), 'Novalgina', 'OF-045686'),
-  bloco('L08', 'limpeza', dt(23, 9), dt(23, 11), 'Limpeza completa'),
-  bloco('L08', 'setup', dt(23, 11), dt(23, 12), 'Setup Advil'),
-  bloco('L08', 'producao', dt(23, 12), dt(25, 7), 'Advil', 'OF-045687'),
-  // L03 — Antigripais agrupados (Benegrip Multi → Apracur) sem limpeza completa
-  bloco('L03', 'setup', dt(20, 6), dt(20, 7), 'Setup Benegrip Multi'),
-  bloco('L03', 'producao', dt(20, 7), dt(21, 18), 'Benegrip Multi', 'OF-045680'),
-  bloco('L03', 'setup', dt(21, 18), dt(21, 18, 30), 'Troca rápida — mesma família'),
-  bloco('L03', 'producao', dt(21, 18, 30), dt(22, 23), 'Apracur', 'OF-045683'),
-  bloco('L03', 'limpeza', dt(22, 23), dt(23, 1), 'Limpeza completa'),
-  bloco('L03', 'setup', dt(23, 6), dt(23, 7), 'Setup Addera D3'),
-  bloco('L03', 'producao', dt(23, 7), dt(24, 9), 'Addera D3', 'OF-045684'),
-  // L05 — sem mudança estrutural, setups encurtados
-  bloco('L05', 'setup', dt(20, 6, 15), dt(20, 7, 30), 'Setup Dorflex'),
-  bloco('L05', 'producao', dt(20, 7, 30), dt(22, 10), 'Dorflex', 'OF-045681'),
-  bloco('L05', 'limpeza', dt(22, 10), dt(22, 11, 30), 'Limpeza completa'),
-  bloco('L05', 'setup', dt(22, 11, 30), dt(22, 12, 15), 'Setup Tylenol 750mg'),
-  bloco('L05', 'producao', dt(22, 12, 15), dt(24, 6), 'Tylenol 750mg', 'OF-045685'),
-  // L15 — retomada antecipada com blister substituto homologado
-  bloco('L15', 'parada', dt(20, 6), dt(21, 6), 'Aguardando Blister Alu/Alu 10cp'),
-  bloco('L15', 'setup', dt(21, 6), dt(21, 7), 'Setup Rinosoro'),
-  bloco('L15', 'producao', dt(21, 7), dt(23, 0), 'Rinosoro', 'OF-045682'),
-  // Goiânia e Jacareí — inalterados
-  bloco('P23', 'setup', dt(20, 6), dt(20, 7), 'Setup Benegripe'),
-  bloco('P23', 'producao', dt(20, 7), dt(22, 12), 'Benegripe', 'OF-045688'),
-  bloco('P26', 'setup', dt(21, 6), dt(21, 7), 'Setup Novalgina'),
-  bloco('P26', 'producao', dt(21, 7), dt(23, 10), 'Novalgina', 'OF-045689'),
-  bloco('P28', 'setup', dt(22, 6), dt(22, 7), 'Setup Dorflex'),
-  bloco('P28', 'producao', dt(22, 7), dt(24, 12), 'Dorflex', 'OF-045690'),
-  bloco('P30', 'setup', dt(24, 6), dt(24, 7), 'Setup Buscopan Composto'),
-  bloco('P30', 'producao', dt(24, 7), dt(26, 10), 'Buscopan Composto', 'OF-045691'),
-]

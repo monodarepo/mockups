@@ -5,7 +5,16 @@
 import { describe, expect, it } from 'vitest'
 import { fabricas, linhas } from './fabricas'
 import { produtos } from './produtos'
-import { ORDENS_ANCORA, blocosSequencia, blocosSequenciaOtimizada, ordens } from './ordens'
+import { ORDENS_ANCORA, ordens } from './ordens'
+import {
+  FAMILIAS_SETUP,
+  GANHO_OTIMIZACAO,
+  blocosSequencia,
+  blocosSequenciaOtimizada,
+  matrizSetup,
+  restricoes,
+} from './sequencia'
+import { kpisSequenciamento } from './kpis'
 import { materiais } from './materiais'
 import { lotes } from './lotes'
 import { equipamentos } from './equipamentos'
@@ -106,13 +115,67 @@ describe('ordens de produção', () => {
     }
   })
 
-  it('toda ordem executável aparece na sequência base', () => {
-    const ordensNoGantt = new Set(
-      blocosSequencia.filter((bloco) => bloco.tipo === 'producao').map((bloco) => bloco.ordemId),
-    )
-    for (const ordem of ordens) {
-      if (ordem.status !== 'Concluída') expect(ordensNoGantt.has(ordem.id)).toBe(true)
+  it('toda ordem de Anápolis aparece na sequência base e na otimizada', () => {
+    for (const blocos of [blocosSequencia, blocosSequenciaOtimizada]) {
+      const ordensNoGantt = new Set(
+        blocos.filter((bloco) => bloco.tipo === 'producao').map((bloco) => bloco.ordemId),
+      )
+      for (const ordem of ordens) {
+        if (ordem.fabricaId === 'anapolis') expect(ordensNoGantt.has(ordem.id)).toBe(true)
+      }
     }
+  })
+})
+
+describe('sequenciamento', () => {
+  it('a otimização elimina exatamente 3 setups', () => {
+    const setupsBase = blocosSequencia.filter((bloco) => bloco.tipo === 'setup').length
+    const setupsOtimizados = blocosSequenciaOtimizada.filter((bloco) => bloco.tipo === 'setup').length
+    expect(setupsBase - setupsOtimizados).toBe(GANHO_OTIMIZACAO.setupsEliminados)
+  })
+
+  it('blocos não se sobrepõem dentro da mesma linha', () => {
+    for (const blocos of [blocosSequencia, blocosSequenciaOtimizada]) {
+      const porLinha = new Map<string, Array<[number, number]>>()
+      for (const bloco of blocos) {
+        const lista = porLinha.get(bloco.linhaId) ?? []
+        lista.push([bloco.inicio.getTime(), bloco.fim.getTime()])
+        porLinha.set(bloco.linhaId, lista)
+      }
+      for (const [linhaId, faixas] of porLinha) {
+        const ordenadas = faixas.sort((a, b) => a[0] - b[0])
+        for (let i = 1; i < ordenadas.length; i++) {
+          expect(ordenadas[i][0], `sobreposição na ${linhaId}`).toBeGreaterThanOrEqual(ordenadas[i - 1][1])
+        }
+      }
+    }
+  })
+
+  it('matriz de setup cobre as 5 famílias com trocas de 45–70 min e diagonal mínima', () => {
+    expect(FAMILIAS_SETUP).toHaveLength(5)
+    for (const de of FAMILIAS_SETUP) {
+      for (const para of FAMILIAS_SETUP) {
+        const minutos = matrizSetup[de][para]
+        expect(minutos).toBeGreaterThanOrEqual(45)
+        expect(minutos).toBeLessThanOrEqual(70)
+        if (de !== para) expect(minutos).toBeGreaterThan(matrizSetup[de][de])
+      }
+    }
+    expect(matrizSetup['Antigripais']['Antitérmicos']).toBe(70)
+  })
+
+  it('tem 6 restrições, uma por tipo', () => {
+    expect(restricoes).toHaveLength(6)
+    expect(new Set(restricoes.map((r) => r.tipo)).size).toBe(6)
+  })
+
+  it('KPIs refletem a otimização: setups 28→25 e horas 312→301,3', () => {
+    const base = kpisSequenciamento(false)
+    const otimizada = kpisSequenciamento(true)
+    expect(base.find((k) => k.id === 'sq-setups')?.valor).toBe('28')
+    expect(otimizada.find((k) => k.id === 'sq-setups')?.valor).toBe('25')
+    expect(base.find((k) => k.id === 'sq-horas')?.valor).toBe('312 h')
+    expect(otimizada.find((k) => k.id === 'sq-horas')?.valor).toBe('301,3 h')
   })
 })
 

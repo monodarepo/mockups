@@ -60,6 +60,73 @@ const acoesPendentes = acoesAgentes.filter((a) => a.status === 'Pendente').lengt
 const planoBase = cenarios[0]
 
 /**
+ * KPIs de /sequenciamento — variam com o estado da otimização:
+ * Setups 28 → 25 e Horas de Setup 312 h → 301,3 h (−10,7 h).
+ */
+export function kpisSequenciamento(otimizada: boolean): KpiCardData[] {
+  return [
+    {
+      id: 'sq-aderencia',
+      label: 'Aderência da Sequência',
+      valor: formatPercent(94.1),
+      delta: formatPontosPercentuais(3.2),
+      deltaGoodWhen: 'up',
+      sublabel: 'vs última semana',
+      sparkline: serieSparkline('kpi-sq-aderencia', 12, { base: 90.5, tendencia: 3.4, ruido: 0.01 }),
+    },
+    {
+      id: 'sq-setups',
+      label: 'Setups Planejados',
+      valor: formatNumero(otimizada ? 25 : 28),
+      delta: otimizada ? '-3' : '-4',
+      deltaGoodWhen: 'down',
+      sublabel: otimizada ? 'com otimização aplicada' : 'vs última semana',
+      tone: otimizada ? 'success' : 'primary',
+      sparkline: serieSparkline('kpi-sq-setups', 12, { base: 31, tendencia: -3.5, ruido: 0.08, decimais: 0 }),
+    },
+    {
+      id: 'sq-horas',
+      label: 'Horas de Setup',
+      valor: otimizada ? `${formatNumero(301.3, 1)} h` : `${formatNumero(312)} h`,
+      delta: otimizada ? `-${formatNumero(10.7, 1)} h` : '+18 h',
+      deltaGoodWhen: 'down',
+      sublabel: otimizada ? 'com otimização aplicada' : 'vs meta da semana (294 h)',
+      tone: otimizada ? 'success' : 'warning',
+      sparkline: serieSparkline('kpi-sq-horas', 12, { base: 296, tendencia: 15, ruido: 0.03 }),
+    },
+    {
+      id: 'sq-risco',
+      label: 'Ordens em Risco',
+      valor: formatNumero(11),
+      delta: '+2',
+      deltaGoodWhen: 'down',
+      sublabel: 'vs última semana',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-sq-risco', 12, { base: 8.5, tendencia: 2.4, ruido: 0.12, decimais: 0, min: 5 }),
+    },
+    {
+      id: 'sq-eficiencia',
+      label: 'Eficiência da Sequência',
+      valor: formatPercent(87.8),
+      delta: formatPontosPercentuais(2.6),
+      deltaGoodWhen: 'up',
+      sublabel: 'vs última semana',
+      sparkline: serieSparkline('kpi-sq-eficiencia', 12, { base: 84.8, tendencia: 2.8, ruido: 0.012 }),
+    },
+    {
+      id: 'sq-ganho',
+      label: 'Ganho Potencial',
+      valor: formatMoedaCompacta(1_380_000),
+      delta: `+${formatMoedaCompacta(210_000)}`,
+      deltaGoodWhen: 'up',
+      sublabel: 'identificado pelo otimizador',
+      tone: 'success',
+      sparkline: serieSparkline('kpi-sq-ganho', 12, { base: 1080, tendencia: 280, ruido: 0.06 }),
+    },
+  ]
+}
+
+/**
  * KPIs de todas as telas, na ordem em que os cards aparecem.
  * Valores já formatados em pt-BR; sparklines determinísticas por seed.
  */
@@ -179,61 +246,7 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
       sparkline: serieSparkline('kpi-pl-cobertura', 12, { base: 5.6, tendencia: -0.8, ruido: 0.05 }),
     },
   ],
-  '/sequenciamento': [
-    {
-      id: 'sq-setups',
-      label: 'Setups na semana',
-      valor: formatNumero(42),
-      sublabel: 'todas as linhas',
-      sparkline: serieSparkline('kpi-sq-setups', 12, { base: 40, tendencia: 2, ruido: 0.08, decimais: 0 }),
-    },
-    {
-      id: 'sq-horas',
-      label: 'Horas de setup',
-      valor: `${formatNumero(320)} h`,
-      delta: formatPercentAssinado(6.7),
-      deltaGoodWhen: 'down',
-      sublabel: 'sequência vigente · vs padrão',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-sq-horas', 12, { base: 300, tendencia: 20, ruido: 0.04 }),
-    },
-    {
-      id: 'sq-medio',
-      label: 'Tempo médio de setup',
-      valor: '46 min',
-      delta: '+8 min',
-      deltaGoodWhen: 'down',
-      sublabel: 'vs padrão da planta',
-      sparkline: serieSparkline('kpi-sq-medio', 12, { base: 42, tendencia: 4, ruido: 0.06 }),
-    },
-    {
-      id: 'sq-trocas',
-      label: 'Trocas de família',
-      valor: formatNumero(18),
-      delta: '+4',
-      deltaGoodWhen: 'down',
-      sublabel: 'vs sequência otimizada',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-sq-trocas', 12, { base: 16, tendencia: 2, ruido: 0.1, decimais: 0 }),
-    },
-    {
-      id: 'sq-limpezas',
-      label: 'Limpezas programadas',
-      valor: formatNumero(26),
-      sublabel: 'semana 20 – 26/mai',
-      sparkline: serieSparkline('kpi-sq-limpezas', 12, { base: 25, ruido: 0.08, decimais: 0 }),
-    },
-    {
-      id: 'sq-ganho',
-      label: 'Ganho da otimização',
-      valor: '45 h',
-      delta: formatPercentAssinado(-14),
-      deltaGoodWhen: 'down',
-      sublabel: 'redução de setup disponível',
-      tone: 'success',
-      sparkline: serieSparkline('kpi-sq-ganho', 12, { base: 38, tendencia: 7, ruido: 0.08 }),
-    },
-  ],
+  '/sequenciamento': kpisSequenciamento(false),
   '/execucao': [
     {
       id: 'ex-ordens',

@@ -176,7 +176,7 @@ export const useAppStore = create<AppState>((set) => {
         sequenciaOtimizada: true,
         toasts: empilharToast(estado, {
           titulo: 'Sequência otimizada',
-          descricao: 'Economia de 45 h de setup aplicada ao Gantt da semana.',
+          descricao: '−3 setups · +10,7 h de capacidade · ganho estimado de R$ 210 mil.',
           tone: 'success',
         }),
       })),

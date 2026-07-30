@@ -52,22 +52,22 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/sequenciamento': {
     tela: '/sequenciamento',
-    saudacao: 'Bom dia, {nome}. Há 45 h de setup recuperáveis nesta semana.',
+    saudacao: 'Bom dia, {nome}. Estes são os insights da sequência da semana.',
     resumo:
-      'A sequência vigente consome 320 h de setup com 18 trocas de família. A sequência otimizada agrupa famílias na L03 e na L08 e reduz o total para 275 h.',
+      'A sequência vigente tem 28 setups (312 h). Reagrupar a família Analgésicos elimina 3 setups, libera 10,7 h de capacidade e captura R$ 210 mil.',
     riscos: [
-      'Setups da L08 28% acima do padrão — duas trocas de família evitáveis.',
-      'Limpeza completa entre Benegrip Multi e Apracur na L03 é dispensável (mesma família).',
+      '1 conflito crítico: a cápsula gelatina do Apracur chega 26/mai, 09:00 — depois do início programado na L03.',
+      '2 janelas de manutenção impactam prazos: Compressora L12 (23/mai, 08:00 – 16:00) e HVAC AHU-03 (21/mai).',
     ],
     causas: [
-      'Sequência atual prioriza datas de entrega sem agrupar por família.',
-      'Janela de preditiva da Compressora L12 ainda não incorporada ao Gantt.',
+      'Alternância Analgésicos → Antitérmicos → Analgésicos na L08 adiciona 2 limpezas completas.',
+      'Dorflex dividido em duas corridas na L05 exige setup extra de retomada.',
     ],
     acoes: [
-      'Aplicar a sequência otimizada — economia de 45 h de setup na semana.',
-      'Encaixar a OT-245689 na janela noturna de 21/mai, sem parada extra da L12.',
+      'Reagrupar a família Analgésicos — redução potencial de 3 setups (10,7 h).',
+      'Confirmar a chegada da cápsula gelatina antes de publicar a sequência da L03.',
     ],
-    botoes: ['Otimizar sequência', 'Ver trocas de família'],
+    botoes: ['Reagrupar Campanhas', 'Simular Parada', 'Aprovar Ajuste'],
   },
   '/execucao': {
     tela: '/execucao',
@@ -282,7 +282,7 @@ export const bancoQA: ParQA[] = [
     id: 'qa-03',
     palavrasChave: ['sequência minimiza', 'minimiza setups', 'menos setups', 'otimizar sequência'],
     resposta:
-      'A sequência otimizada agrupa produtos da mesma família: Neosaldina seguida de Novalgina na L08 e Benegrip Multi seguido de Apracur na L03, eliminando duas limpezas completas. O total de setup cai de 320 h para 275 h na semana — economia de 45 h. A preditiva da Compressora L12 entra na janela noturna de 21/mai, sem parada extra.',
+      'A sequência otimizada agrupa por família: na L08, a Novalgina roda logo após a Neosaldina com troca rápida de 30 min, e na L05 o Dorflex vira corrida única — 3 setups eliminados e 10,7 h de capacidade liberadas em Anápolis (setup de 312 h para 301,3 h). No plano consolidado da rede, o Cenário A leva as horas de setup de 320 h para 275 h.',
     fontes: ['SAP PP', 'POP-042'],
   },
   {
