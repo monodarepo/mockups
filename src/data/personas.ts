@@ -23,6 +23,14 @@ export const personas: Persona[] = [
     tratamento: 'Ricardo',
   },
   {
+    // Variante da perspectiva Supply da Visão Geral.
+    id: 'ricardo-supply',
+    nome: 'Ricardo Martins',
+    papel: 'Diretor de Supply',
+    iniciais: 'RM',
+    tratamento: 'Ricardo',
+  },
+  {
     id: 'marina',
     nome: 'Marina Oliveira',
     papel: 'Administradora',

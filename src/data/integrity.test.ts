@@ -111,6 +111,17 @@ import {
   resumoConfiguracoes,
   statusSistema,
 } from './configuracoes'
+import {
+  alertasSupply,
+  composicaoEstoque,
+  copilotSupply,
+  destaquesSemana,
+  fluxoSupply,
+  kpisSupply,
+  kpisSupplySecundarios,
+  nosLogisticos,
+  pontosMapaSite,
+} from './supply'
 import { ANALISE_CENARIOS, FONTES_COPILOT, RESPOSTA_PADRAO_QA, bancoQA, buscarResposta, conteudoCopilot } from './copilot'
 import { kpisPorTela } from './kpis'
 import { producaoVsPlano } from './graficos'
@@ -808,6 +819,47 @@ describe('gráficos', () => {
     expect(ultimo.real).toBe(2_094)
     expect(ultimo.plano).toBe(1_968)
     expect(ultimo.label).toBe('19/mai')
+  })
+})
+
+describe('perspectiva supply', () => {
+  it('duas fileiras de 5 KPIs com IDs únicos', () => {
+    expect(kpisSupply).toHaveLength(5)
+    expect(kpisSupplySecundarios).toHaveLength(5)
+    semDuplicatas([...kpisSupply, ...kpisSupplySecundarios].map((kpi) => kpi.id))
+    expect(kpisSupply.find((kpi) => kpi.id === 'sp-otif')?.valor).toBe('94,2%')
+    expect(kpisSupplySecundarios.find((kpi) => kpi.id === 'sp-rupturas')?.tone).toBe('danger')
+  })
+
+  it('fluxo de 5 etapas, destaques, composição (100%) e alertas prioritários', () => {
+    expect(fluxoSupply.map((etapa) => etapa.etapa)).toEqual([
+      'Recebimento',
+      'Armazenagem',
+      'Produção',
+      'Expedição',
+      'Entrega',
+    ])
+    expect(fluxoSupply[0].concluida).toBe(true)
+    expect(destaquesSemana).toHaveLength(3)
+    expect(composicaoEstoque.reduce((soma, fatia) => soma + fatia.percent, 0)).toBe(100)
+    expect(alertasSupply).toHaveLength(3)
+    expect(pontosMapaSite).toHaveLength(6)
+  })
+
+  it('nós logísticos cobrem fábricas, CDs e cargas em trânsito', () => {
+    const porTipo = (tipo: string) => nosLogisticos.filter((no) => no.tipo === tipo).length
+    expect(porTipo('fabrica')).toBe(3)
+    expect(porTipo('cd')).toBe(4)
+    expect(porTipo('transito')).toBe(3)
+  })
+
+  it('perguntas sugeridas do copiloto de Supply têm match no banco Q&A', () => {
+    expect(copilotSupply.perguntasSugeridas).toHaveLength(3)
+    for (const sugestao of copilotSupply.perguntasSugeridas) {
+      expect(buscarResposta(sugestao), `sem match: "${sugestao}" (supply)`).not.toBeNull()
+    }
+    expect(copilotSupply.botoes.length).toBeGreaterThanOrEqual(2)
+    expect(copilotSupply.botoes.length).toBeLessThanOrEqual(3)
   })
 })
 

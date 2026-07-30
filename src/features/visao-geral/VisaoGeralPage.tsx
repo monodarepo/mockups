@@ -5,6 +5,7 @@ import { CalendarRange, Search } from 'lucide-react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
+import { PerspectivaSupply } from './PerspectivaSupply'
 import { KpiRow } from '@/components/shared/KpiCard'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { MapaRede } from '@/components/shared/MapaRede'
@@ -86,15 +87,16 @@ export function VisaoGeralPage() {
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
+  const [perspectiva, setPerspectiva] = useState<'operacoes' | 'supply'>('operacoes')
   const [modoPanorama, setModoPanorama] = useState<'mapa' | 'lista'>('mapa')
   const [fabricaSelecionada, setFabricaSelecionada] = useState('Todas as fábricas')
   const [ajusteAprovado, setAjusteAprovado] = useState(false)
   const panoramaRef = useRef<HTMLDivElement>(null)
 
-  // Persona desta tela: Ricardo Martins, Diretor de Operações.
+  // Persona por perspectiva: Ricardo Martins — Diretor de Operações ou de Supply.
   useEffect(() => {
-    setPersona('ricardo')
-  }, [setPersona])
+    setPersona(perspectiva === 'supply' ? 'ricardo-supply' : 'ricardo')
+  }, [setPersona, perspectiva])
 
   const periodoRotulo = `${formatDiaMes(HOJE)} – ${formatData(addDays(HOJE, 6))}`
 
@@ -181,27 +183,57 @@ export function VisaoGeralPage() {
     <>
       <PageHeader
         titulo="Torre de Controle da Produção"
-        descricao="Visão integrada das fábricas, linhas e riscos operacionais em tempo real."
+        descricao={
+          perspectiva === 'supply'
+            ? 'Visão integrada do abastecimento — do recebimento à entrega — em tempo real.'
+            : 'Visão integrada das fábricas, linhas e riscos operacionais em tempo real.'
+        }
         acoes={
           <>
-            <div className="relative">
-              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
-              <input
-                type="search"
-                placeholder="Buscar (ex.: produto, ordem, linha...)"
-                aria-label="Busca global"
-                className={cn(
-                  'h-9 w-[260px] rounded-lg border border-line bg-card pl-9 pr-3 text-body-sm text-ink',
-                  'placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                )}
-              />
+            <div className="flex rounded-lg border border-line bg-app p-0.5" role="group" aria-label="Perspectiva da torre de controle">
+              {(
+                [
+                  ['operacoes', 'Operações'],
+                  ['supply', 'Supply'],
+                ] as const
+              ).map(([id, rotulo]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={perspectiva === id}
+                  onClick={() => setPerspectiva(id)}
+                  className={cn(
+                    'rounded-md px-3 py-1.5 text-body-sm font-medium transition-colors duration-150',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    perspectiva === id ? 'bg-card text-ink shadow-card' : 'text-muted hover:text-ink',
+                  )}
+                >
+                  {rotulo}
+                </button>
+              ))}
             </div>
-            <Select
-              ariaLabel="Filtrar fábrica"
-              valor={fabricaSelecionada}
-              opcoes={['Todas as fábricas', ...FABRICAS]}
-              onChange={aoMudarSeletorFabrica}
-            />
+            {perspectiva === 'operacoes' ? (
+              <>
+                <div className="relative">
+                  <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
+                  <input
+                    type="search"
+                    placeholder="Buscar (ex.: produto, ordem, linha...)"
+                    aria-label="Busca global"
+                    className={cn(
+                      'h-9 w-[260px] rounded-lg border border-line bg-card pl-9 pr-3 text-body-sm text-ink',
+                      'placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    )}
+                  />
+                </div>
+                <Select
+                  ariaLabel="Filtrar fábrica"
+                  valor={fabricaSelecionada}
+                  opcoes={['Todas as fábricas', ...FABRICAS]}
+                  onChange={aoMudarSeletorFabrica}
+                />
+              </>
+            ) : null}
             <span className="flex h-9 items-center gap-2 rounded-lg border border-line bg-card px-3 text-body-sm font-medium text-ink">
               <CalendarRange size={14} className="text-muted" aria-hidden="true" />
               {periodoRotulo}
@@ -210,6 +242,13 @@ export function VisaoGeralPage() {
         }
       />
 
+      {perspectiva === 'supply' ? (
+        // key força remontagem com fade suave ao alternar a perspectiva
+        <div key="supply" className="flex animate-toast-in flex-col gap-5 motion-reduce:animate-none">
+          <PerspectivaSupply />
+        </div>
+      ) : (
+        <div key="operacoes" className="flex animate-toast-in flex-col gap-5 motion-reduce:animate-none">
       <KpiRow kpis={kpisPorTela['/']} />
 
       <div className="grid grid-cols-3 items-start gap-5">
@@ -424,7 +463,8 @@ export function VisaoGeralPage() {
           </ul>
         </SectionCard>
       </div>
-
+        </div>
+      )}
 
       <PageFooter />
     </>
