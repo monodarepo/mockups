@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "check:data": "vitest run src/data/integrity.test.ts",
-    "check:smoke": "vitest run src/smoke.test.ts && node scripts/smoke-navegador.mjs"
+    "check:smoke": "vitest run src/smoke.test.ts && node scripts/smoke-navegador.mjs",
+    "deploy": "npm run build && npx firebase-tools deploy --only hosting"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",

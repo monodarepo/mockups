@@ -22,6 +22,16 @@ npm run lint     # apenas a checagem de tipos
 
 Requer Node.js 18 ou superior.
 
+## Deploy
+
+O mockup publica como site estático no **Firebase Hosting** (Google) — link compartilhável
+`https://<projeto>.web.app` para o time. Configuração pronta em `firebase.json`; passo a passo
+em [DEPLOY.md](./DEPLOY.md). Depois da configuração inicial, publicar é um comando:
+
+```bash
+npm run deploy
+```
+
 ## Stack
 
 Vite · React 18 · TypeScript · Tailwind CSS · react-router-dom · zustand · recharts ·
