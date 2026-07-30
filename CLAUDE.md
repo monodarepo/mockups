@@ -90,4 +90,5 @@ Toda tela nasce populada e verossímil (zero estados vazios, zero lorem ipsum). 
 geradas por src/lib/series.ts com seed fixa (nunca Math.random puro) — recarregar a página nunca
 muda um número. Interações principais têm feedback (hover, loading curto, toast). Foco de teclado
 visível e aria-label em botões de ícone. Não usar imagens externas: mapas, planta da fábrica e
-equipamentos são SVGs estilizados.
+equipamentos são SVGs estilizados. Exceção aprovada pelo cliente: o logo oficial da Hypera Pharma
+é um PNG embutido no bundle (src/assets), usado na sidebar no lugar da cruz farmacêutica.
