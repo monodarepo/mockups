@@ -19,6 +19,7 @@ import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { TrendDelta } from '@/components/shared/TrendDelta'
 import { MiniBarList } from '@/components/shared/MiniBarList'
 import { DataTable, IdLink, type ColunaDataTable } from '@/components/shared/DataTable'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { cn } from '@/lib/cn'
 import { colors, toneForStatus, toneTextClass, type Tone } from '@/lib/colors'
 import { formatMoeda, formatMoedaCompacta, formatPercent, formatPontosPercentuais } from '@/lib/format'
@@ -31,7 +32,9 @@ import {
   driversCusto,
   kpisPorTela,
   linhaPorId,
+  linhasFiltradas,
   ordemPorId,
+  ordensFiltradas,
   ordensImpactoFinanceiro,
   performancePorLinha,
   produtoPorId,
@@ -72,9 +75,21 @@ function StatRodape({ label, valor, destaque }: { label: string; valor: string; 
 export function CustosPage() {
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const filtros = useAppStore((s) => s.filtros)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
 
   const [modoGrafico, setModoGrafico] = useState<'hora' | 'acumulado'>('hora')
   const ordensRef = useRef<HTMLDivElement | null>(null)
+
+  // Recorte global sobre as tabelas por linha e por ordem.
+  const performanceRecorte = useMemo(() => {
+    const idsLinhas = new Set(linhasFiltradas(filtros).map((linha) => linha.id))
+    return performancePorLinha.filter((item) => idsLinhas.has(item.linhaId))
+  }, [filtros])
+  const ordensImpactoRecorte = useMemo(() => {
+    const idsOrdens = new Set(ordensFiltradas(filtros).map((ordem) => ordem.id))
+    return ordensImpactoFinanceiro.filter((item) => idsOrdens.has(item.ordemId))
+  }, [filtros])
 
   // Acumulados do turno — derivados da própria série horária.
   const totais = useMemo(() => {
@@ -422,31 +437,49 @@ export function CustosPage() {
         <SectionCard
           className="col-span-2"
           titulo="Performance por Linha"
-          info="Indicadores financeiros por linha de Anápolis — média dos últimos 7 dias."
+          contagem={{ visiveis: performanceRecorte.length, total: performancePorLinha.length }}
+          info="Indicadores financeiros por linha de Anápolis — média dos últimos 7 dias, no recorte atual."
           corpoSemPadding
         >
-          <DataTable
-            rotulo="Performance financeira por linha"
-            colunas={colunasLinhas}
-            linhas={performancePorLinha}
-            chave={(item) => item.linhaId}
-          />
+          {performanceRecorte.length > 0 ? (
+            <DataTable
+              rotulo="Performance financeira por linha"
+              colunas={colunasLinhas}
+              linhas={performanceRecorte}
+              chave={(item) => item.linhaId}
+            />
+          ) : (
+            <EmptyState
+              titulo="Nenhuma linha no recorte atual"
+              descricao="Os indicadores financeiros por linha desta demo cobrem Anápolis."
+              acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+            />
+          )}
         </SectionCard>
       </div>
 
       <div ref={ordensRef} className="grid scroll-mt-4 grid-cols-3 items-start gap-5">
         <SectionCard
           className="col-span-2"
-          titulo={`Ordens / Produtos com Maior Impacto (${ordensImpactoFinanceiro.length})`}
-          info="Ordens-âncora com maior desvio financeiro no turno. Aderência igual à do Planejamento."
+          titulo="Ordens / Produtos com Maior Impacto"
+          contagem={{ visiveis: ordensImpactoRecorte.length, total: ordensImpactoFinanceiro.length }}
+          info="Ordens-âncora com maior desvio financeiro no turno, no recorte atual. Aderência igual à do Planejamento."
           corpoSemPadding
         >
-          <DataTable
-            rotulo="Ordens com maior impacto financeiro"
-            colunas={colunasOrdens}
-            linhas={ordensImpactoFinanceiro}
-            chave={(item) => item.ordemId}
-          />
+          {ordensImpactoRecorte.length > 0 ? (
+            <DataTable
+              rotulo="Ordens com maior impacto financeiro"
+              colunas={colunasOrdens}
+              linhas={ordensImpactoRecorte}
+              chave={(item) => item.ordemId}
+            />
+          ) : (
+            <EmptyState
+              titulo="Nenhuma ordem no recorte atual"
+              descricao="Os desvios financeiros do turno estão nas ordens-âncora de Anápolis."
+              acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+            />
+          )}
         </SectionCard>
 
         <SectionCard titulo="Prontidão Financeira" info="Números-base do turno e saúde financeira consolidada.">

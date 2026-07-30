@@ -21,6 +21,7 @@ import { ProgressBar } from '@/components/shared/ProgressBar'
 import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { MiniBarList } from '@/components/shared/MiniBarList'
 import { DataTable, type ColunaDataTable } from '@/components/shared/DataTable'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
@@ -28,10 +29,12 @@ import { Drawer } from '@/components/ui/Drawer'
 import { cn } from '@/lib/cn'
 import { colors, toneSoftClass } from '@/lib/colors'
 import { formatMoedaCompacta, formatNumero, formatPercent } from '@/lib/format'
+import { useDestaque } from '@/lib/useDestaque'
 import { useAppStore } from '@/store'
 import {
   PRONTIDAO_DECISAO_SCORE,
   alertas,
+  alertasFiltrados,
   conteudoCopilot,
   fluxoDecisao,
   impactoAlertas24h,
@@ -72,6 +75,11 @@ export function AlertasPage() {
   const [alertaAberto, setAlertaAberto] = useState<Alerta | null>(null)
   const [rejeitandoId, setRejeitandoId] = useState<string | null>(null)
   const [motivoRejeicao, setMotivoRejeicao] = useState('')
+
+  const filtros = useAppStore((s) => s.filtros)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
+  const destaque = useDestaque()
+  const alertasRecorte = useMemo(() => alertasFiltrados(filtros), [filtros])
 
   const statusDe = useMemo(() => {
     return (alerta: Alerta): StatusExibido => {
@@ -226,19 +234,29 @@ export function AlertasPage() {
         <div className="col-span-2 min-w-0">
           <SectionCard
             titulo="Central de Alertas"
+            contagem={{ visiveis: alertasRecorte.length, total: alertas.length }}
             info="Clique em um alerta para abrir o detalhe com recomendação, alternativas e decisão."
             corpoSemPadding
           >
-            <DataTable
-              rotulo="Central de alertas ativos"
-              colunas={colunas}
-              linhas={alertas}
-              chave={(alerta) => alerta.id}
-              onLinhaClick={setAlertaAberto}
-              linhaSelecionada={alertaAberto?.id}
-              acao={{ rotulo: (alerta) => alerta.acaoRecomendada, onClick: aoAcaoContextual }}
-              ordenacaoInicial={{ coluna: 'severidade', direcao: 'asc' }}
-            />
+            {alertasRecorte.length > 0 ? (
+              <DataTable
+                rotulo="Central de alertas ativos"
+                colunas={colunas}
+                linhas={alertasRecorte}
+                chave={(alerta) => alerta.id}
+                onLinhaClick={setAlertaAberto}
+                linhaSelecionada={alertaAberto?.id}
+                linhaDestacada={destaque}
+                acao={{ rotulo: (alerta) => alerta.acaoRecomendada, onClick: aoAcaoContextual }}
+                ordenacaoInicial={{ coluna: 'severidade', direcao: 'asc' }}
+              />
+            ) : (
+              <EmptyState
+                titulo="Nenhum alerta no recorte atual"
+                descricao="Os alertas ativos do dia estão nas linhas de Anápolis — ajuste fábrica ou área."
+                acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+              />
+            )}
           </SectionCard>
         </div>
 

@@ -13,6 +13,7 @@ import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
 import { DataTable, type ColunaDataTable } from '@/components/shared/DataTable'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { Select } from '@/components/ui/Select'
 import { cn } from '@/lib/cn'
 import { colors, type Tone } from '@/lib/colors'
@@ -23,6 +24,8 @@ import {
   HOJE,
   alertas,
   conteudoCopilot,
+  fabricaDaLinha,
+  fabricaPorId,
   fabricas,
   fabricasOperacionais,
   kpisPorTela,
@@ -85,6 +88,7 @@ export function VisaoGeralPage() {
   const setFiltro = useAppStore((s) => s.setFiltro)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const abrirPaleta = useAppStore((s) => s.abrirPaleta)
 
   const [perspectiva, setPerspectiva] = useState<'operacoes' | 'supply'>('operacoes')
   const [modoPanorama, setModoPanorama] = useState<'mapa' | 'lista'>('mapa')
@@ -94,28 +98,36 @@ export function VisaoGeralPage() {
 
   const periodoRotulo = `${formatDiaMes(HOJE)} – ${formatData(addDays(HOJE, 6))}`
 
-  const linhasAtivas = useMemo(() => linhas.filter((linha) => linha.status !== 'parada').length, [])
-  const linhasEmAlerta = useMemo(
-    () => linhas.filter((linha) => linha.status === 'atencao' || linha.status === 'critico').length,
-    [],
+  // Recorte local da torre: "Todas as fábricas" mantém a visão de rede.
+  const recorteFabrica = fabricaSelecionada === 'Todas as fábricas' ? undefined : fabricaSelecionada
+  const linhasRecorte = useMemo(
+    () => (recorteFabrica ? linhas.filter((linha) => fabricaPorId(linha.fabricaId)?.nome === recorteFabrica) : linhas),
+    [recorteFabrica],
   )
-  const linhasParadas = linhas.length - linhasAtivas
+
+  const linhasAtivas = useMemo(() => linhasRecorte.filter((linha) => linha.status !== 'parada').length, [linhasRecorte])
+  const linhasEmAlerta = useMemo(
+    () => linhasRecorte.filter((linha) => linha.status === 'atencao' || linha.status === 'critico').length,
+    [linhasRecorte],
+  )
+  const linhasParadas = linhasRecorte.length - linhasAtivas
 
   const linhasCriticas = useMemo(
     () =>
-      [...linhas]
+      [...linhasRecorte]
         .sort(
           (a, b) =>
             pesoStatusLinha[a.status] - pesoStatusLinha[b.status] ||
             a.capacidadeUtilizada - b.capacidadeUtilizada,
         )
         .slice(0, 5),
-    [],
+    [linhasRecorte],
   )
 
   const ordensPrioritarias = useMemo(
     () =>
-      [...ordens]
+      ordens
+        .filter((ordem) => !recorteFabrica || fabricaPorId(ordem.fabricaId)?.nome === recorteFabrica)
         .sort(
           (a, b) =>
             pesoSituacao[a.situacao] - pesoSituacao[b.situacao] ||
@@ -123,19 +135,20 @@ export function VisaoGeralPage() {
             a.fim.getTime() - b.fim.getTime(),
         )
         .slice(0, 5),
-    [],
+    [recorteFabrica],
   )
 
   const alertasPrincipais = useMemo(
     () =>
-      [...alertas]
+      alertas
+        .filter((alerta) => !recorteFabrica || fabricaPorId(alerta.fabricaId)?.nome === recorteFabrica)
         .sort(
           (a, b) =>
             pesoSeveridade[a.severidade] - pesoSeveridade[b.severidade] ||
             b.impactoEstimado - a.impactoEstimado,
         )
         .slice(0, 5),
-    [],
+    [recorteFabrica],
   )
 
   // Seleção fixa da Visão Geral: APIs e embalagens que sustentam a semana.
@@ -144,7 +157,14 @@ export function VisaoGeralPage() {
     return destaque
       .map((id) => materiais.find((material) => material.id === id))
       .filter((material) => material !== undefined)
-  }, [])
+      .filter(
+        (material) =>
+          !recorteFabrica ||
+          (material.linhasAfetadas
+            ? material.linhasAfetadas.some((linhaId) => fabricaDaLinha(linhaId) === recorteFabrica)
+            : recorteFabrica === 'Anápolis'),
+      )
+  }, [recorteFabrica])
 
   const aoSelecionarFabrica = (nome: string) => {
     setFiltro('fabrica', nome as NomeFabrica)
@@ -208,18 +228,19 @@ export function VisaoGeralPage() {
             </div>
             {perspectiva === 'operacoes' ? (
               <>
-                <div className="relative">
-                  <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
-                  <input
-                    type="search"
-                    placeholder="Buscar (ex.: produto, ordem, linha...)"
-                    aria-label="Busca global"
-                    className={cn(
-                      'h-9 w-[260px] rounded-lg border border-line bg-card pl-9 pr-3 text-body-sm text-ink',
-                      'placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                    )}
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={abrirPaleta}
+                  className={cn(
+                    'flex h-9 w-[260px] items-center gap-2 rounded-lg border border-line bg-card px-3 text-body-sm text-muted',
+                    'transition-colors duration-150 hover:border-primary/40 hover:text-ink',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  )}
+                >
+                  <Search size={15} aria-hidden="true" />
+                  <span className="flex-1 truncate text-left">Buscar produto, ordem, linha…</span>
+                  <kbd className="rounded-md border border-line bg-app px-1.5 py-0.5 text-caption">Ctrl K</kbd>
+                </button>
                 <Select
                   ariaLabel="Filtrar fábrica"
                   valor={fabricaSelecionada}
@@ -280,7 +301,7 @@ export function VisaoGeralPage() {
                     <DataTable
                       rotulo="Linhas por fábrica"
                       colunas={colunasLista}
-                      linhas={linhas}
+                      linhas={linhasRecorte}
                       chave={(linha) => linha.id}
                       alturaMax={396}
                       acao={{
@@ -298,14 +319,16 @@ export function VisaoGeralPage() {
                 <div>
                   <dt className="text-caption text-muted">Fábricas</dt>
                   <dd className="text-[22px] font-bold leading-7 text-ink">
-                    {formatNumero(fabricasOperacionais.length)}
+                    {formatNumero(recorteFabrica ? 1 : fabricasOperacionais.length)}
                   </dd>
-                  <dd className="text-caption text-success">todas operando</dd>
+                  <dd className="text-caption text-success">{recorteFabrica ?? 'todas operando'}</dd>
                 </div>
                 <div>
                   <dt className="text-caption text-muted">Linhas ativas</dt>
                   <dd className="text-[22px] font-bold leading-7 text-ink">{formatNumero(linhasAtivas)}</dd>
-                  <dd className="text-caption text-muted">de {formatNumero(linhas.length)} na rede</dd>
+                  <dd className="text-caption text-muted">
+                    de {formatNumero(linhasRecorte.length)} {recorteFabrica ? 'no recorte' : 'na rede'}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-caption text-muted">Em alerta</dt>
@@ -314,8 +337,12 @@ export function VisaoGeralPage() {
                 </div>
                 <div>
                   <dt className="text-caption text-muted">Parada não planejada</dt>
-                  <dd className="text-[22px] font-bold leading-7 text-danger">{formatNumero(linhasParadas)}</dd>
-                  <dd className="text-caption text-muted">L15 — falta de blister</dd>
+                  <dd className={cn('text-[22px] font-bold leading-7', linhasParadas > 0 ? 'text-danger' : 'text-ink')}>
+                    {formatNumero(linhasParadas)}
+                  </dd>
+                  <dd className="text-caption text-muted">
+                    {linhasParadas > 0 ? 'L15 — falta de blister' : 'nenhuma no recorte'}
+                  </dd>
                 </div>
               </dl>
             </div>
@@ -423,6 +450,13 @@ export function VisaoGeralPage() {
           info="Maiores riscos abertos na central, por severidade e impacto."
           acao={{ rotulo: 'Ver central', onClick: () => navigate('/alertas') }}
         >
+          {alertasPrincipais.length === 0 ? (
+            <EmptyState
+              titulo="Sem alertas neste recorte"
+              descricao={`${recorteFabrica} não tem alertas abertos hoje.`}
+              alturaMin={140}
+            />
+          ) : (
           <ul className="flex flex-col gap-2.5">
             {alertasPrincipais.map((alerta) => (
               <li key={alerta.id} className="flex items-center justify-between gap-2">
@@ -438,6 +472,7 @@ export function VisaoGeralPage() {
               </li>
             ))}
           </ul>
+          )}
         </SectionCard>
 
         <SectionCard
@@ -445,6 +480,13 @@ export function VisaoGeralPage() {
           info="Prontidão dos materiais para as ordens da semana."
           acao={{ rotulo: 'Ver todos os materiais', onClick: () => navigate('/materiais') }}
         >
+          {materiaisProntidao.length === 0 ? (
+            <EmptyState
+              titulo="Sem materiais críticos neste recorte"
+              descricao="Os materiais acompanhados da semana pertencem a Anápolis."
+              alturaMin={140}
+            />
+          ) : (
           <ul className="flex flex-col gap-3">
             {materiaisProntidao.map((material) => (
               <li key={material.id}>
@@ -455,6 +497,7 @@ export function VisaoGeralPage() {
               </li>
             ))}
           </ul>
+          )}
         </SectionCard>
       </div>
         </div>

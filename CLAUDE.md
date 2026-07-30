@@ -89,6 +89,9 @@ Linha do tempo única da simulação: hoje = 19/mai/2025, Turno A (06:00 – 14:
 planejamento 20–26/mai/2025. Nenhuma tela usa outra data-base.
 
 ## Regras de qualidade
+NENHUM CONTROLE MORTO — todo elemento clicável (botão, filtro, link, ícone) executa uma ação
+real no mockup, abre um conteúdo funcional ou navega com contexto. Se nada disso for possível,
+o elemento não é renderizado.
 Toda tela nasce populada e verossímil (zero estados vazios, zero lorem ipsum). Séries de gráfico
 geradas por src/lib/series.ts com seed fixa (nunca Math.random puro) — recarregar a página nunca
 muda um número. Interações principais têm feedback (hover, loading curto, toast). Foco de teclado

@@ -6,6 +6,8 @@ import { Tooltip } from '@/components/ui/Tooltip'
 
 interface SectionCardProps {
   titulo: string
+  /** Contagem do recorte atual — renderiza "· 6 de 14" ao lado do título. */
+  contagem?: { visiveis: number; total: number }
   /** Texto do tooltip no ícone de info. */
   info?: string
   /** Ação à direita, padrão "Ver todos →". */
@@ -18,12 +20,17 @@ interface SectionCardProps {
   corpoSemPadding?: boolean
 }
 
-export function SectionCard({ titulo, info, acao, direita, children, className, corpoSemPadding }: SectionCardProps) {
+export function SectionCard({ titulo, contagem, info, acao, direita, children, className, corpoSemPadding }: SectionCardProps) {
   return (
     <Card className={cn('flex min-w-0 flex-col', className)}>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 pb-3 pt-4">
         <div className="flex min-w-0 items-center gap-1.5">
           <h2 className="truncate text-card-title font-semibold text-ink">{titulo}</h2>
+          {contagem ? (
+            <span className="shrink-0 whitespace-nowrap text-body-sm font-normal text-muted">
+              · {contagem.visiveis === contagem.total ? contagem.total : `${contagem.visiveis} de ${contagem.total}`}
+            </span>
+          ) : null}
           {info ? (
             <Tooltip conteudo={info}>
               <button

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
@@ -8,20 +8,24 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { TrendDelta } from '@/components/shared/TrendDelta'
 import { FactoryMap, type PinFabrica } from '@/components/shared/FactoryMap'
 import { DataTable, IdLink, type ColunaDataTable } from '@/components/shared/DataTable'
 import { colors, toneHex, type Tone } from '@/lib/colors'
 import { formatNumero, formatPercentAssinado } from '@/lib/format'
+import { useDestaque } from '@/lib/useDestaque'
 import { useAppStore } from '@/store'
 import {
+  AREA_POR_LINHA,
   PRONTIDAO_ABASTECIMENTO_SCORE,
   conteudoCopilot,
   eventosMateriais,
   kpisPorTela,
   linhaPorId,
   materiais,
+  materiaisFiltrados,
   materialPorId,
   ordemPorId,
   ordensImpactadas,
@@ -151,19 +155,47 @@ function CampoDetalhe({
 export function MateriaisPage() {
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const filtros = useAppStore((s) => s.filtros)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
+  const destaque = useDestaque()
 
   const [materialSelecionadoId, setMaterialSelecionadoId] = useState('MAT-API-001')
+
+  const materiaisRecorte = useMemo(() => materiaisFiltrados(filtros), [filtros])
+
+  // Fila de críticos: os 8 materiais do recorte com menor cobertura.
+  const filaCriticos = useMemo(
+    () => [...materiaisRecorte].sort((a, b) => a.coberturaDias - b.coberturaDias).slice(0, 8),
+    [materiaisRecorte],
+  )
+
+  // Mantém o detalhe apontando para um material visível no recorte.
+  useEffect(() => {
+    if (filaCriticos.length === 0) return
+    if (!filaCriticos.some((item) => item.id === materialSelecionadoId)) {
+      setMaterialSelecionadoId(filaCriticos[0].id)
+    }
+  }, [filaCriticos, materialSelecionadoId])
+
+  const idsMateriaisRecorte = useMemo(() => new Set(materiaisRecorte.map((item) => item.id)), [materiaisRecorte])
+  const ordensImpactadasRecorte = useMemo(
+    () => ordensImpactadas.filter((item) => idsMateriaisRecorte.has(item.materialId)),
+    [idsMateriaisRecorte],
+  )
+  const pinsRecorte = useMemo(
+    () =>
+      PINS_PRONTIDAO.filter((pin) => {
+        const linhaId = pin.label.match(/[LP]\d+/)?.[0]
+        if (!linhaId) return filtros.area === 'Todas as áreas'
+        return AREA_POR_LINHA[linhaId] === filtros.area || filtros.area === 'Todas as áreas'
+      }),
+    [filtros.area],
+  )
 
   const material = materialPorId(materialSelecionadoId) ?? materiais[0]
   const risco = riscoRuptura(material)
   const variacaoCobertura = variacaoCoberturaDias(material)
   const tendencia = useMemo(() => tendenciaMaterial24h(material), [material])
-
-  // Fila de críticos: os 8 materiais com menor cobertura.
-  const filaCriticos = useMemo(
-    () => [...materiais].sort((a, b) => a.coberturaDias - b.coberturaDias).slice(0, 8),
-    [],
-  )
 
   const colunasFila: ColunaDataTable<Material>[] = useMemo(
     () => [
@@ -331,24 +363,43 @@ export function MateriaisPage() {
             info="Prontidão por área e por linha na planta de Anápolis — pins vermelhos pulsam."
             corpoSemPadding
           >
-            <div className="p-4">
-              <FactoryMap pins={PINS_PRONTIDAO} />
-            </div>
+            {filtros.fabrica !== 'Anápolis' ? (
+              <EmptyState
+                titulo={`Sem planta detalhada para ${filtros.fabrica}`}
+                descricao="O mapa de prontidão de materiais deste mockup está modelado para Anápolis."
+                acao={{ rotulo: 'Voltar para Anápolis', onClick: resetFiltros }}
+                alturaMin={280}
+              />
+            ) : (
+              <div className="p-4">
+                <FactoryMap pins={pinsRecorte} />
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard
             titulo="Fila de Materiais Críticos"
-            info="Os 8 materiais com menor cobertura. Clique em uma linha para abrir o detalhe abaixo."
+            contagem={{ visiveis: filaCriticos.length, total: materiais.length }}
+            info="Os materiais do recorte com menor cobertura. Clique em uma linha para abrir o detalhe abaixo."
             corpoSemPadding
           >
-            <DataTable
-              rotulo="Fila de materiais críticos por cobertura"
-              colunas={colunasFila}
-              linhas={filaCriticos}
-              chave={(item) => item.id}
-              onLinhaClick={(item) => setMaterialSelecionadoId(item.id)}
-              linhaSelecionada={materialSelecionadoId}
-            />
+            {filaCriticos.length > 0 ? (
+              <DataTable
+                rotulo="Fila de materiais críticos por cobertura"
+                colunas={colunasFila}
+                linhas={filaCriticos}
+                chave={(item) => item.id}
+                onLinhaClick={(item) => setMaterialSelecionadoId(item.id)}
+                linhaSelecionada={materialSelecionadoId}
+                linhaDestacada={destaque}
+              />
+            ) : (
+              <EmptyState
+                titulo="Nenhum material no recorte atual"
+                descricao="O estoque detalhado desta demo pertence a Anápolis — ajuste fábrica ou área."
+                acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+              />
+            )}
           </SectionCard>
         </div>
 
@@ -366,7 +417,14 @@ export function MateriaisPage() {
               addToast({ titulo: 'Histórico do material', descricao: 'Disponível na demo completa.', tone: 'info' }),
           }}
         >
-          {/* key força remontagem com fade suave ao trocar o material */}
+          {filaCriticos.length === 0 ? (
+            <EmptyState
+              titulo="Sem material selecionado neste recorte"
+              descricao="Volte ao recorte de Anápolis para acompanhar a cobertura de materiais."
+              acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+            />
+          ) : (
+          // key força remontagem com fade suave ao trocar o material
           <div key={material.id} className="animate-toast-in motion-reduce:animate-none">
             <div className="flex flex-wrap items-center gap-3">
               <PictogramaMaterial categoria={material.categoria} />
@@ -434,9 +492,17 @@ export function MateriaisPage() {
               <CampoDetalhe label="Risco de ruptura" pill={{ status: risco, tone: toneDoRisco[risco] }} />
             </div>
           </div>
+          )}
         </SectionCard>
 
-        <SectionCard titulo="Eventos e Alertas" info="Linha do tempo de materiais do Turno A.">
+        <SectionCard titulo="Eventos e Alertas" info="Linha do tempo de materiais do Turno A em Anápolis.">
+          {filtros.fabrica !== 'Anápolis' ? (
+            <EmptyState
+              titulo={`Sem eventos registrados em ${filtros.fabrica}`}
+              descricao="A linha do tempo de materiais desta demo cobre o Turno A de Anápolis."
+              acao={{ rotulo: 'Voltar para Anápolis', onClick: resetFiltros }}
+            />
+          ) : (
           <ol className="flex flex-col">
             {eventosMateriais.map((evento, indice) => (
               <li key={evento.id} className="relative flex gap-3 pb-4 last:pb-0">
@@ -455,6 +521,7 @@ export function MateriaisPage() {
               </li>
             ))}
           </ol>
+          )}
         </SectionCard>
       </div>
 
@@ -541,17 +608,26 @@ export function MateriaisPage() {
       </div>
 
       <SectionCard
-        titulo={`Ordens Impactadas (${ordensImpactadas.length})`}
-        info="Ordens-âncora da semana com risco por material."
+        titulo="Ordens Impactadas"
+        contagem={{ visiveis: ordensImpactadasRecorte.length, total: ordensImpactadas.length }}
+        info="Ordens-âncora da semana com risco por material, no recorte atual."
         corpoSemPadding
         acao={{ rotulo: 'Simular impacto', onClick: () => abrirSimulador('EV-002') }}
       >
-        <DataTable
-          rotulo="Ordens impactadas por materiais críticos"
-          colunas={colunasOrdens}
-          linhas={ordensImpactadas}
-          chave={(item) => item.ordemId}
-        />
+        {ordensImpactadasRecorte.length > 0 ? (
+          <DataTable
+            rotulo="Ordens impactadas por materiais críticos"
+            colunas={colunasOrdens}
+            linhas={ordensImpactadasRecorte}
+            chave={(item) => item.ordemId}
+          />
+        ) : (
+          <EmptyState
+            titulo="Nenhuma ordem impactada neste recorte"
+            descricao="Os riscos por material desta demo estão nas ordens-âncora de Anápolis."
+            acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+          />
+        )}
       </SectionCard>
 
       <PageFooter />

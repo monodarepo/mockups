@@ -33,7 +33,7 @@ export interface Rejeicao {
   motivo: string
 }
 
-const filtrosIniciais: Filtros = {
+export const filtrosIniciais: Filtros = {
   fabrica: 'Anápolis',
   area: 'Todas as áreas',
   turno: 'Turno A (06:00 – 14:00)',
@@ -58,6 +58,15 @@ interface AppState {
   alternarSidebar: () => void
   copilotoAberto: boolean
   alternarCopiloto: () => void
+
+  // Busca global — campo do header e Ctrl/⌘+K abrem a mesma paleta
+  paletaAberta: boolean
+  abrirPaleta: () => void
+  fecharPaleta: () => void
+
+  // Notificações do sino — "Marcar todas como lidas" zera e persiste na sessão
+  notificacoesLidas: boolean
+  marcarNotificacoesLidas: () => void
 
   // Decisões — alertas e ações de agentes compartilham a mesma fila
   pendencias: number
@@ -129,6 +138,13 @@ export const useAppStore = create<AppState>((set) => {
     alternarSidebar: () => set((estado) => ({ sidebarRecolhida: !estado.sidebarRecolhida })),
     copilotoAberto: true,
     alternarCopiloto: () => set((estado) => ({ copilotoAberto: !estado.copilotoAberto })),
+
+    paletaAberta: false,
+    abrirPaleta: () => set({ paletaAberta: true }),
+    fecharPaleta: () => set({ paletaAberta: false }),
+
+    notificacoesLidas: false,
+    marcarNotificacoesLidas: () => set({ notificacoesLidas: true }),
 
     pendencias: 12,
     aprovados: [],

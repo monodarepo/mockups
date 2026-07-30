@@ -4,6 +4,19 @@
  */
 import { describe, expect, it } from 'vitest'
 import { fabricas, linhas } from './fabricas'
+import { AREA_POR_LINHA } from './constants'
+import {
+  alertasFiltrados,
+  blocosFiltrados,
+  linhasFiltradas,
+  lotesFiltrados,
+  materiaisFiltrados,
+  ordensFiltradas,
+  otsFiltradas,
+  type FiltrosSelecao,
+} from './selectors'
+import { buscar } from './busca'
+import { notificacoes } from './notificacoes'
 import { produtos } from './produtos'
 import { ORDENS_ANCORA, ordens } from './ordens'
 import {
@@ -1002,5 +1015,103 @@ describe('relatórios', () => {
     expect(RELATORIOS_GOVERNANCA_SCORE).toBe(96)
     expect(resumoExecutivoKpis).toHaveLength(3)
     expect(resumoExecutivoKpis[0]).toMatchObject({ label: 'OEE Global', valor: '78,6%' })
+  })
+})
+
+describe('seletores — recorte global da FilterBar', () => {
+  const filtrosPadrao: FiltrosSelecao = {
+    fabrica: 'Anápolis',
+    area: 'Todas as áreas',
+    turno: 'Turno A (06:00 – 14:00)',
+    periodo: 'Turno atual',
+  }
+
+  it('toda linha tem área mapeada em AREA_POR_LINHA', () => {
+    for (const linha of linhas) {
+      expect(AREA_POR_LINHA[linha.id], `linha sem área: ${linha.id}`).toBeDefined()
+    }
+  })
+
+  it('recorte padrão (Anápolis · Turno A · Turno atual) mantém as telas populadas', () => {
+    const ordensRecorte = ordensFiltradas(filtrosPadrao)
+    expect(ordensRecorte).toHaveLength(10)
+    const idsRecorte = new Set(ordensRecorte.map((ordem) => ordem.id))
+    for (const ancora of ORDENS_ANCORA) expect(idsRecorte.has(ancora), `âncora fora do recorte padrão: ${ancora}`).toBe(true)
+    expect(lotesFiltrados(filtrosPadrao)).toHaveLength(6)
+    expect(alertasFiltrados(filtrosPadrao)).toHaveLength(7)
+    expect(materiaisFiltrados(filtrosPadrao)).toHaveLength(10)
+    expect(linhasFiltradas(filtrosPadrao)).toHaveLength(5)
+    expect(blocosFiltrados(filtrosPadrao)).toHaveLength(blocosSequencia.length)
+    // A OT concluída em 18/mai sai do recorte "Turno atual"; a carteira aberta fica.
+    const ots = otsFiltradas(filtrosPadrao)
+    expect(ots).toHaveLength(7)
+    expect(ots.some((ot) => ot.status === 'Concluída')).toBe(false)
+  })
+
+  it('fábrica = Goiânia → 0 ordens-âncora e listas de Anápolis vazias', () => {
+    const filtros: FiltrosSelecao = { ...filtrosPadrao, fabrica: 'Goiânia' }
+    const ordensRecorte = ordensFiltradas(filtros)
+    expect(ordensRecorte.map((ordem) => ordem.id).filter((id) => (ORDENS_ANCORA as readonly string[]).includes(id))).toHaveLength(0)
+    expect(ordensRecorte.map((ordem) => ordem.id)).toEqual(['OF-045688', 'OF-045689'])
+    expect(lotesFiltrados(filtros)).toHaveLength(0)
+    expect(otsFiltradas(filtros)).toHaveLength(0)
+    expect(blocosFiltrados(filtros)).toHaveLength(0)
+    expect(materiaisFiltrados(filtros)).toHaveLength(0)
+    expect(alertasFiltrados(filtros)).toHaveLength(0)
+    expect(linhasFiltradas(filtros).map((linha) => linha.id)).toEqual(['P23', 'P24', 'P25', 'P26'])
+  })
+
+  it('período fora do turno (Turno C × Turno atual) → listas com janela de tempo vazias', () => {
+    const filtros: FiltrosSelecao = { ...filtrosPadrao, turno: 'Turno C (22:00 – 06:00)' }
+    expect(ordensFiltradas(filtros)).toHaveLength(0)
+    expect(otsFiltradas(filtros)).toHaveLength(0)
+    expect(lotesFiltrados(filtros)).toHaveLength(0)
+  })
+
+  it('área = Compressão isola a L12 e seus itens', () => {
+    const filtros: FiltrosSelecao = { ...filtrosPadrao, area: 'Compressão' }
+    expect(linhasFiltradas(filtros).map((linha) => linha.id)).toEqual(['L12'])
+    expect(ordensFiltradas(filtros).map((ordem) => ordem.id)).toEqual(['OF-045678'])
+    const alertasRecorte = alertasFiltrados(filtros)
+    expect(alertasRecorte.map((alerta) => alerta.id)).toEqual(['AL-001', 'AL-002', 'AL-006'])
+    expect(blocosFiltrados(filtros).every((bloco) => bloco.linhaId === 'L12')).toBe(true)
+    expect(materiaisFiltrados(filtros).map((material) => material.id)).toEqual(['MAT-API-001', 'MAT-API-003'])
+  })
+
+  it('Turno B mantém a carteira aberta e esvazia a fila de QA do Turno A', () => {
+    const filtros: FiltrosSelecao = { ...filtrosPadrao, turno: 'Turno B (14:00 – 22:00)', periodo: 'Hoje' }
+    expect(ordensFiltradas(filtros).length).toBeGreaterThan(0)
+    expect(lotesFiltrados(filtros)).toHaveLength(0)
+  })
+})
+
+describe('busca global e notificações', () => {
+  it('a busca encontra OF-045681 e aponta para o Sequenciamento com destaque', () => {
+    const grupos = buscar('OF-045681')
+    const ordensGrupo = grupos.find((grupo) => grupo.tipo === 'ordem')
+    expect(ordensGrupo?.itens[0]).toMatchObject({ id: 'OF-045681', destino: '/sequenciamento?destaque=OF-045681' })
+  })
+
+  it('a busca é tolerante a acentos e cobre produtos, materiais, lotes, ativos, OTs e telas', () => {
+    expect(buscar('ibuprofeno').find((grupo) => grupo.tipo === 'material')?.itens[0].id).toBe('MAT-API-001')
+    expect(buscar('sequenciamento').find((grupo) => grupo.tipo === 'tela')?.itens[0].id).toBe('/sequenciamento')
+    expect(buscar('compressora').find((grupo) => grupo.tipo === 'ativo')?.itens[0].id).toBe('eq-compressora-l12')
+    expect(buscar('2456789A').find((grupo) => grupo.tipo === 'lote')?.itens[0].destino).toBe('/qualidade?destaque=2456789A')
+    expect(buscar('OT-245689').find((grupo) => grupo.tipo === 'ot')?.itens[0].destino).toBe('/manutencao?destaque=OT-245689')
+    expect(buscar('buscopan').find((grupo) => grupo.tipo === 'produto')?.itens[0].destino).toBe(
+      '/planejamento?destaque=OF-045678',
+    )
+    // Consulta vazia devolve atalhos: ações rápidas + as 13 telas.
+    const vazia = buscar('')
+    expect(vazia.find((grupo) => grupo.tipo === 'acao')?.itens).toHaveLength(3)
+  })
+
+  it('o sino tem 8 notificações do dia com destino navegável', () => {
+    expect(notificacoes).toHaveLength(8)
+    for (const notificacao of notificacoes) {
+      expect(notificacao.destino.startsWith('/')).toBe(true)
+      expect(notificacao.hora.getTime()).toBeLessThanOrEqual(new Date(2025, 4, 19, 10, 18).getTime())
+    }
+    expect(notificacoes[0]).toMatchObject({ id: 'not-AL-006', destino: '/alertas?destaque=AL-006' })
   })
 })

@@ -1,7 +1,7 @@
 import { useId } from 'react'
-import { CalendarRange, ChevronDown } from 'lucide-react'
+import { CalendarRange, ChevronDown, FilterX, X } from 'lucide-react'
 import { Select } from '@/components/ui/Select'
-import { useAppStore } from '@/store'
+import { filtrosIniciais, useAppStore, type Filtros } from '@/store'
 import {
   AREAS,
   FABRICAS,
@@ -21,6 +21,68 @@ function rotuloDaFaixa(inicio: Date, fim: Date): string {
   return `${formatData(inicio)} – ${formatData(fim)}`
 }
 
+/** Filtros que geram chip quando saem do padrão. */
+const CHIPS_FILTRO: Array<{ chave: 'fabrica' | 'area' | 'turno' | 'periodo'; rotulo: string }> = [
+  { chave: 'fabrica', rotulo: 'Fábrica' },
+  { chave: 'area', rotulo: 'Área' },
+  { chave: 'turno', rotulo: 'Turno' },
+  { chave: 'periodo', rotulo: 'Período' },
+]
+
+/**
+ * Chips dos filtros fora do padrão, com remoção individual e "Limpar filtros".
+ * Renderizado pela FilterBar e por telas com barra de contexto própria.
+ */
+export function FiltroChips() {
+  const filtros = useAppStore((s) => s.filtros)
+  const setFiltro = useAppStore((s) => s.setFiltro)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
+
+  const removerFiltro = (chave: 'fabrica' | 'area' | 'turno' | 'periodo') => {
+    if (chave === 'periodo') {
+      const faixa = faixaDoPeriodo(filtrosIniciais.periodo)
+      setFiltro('periodo', filtrosIniciais.periodo)
+      setFiltro('periodoInicio', faixa.inicio)
+      setFiltro('periodoFim', faixa.fim)
+      return
+    }
+    setFiltro(chave, filtrosIniciais[chave] as Filtros[typeof chave])
+  }
+
+  const chipsAtivos = CHIPS_FILTRO.filter(({ chave }) => filtros[chave] !== filtrosIniciais[chave])
+  if (chipsAtivos.length === 0) return null
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-caption font-medium text-muted">Filtros ativos:</span>
+      {chipsAtivos.map(({ chave, rotulo }) => (
+        <span
+          key={chave}
+          className="inline-flex items-center gap-1 rounded-pill border border-primary/25 bg-primary-soft py-1 pl-2.5 pr-1 text-caption font-medium text-primary-strong"
+        >
+          {rotulo}: {String(filtros[chave])}
+          <button
+            type="button"
+            aria-label={`Remover filtro ${rotulo}: ${String(filtros[chave])}`}
+            onClick={() => removerFiltro(chave)}
+            className="rounded-full p-0.5 text-primary-strong/70 transition-colors duration-150 hover:bg-primary/15 hover:text-primary-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <X size={12} aria-hidden="true" />
+          </button>
+        </span>
+      ))}
+      <button
+        type="button"
+        onClick={resetFiltros}
+        className="inline-flex items-center gap-1 rounded-pill px-2 py-1 text-caption font-medium text-muted transition-colors duration-150 hover:bg-neutral-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <FilterX size={12} aria-hidden="true" />
+        Limpar filtros
+      </button>
+    </div>
+  )
+}
+
 /** Barra de filtros globais — lê e grava no store; presente em todas as telas. */
 export function FilterBar() {
   const filtros = useAppStore((s) => s.filtros)
@@ -36,6 +98,7 @@ export function FilterBar() {
   }
 
   return (
+    <div className="flex flex-col gap-2">
     <div className="flex flex-wrap items-center gap-2 rounded-card border border-line bg-card px-3 py-2.5 shadow-card">
       <Select
         rotulo="Fábrica"
@@ -88,6 +151,9 @@ export function FilterBar() {
         </span>
         Atualizado em tempo real · Dados ao vivo
       </span>
+    </div>
+
+    <FiltroChips />
     </div>
   )
 }

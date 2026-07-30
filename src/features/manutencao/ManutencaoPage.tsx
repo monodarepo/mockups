@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -9,6 +9,7 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { TrendDelta } from '@/components/shared/TrendDelta'
 import { FactoryMap, type PinFabrica } from '@/components/shared/FactoryMap'
@@ -24,6 +25,7 @@ import {
   formatPercentAssinado,
   formatPontosPercentuais,
 } from '@/lib/format'
+import { useDestaque } from '@/lib/useDestaque'
 import { useAppStore } from '@/store'
 import {
   PRONTIDAO_MANUTENCAO_SCORE,
@@ -35,8 +37,10 @@ import {
   equipamentoPorId,
   kpisPorTela,
   linhaPorId,
+  linhasFiltradas,
   ordensManutencao,
   otRecomendadaCompressora,
+  otsFiltradas,
   prontidaoManutencao,
   tendenciaCondicao,
   type JanelaCondicao,
@@ -136,6 +140,9 @@ function CampoAtivo({
 export function ManutencaoPage() {
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const filtros = useAppStore((s) => s.filtros)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
+  const destaque = useDestaque()
 
   // A fila vive em estado local: "Acionar manutenção" insere a OT-245690 no topo.
   const [filaOts, setFilaOts] = useState<OrdemManutencao[]>(ordensManutencao)
@@ -147,10 +154,40 @@ export function ManutencaoPage() {
   })
   const [janela, setJanela] = useState<JanelaCondicao>('24h')
 
+  // A busca global pode trocar o ?ativo= com a tela já montada.
+  useEffect(() => {
+    const ativoParam = parametrosBusca.get('ativo')
+    if (ativoParam && equipamentoPorId(ativoParam)) setAtivoSelecionadoId(ativoParam)
+  }, [parametrosBusca])
+
   const ativo = equipamentoPorId(ativoSelecionadoId) ?? equipamentoPorId('eq-compressora-l12')!
   const tendencia = useMemo(() => tendenciaCondicao(ativo.id, janela), [ativo.id, janela])
   const otCriada = filaOts.some((ot) => ot.id === otRecomendadaCompressora.id)
   const impactoProducao = impactoDoRisco[ativo.nivelRiscoFalha ?? 'Baixa']
+
+  // Recorte global sobre a fila local (mantém a ordem de priorização).
+  const filaRecorte = useMemo(() => otsFiltradas(filtros, filaOts), [filtros, filaOts])
+  const idsLinhasRecorte = useMemo(() => new Set(linhasFiltradas(filtros).map((linha) => linha.id)), [filtros])
+  const pinsRecorte = useMemo(
+    () =>
+      PINS_SAUDE.filter((pin) => {
+        const linhaId = pin.label.match(/[LP]\d+/)?.[0]
+        if (!linhaId) return filtros.area === 'Todas as áreas'
+        return idsLinhasRecorte.has(linhaId)
+      }),
+    [idsLinhasRecorte, filtros.area],
+  )
+  const alertasPreditivosRecorte = useMemo(
+    () =>
+      alertasPreditivos.filter((alerta) => {
+        const equipamento = alerta.ativoId ? equipamentoPorId(alerta.ativoId) : undefined
+        if (filtros.fabrica !== 'Anápolis') return false
+        if (filtros.area === 'Todas as áreas') return true
+        if (equipamento?.linhaId) return idsLinhasRecorte.has(equipamento.linhaId)
+        return equipamento?.area === filtros.area
+      }),
+    [idsLinhasRecorte, filtros],
+  )
 
   const criarOtRecomendada = () => {
     if (otCriada) {
@@ -274,23 +311,40 @@ export function ManutencaoPage() {
             info="Saúde por linha e utilidades na planta de Anápolis — clique em um pin para abrir o detalhe do ativo."
             corpoSemPadding
           >
-            <div className="p-4">
-              <FactoryMap
-                pins={PINS_SAUDE}
-                onSelecionarPin={(pin) => {
-                  const equipamentoId = PINS_SAUDE.find((item) => item.id === pin.id)?.equipamentoId
-                  if (equipamentoId) setAtivoSelecionadoId(equipamentoId)
-                }}
+            {filtros.fabrica !== 'Anápolis' ? (
+              <EmptyState
+                titulo={`Sem planta detalhada para ${filtros.fabrica}`}
+                descricao="O mapa de saúde dos ativos deste mockup está modelado para a planta de Anápolis."
+                acao={{ rotulo: 'Voltar para Anápolis', onClick: resetFiltros }}
+                alturaMin={280}
               />
-            </div>
+            ) : (
+              <div className="p-4">
+                <FactoryMap
+                  pins={pinsRecorte}
+                  onSelecionarPin={(pin) => {
+                    const equipamentoId = PINS_SAUDE.find((item) => item.id === pin.id)?.equipamentoId
+                    if (equipamentoId) setAtivoSelecionadoId(equipamentoId)
+                  }}
+                />
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard
-            titulo={`Alertas Preditivos e Eventos (${alertasPreditivos.length})`}
-            info="Alertas gerados pelos modelos preditivos, por severidade."
+            titulo="Alertas Preditivos e Eventos"
+            contagem={{ visiveis: alertasPreditivosRecorte.length, total: alertasPreditivos.length }}
+            info="Alertas gerados pelos modelos preditivos, por severidade, no recorte atual."
           >
+            {alertasPreditivosRecorte.length === 0 ? (
+              <EmptyState
+                titulo="Sem alertas preditivos neste recorte"
+                descricao="Os modelos preditivos desta demo monitoram os ativos de Anápolis."
+                acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+              />
+            ) : (
             <ul className="flex flex-col gap-3">
-              {alertasPreditivos.map((alerta) => (
+              {alertasPreditivosRecorte.map((alerta) => (
                 <li key={alerta.id} className="flex items-start gap-3 border-b border-line pb-3 last:border-b-0 last:pb-0">
                   <span
                     className="mt-1.5 h-[7px] w-[7px] shrink-0 rounded-full"
@@ -316,6 +370,7 @@ export function ManutencaoPage() {
                 </li>
               ))}
             </ul>
+            )}
           </SectionCard>
         </div>
 
@@ -323,22 +378,28 @@ export function ManutencaoPage() {
       </div>
 
       <SectionCard
-        titulo="Fila de Ordens de Manutenção (28)"
-        info="28 OTs na rede — exibindo as de Anápolis. Clique em uma linha para abrir o detalhe do ativo."
+        titulo="Fila de Ordens de Manutenção"
+        contagem={{ visiveis: filaRecorte.length, total: filaOts.length }}
+        info="28 OTs na rede — a carteira detalhada cobre as de Anápolis, no recorte atual. Clique em uma linha para abrir o detalhe do ativo."
         corpoSemPadding
-        acao={{
-          rotulo: 'Ver todas as 28 ordens',
-          onClick: () => addToast({ titulo: 'Carteira completa', descricao: 'Disponível na demo completa.', tone: 'info' }),
-        }}
       >
-        <DataTable
-          rotulo="Fila de ordens de manutenção de Anápolis"
-          colunas={colunasFila}
-          linhas={filaOts}
-          chave={(item) => item.id}
-          onLinhaClick={(item) => setAtivoSelecionadoId(item.ativoId)}
-          linhaSelecionada={filaOts.find((ot) => ot.ativoId === ativoSelecionadoId)?.id}
-        />
+        {filaRecorte.length > 0 ? (
+          <DataTable
+            rotulo="Fila de ordens de manutenção de Anápolis"
+            colunas={colunasFila}
+            linhas={filaRecorte}
+            chave={(item) => item.id}
+            onLinhaClick={(item) => setAtivoSelecionadoId(item.ativoId)}
+            linhaSelecionada={filaRecorte.find((ot) => ot.ativoId === ativoSelecionadoId)?.id}
+            linhaDestacada={destaque}
+          />
+        ) : (
+          <EmptyState
+            titulo="Nenhuma OT no recorte atual"
+            descricao="A carteira detalhada desta demo cobre os ativos de Anápolis — ajuste fábrica, área, turno ou período."
+            acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+          />
+        )}
       </SectionCard>
 
       <div className="grid grid-cols-3 items-start gap-5">
@@ -351,7 +412,14 @@ export function ManutencaoPage() {
             onClick: () => addToast({ titulo: 'Histórico do ativo', descricao: 'Disponível na demo completa.', tone: 'info' }),
           }}
         >
-          {/* key força remontagem com fade suave ao trocar o ativo */}
+          {filtros.fabrica !== 'Anápolis' ? (
+            <EmptyState
+              titulo={`Sem ativos monitorados em ${filtros.fabrica}`}
+              descricao="O monitoramento de condição desta demo cobre os 8 ativos de Anápolis."
+              acao={{ rotulo: 'Voltar para Anápolis', onClick: resetFiltros }}
+            />
+          ) : (
+          // key força remontagem com fade suave ao trocar o ativo
           <div key={ativo.id} className="animate-toast-in motion-reduce:animate-none">
             <div className="flex flex-wrap items-center gap-3">
               <PictogramaCompressor />
@@ -428,6 +496,7 @@ export function ManutencaoPage() {
               />
             </div>
           </div>
+          )}
         </SectionCard>
 
         <SectionCard titulo="Prontidão da Manutenção" info="Score consolidado da função manutenção na fábrica.">
@@ -485,6 +554,14 @@ export function ManutencaoPage() {
           </div>
         }
       >
+        {filtros.fabrica !== 'Anápolis' ? (
+          <EmptyState
+            titulo="Sem tendência de condição neste recorte"
+            descricao="Os sensores de condição desta demo estão instalados nos ativos de Anápolis."
+            acao={{ rotulo: 'Voltar para Anápolis', onClick: resetFiltros }}
+          />
+        ) : (
+        <>
         <p className="mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-caption text-muted">
           <span className="font-semibold text-ink">{ativo.nome}</span>
           <span className="flex items-center gap-3">
@@ -530,6 +607,8 @@ export function ManutencaoPage() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+        </>
+        )}
       </SectionCard>
 
       <PageFooter />

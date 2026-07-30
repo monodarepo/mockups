@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
+import { CommandPalette } from './CommandPalette'
 import { ToastHost } from '@/components/ui/Toast'
 import { SimuladorCenarios } from '@/components/shared/SimuladorCenarios'
 import { itemPorRota } from '@/data/navigation'
@@ -64,6 +65,7 @@ export function AppShell() {
           </div>
         </main>
       </div>
+      <CommandPalette />
       <SimuladorCenarios />
       <ToastHost />
     </div>

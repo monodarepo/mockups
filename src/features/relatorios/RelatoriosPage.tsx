@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { CalendarClock, Download, Eye, FileSpreadsheet, FileText, Plus, RefreshCw, Search, Send } from 'lucide-react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
-import { FilterBar } from '@/components/shared/FilterBar'
 import { KpiRow } from '@/components/shared/KpiCard'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
@@ -73,6 +73,20 @@ export function RelatoriosPage() {
   /** Progresso da geração do resumo executivo (null = ocioso). */
   const [progressoGeracao, setProgressoGeracao] = useState<number | null>(null)
   const timerRef = useRef<number | null>(null)
+  const [parametrosBusca, setParametrosBusca] = useSearchParams()
+
+  // ?acao=gerar-resumo (ação rápida da busca global) dispara o fluxo real.
+  useEffect(() => {
+    if (parametrosBusca.get('acao') !== 'gerar-resumo') return
+    setProgressoGeracao((atual) => atual ?? 6)
+    setParametrosBusca(
+      (params) => {
+        params.delete('acao')
+        return params
+      },
+      { replace: true },
+    )
+  }, [parametrosBusca, setParametrosBusca])
 
   // Barra de progresso de ~2 s antes de abrir o preview do resumo executivo.
   useEffect(() => {
@@ -289,8 +303,6 @@ export function RelatoriosPage() {
           </>
         }
       />
-
-      <FilterBar />
 
       <KpiRow kpis={kpisPorTela['/relatorios']} />
 

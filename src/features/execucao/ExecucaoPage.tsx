@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { KpiRow } from '@/components/shared/KpiCard'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
@@ -26,6 +27,7 @@ import {
   formatPercent,
   formatPontosPercentuais,
 } from '@/lib/format'
+import { useDestaque } from '@/lib/useDestaque'
 import { useAppStore } from '@/store'
 import {
   TOTAL_PARADAS_MIN,
@@ -34,11 +36,13 @@ import {
   TURNO_DECORRIDO_INICIAL_SEG,
   TURNO_DURACAO_SEG,
   alertas,
+  alertasFiltrados,
   conteudoCopilot,
   detalhesExecucao,
   kpisPorTela,
   linhaPorId,
   linhasExecucao,
+  linhasFiltradas,
   motivosParada,
   ordemPorId,
   produtoPorId,
@@ -159,6 +163,9 @@ export function ExecucaoPage() {
   const navigate = useNavigate()
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const filtros = useAppStore((s) => s.filtros)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
+  const destaque = useDestaque()
 
   const [ordemSelecionada, setOrdemSelecionada] = useState('OF-045678')
   const [modoGrafico, setModoGrafico] = useState<'hora' | 'acumulado'>('hora')
@@ -175,19 +182,35 @@ export function ExecucaoPage() {
     }
   }, [])
 
-  const detalhe = detalhesExecucao[ordemSelecionada]
+  // Recorte global aplicado às linhas em execução.
+  const linhasExecRecorte = useMemo(() => {
+    const idsLinhas = new Set(linhasFiltradas(filtros).map((linha) => linha.id))
+    return linhasExecucao.filter((item) => idsLinhas.has(item.linhaId))
+  }, [filtros])
+
+  // Mantém o acompanhamento apontando para uma ordem visível no recorte.
+  useEffect(() => {
+    if (linhasExecRecorte.length === 0) return
+    if (!linhasExecRecorte.some((item) => item.ordemId === ordemSelecionada)) {
+      setOrdemSelecionada(linhasExecRecorte[0].ordemId)
+    }
+  }, [linhasExecRecorte, ordemSelecionada])
+
+  const detalhe = detalhesExecucao[ordemSelecionada] as (typeof detalhesExecucao)[string] | undefined
   const ordem = ordemPorId(ordemSelecionada)
   const produto = ordem ? produtoPorId(ordem.produtoId) : undefined
 
+  const alertasRecorte = useMemo(() => alertasFiltrados(filtros), [filtros])
   const alertasTurno = useMemo(
     () =>
-      [...alertas]
+      [...alertasRecorte]
         .sort((a, b) => pesoSeveridade[a.severidade] - pesoSeveridade[b.severidade] || b.impactoEstimado - a.impactoEstimado)
         .slice(0, 5),
-    [],
+    [alertasRecorte],
   )
 
   const dadosGrafico = useMemo(() => {
+    if (!detalhe) return []
     if (modoGrafico === 'hora') return detalhe.producaoPorHora
     let realAcumulado = 0
     let metaAcumulada = 0
@@ -326,18 +349,28 @@ export function ExecucaoPage() {
       <div className="grid grid-cols-3 items-start gap-5">
         <div className="col-span-2 flex min-w-0 flex-col gap-5">
           <SectionCard
-            titulo={`Linhas em Execução (${linhasExecucao.length})`}
+            titulo="Linhas em Execução"
+            contagem={{ visiveis: linhasExecRecorte.length, total: linhasExecucao.length }}
             info="Clique em uma linha para acompanhar a ordem no card abaixo."
             corpoSemPadding
           >
-            <DataTable
-              rotulo="Linhas em execução no Turno A"
-              colunas={colunasLinhas}
-              linhas={linhasExecucao}
-              chave={(item) => item.ordemId}
-              onLinhaClick={(item) => setOrdemSelecionada(item.ordemId)}
-              linhaSelecionada={ordemSelecionada}
-            />
+            {linhasExecRecorte.length > 0 ? (
+              <DataTable
+                rotulo="Linhas em execução no Turno A"
+                colunas={colunasLinhas}
+                linhas={linhasExecRecorte}
+                chave={(item) => item.ordemId}
+                onLinhaClick={(item) => setOrdemSelecionada(item.ordemId)}
+                linhaSelecionada={ordemSelecionada}
+                linhaDestacada={destaque}
+              />
+            ) : (
+              <EmptyState
+                titulo="Nenhuma linha em execução neste recorte"
+                descricao={`O acompanhamento de piso desta demo cobre as linhas de Anápolis — ajuste fábrica ou área para voltar a vê-las.`}
+                acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+              />
+            )}
           </SectionCard>
 
           <SectionCard
@@ -368,7 +401,14 @@ export function ExecucaoPage() {
               </div>
             }
           >
-            {/* key força remontagem com fade suave ao trocar a ordem acompanhada */}
+            {linhasExecRecorte.length === 0 || !detalhe ? (
+              <EmptyState
+                titulo="Sem ordem para acompanhar neste recorte"
+                descricao="Selecione uma linha em execução para ver o detalhe operacional da ordem."
+                acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+              />
+            ) : (
+            // key força remontagem com fade suave ao trocar a ordem acompanhada
             <div key={ordemSelecionada} className="animate-toast-in motion-reduce:animate-none">
               <div className="flex flex-wrap items-center gap-3">
                 <PictogramaProduto forma={produto?.formaFarmaceutica ?? ''} />
@@ -506,6 +546,7 @@ export function ExecucaoPage() {
                 </div>
               </div>
             </div>
+            )}
           </SectionCard>
         </div>
 
@@ -519,10 +560,19 @@ export function ExecucaoPage() {
 
       <div className="grid grid-cols-4 gap-5">
         <SectionCard
-          titulo={`Alertas e Decisões (${alertasTurno.length})`}
-          info="Alertas ativos que afetam o turno, por severidade."
+          titulo="Alertas e Decisões"
+          contagem={{ visiveis: alertasTurno.length, total: alertas.length }}
+          info="Alertas ativos que afetam o turno, por severidade, no recorte atual."
           acao={{ rotulo: 'Ver central', onClick: () => navigate('/alertas') }}
         >
+          {alertasTurno.length === 0 ? (
+            <EmptyState
+              titulo="Sem alertas neste recorte"
+              descricao="Os alertas ativos do dia estão nas linhas de Anápolis."
+              acao={{ rotulo: 'Ver central de alertas', onClick: () => navigate('/alertas') }}
+              alturaMin={160}
+            />
+          ) : (
           <ul className="flex flex-col gap-2.5">
             {alertasTurno.map((alerta) => (
               <li key={alerta.id} className="flex items-center justify-between gap-2">
@@ -536,6 +586,7 @@ export function ExecucaoPage() {
               </li>
             ))}
           </ul>
+          )}
         </SectionCard>
 
         <SectionCard titulo="Motivos de Parada" info="Pareto das paradas não planejadas das últimas 8 horas.">

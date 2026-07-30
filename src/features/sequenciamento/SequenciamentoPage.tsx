@@ -11,6 +11,8 @@ import {
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { KpiRow } from '@/components/shared/KpiCard'
+import { FiltroChips } from '@/components/shared/FilterBar'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
@@ -22,19 +24,22 @@ import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { cn } from '@/lib/cn'
 import { formatDataNumerica, formatDiaMes, formatHora, formatMoedaCompacta, formatNumero } from '@/lib/format'
+import { useDestaque } from '@/lib/useDestaque'
 import { useAppStore } from '@/store'
 import {
   FABRICAS,
   SEMANA_PLANEJAMENTO_FIM,
   SEMANA_PLANEJAMENTO_INICIO,
+  blocosFiltrados,
   blocosSequencia,
   blocosSequenciaOtimizada,
   cenarioPorId,
   conteudoCopilot,
-  fabricas,
   impactoDaMudanca,
   kpisSequenciamento,
+  linhasFiltradas,
   ordens,
+  ordensFiltradas,
   produtoPorId,
   restricoes,
   type NomeFabrica,
@@ -120,26 +125,29 @@ export function SequenciamentoPage() {
   const [deslocamentos, setDeslocamentos] = useState<Record<string, number>>({})
   const [ajusteAprovado, setAjusteAprovado] = useState(false)
   const ganttScrollRef = useRef<HTMLDivElement>(null)
+  const destaque = useDestaque()
 
-  const linhasAnapolis = useMemo(() => fabricas.find((f) => f.id === 'anapolis')?.linhas ?? [], [])
+  // Recorte global (fábrica + área) sobre as linhas do Gantt + filtro local de linha.
+  const linhasRecorte = useMemo(() => linhasFiltradas(filtros), [filtros])
   const linhasVisiveis = useMemo(
-    () => (linhaFiltro === 'Todas as linhas' ? linhasAnapolis : linhasAnapolis.filter((l) => l.nome === linhaFiltro)),
-    [linhasAnapolis, linhaFiltro],
+    () => (linhaFiltro === 'Todas as linhas' ? linhasRecorte : linhasRecorte.filter((l) => l.nome === linhaFiltro)),
+    [linhasRecorte, linhaFiltro],
   )
 
-  const blocos = sequenciaOtimizada ? blocosSequenciaOtimizada : blocosSequencia
+  const blocosBase = sequenciaOtimizada ? blocosSequenciaOtimizada : blocosSequencia
+  const blocos = useMemo(() => blocosFiltrados(filtros, blocosBase), [filtros, blocosBase])
   const ordensEmExecucao = useMemo(
     () => new Set(ordens.filter((o) => o.status === 'Em execução').map((o) => o.id)),
     [],
   )
 
+  const ordensRecorte = useMemo(() => ordensFiltradas(filtros), [filtros])
   const ordensCriticas = useMemo(
     () =>
-      ordens
-        .filter((o) => o.fabricaId === 'anapolis')
+      [...ordensRecorte]
         .sort((a, b) => pesoSituacao[a.situacao] - pesoSituacao[b.situacao] || a.prontidaoMateriais - b.prontidaoMateriais)
         .slice(0, 5),
-    [],
+    [ordensRecorte],
   )
 
   const executarOtimizacao = () => {
@@ -216,17 +224,12 @@ export function SequenciamentoPage() {
           rotulo="Fábrica"
           valor={filtros.fabrica}
           opcoes={FABRICAS}
-          onChange={(valor) => {
-            if (valor !== 'Anápolis') {
-              addToast({ titulo: 'Sequência detalhada em Anápolis', descricao: 'Nesta demo, o Gantt cobre as linhas L03–L15.', tone: 'info' })
-            }
-            setFiltro('fabrica', 'Anápolis' as NomeFabrica)
-          }}
+          onChange={(valor) => setFiltro('fabrica', valor as NomeFabrica)}
         />
         <Select
           rotulo="Linha"
           valor={linhaFiltro}
-          opcoes={['Todas as linhas', ...linhasAnapolis.map((l) => l.nome)]}
+          opcoes={['Todas as linhas', ...linhasRecorte.map((l) => l.nome)]}
           onChange={setLinhaFiltro}
         />
         <span className="flex h-9 items-center gap-2 rounded-lg border border-line bg-card px-3 text-body-sm font-medium text-ink">
@@ -270,6 +273,8 @@ export function SequenciamentoPage() {
         </span>
       </div>
 
+      <FiltroChips />
+
       <div className="grid grid-cols-3 items-start gap-5">
         <div className="col-span-2 min-w-0">
           <SectionCard
@@ -305,18 +310,37 @@ export function SequenciamentoPage() {
             }
             className="relative"
           >
-            <GanttSequencia
-              linhas={linhasVisiveis}
-              blocos={blocos}
-              zoom={zoom}
-              ordensEmExecucao={ordensEmExecucao}
-              deslocamentos={deslocamentos}
-              movimentoPendente={movimentoPendente}
-              onSoltarBloco={aoSoltarBloco}
-              otimizando={otimizando}
-              scrollRef={ganttScrollRef}
-            />
-            <LegendaGantt />
+            {blocos.length === 0 || linhasVisiveis.length === 0 ? (
+              <EmptyState
+                titulo="Sem sequência para este recorte"
+                descricao={
+                  filtros.fabrica === 'Anápolis'
+                    ? 'Nenhuma linha corresponde à combinação de área e linha selecionada.'
+                    : `A sequência detalhada deste mockup está modelada para Anápolis — ${filtros.fabrica} não tem Gantt nesta demo.`
+                }
+                acao={
+                  filtros.fabrica === 'Anápolis'
+                    ? { rotulo: 'Limpar filtros', onClick: () => useAppStore.getState().resetFiltros() }
+                    : { rotulo: 'Voltar para Anápolis', onClick: () => setFiltro('fabrica', 'Anápolis' as NomeFabrica) }
+                }
+                alturaMin={320}
+              />
+            ) : (
+              <>
+                <GanttSequencia
+                  linhas={linhasVisiveis}
+                  blocos={blocos}
+                  zoom={zoom}
+                  ordensEmExecucao={ordensEmExecucao}
+                  deslocamentos={deslocamentos}
+                  movimentoPendente={movimentoPendente}
+                  onSoltarBloco={aoSoltarBloco}
+                  otimizando={otimizando}
+                  scrollRef={ganttScrollRef}
+                />
+                <LegendaGantt />
+              </>
+            )}
 
             {movimentoPendente && impacto ? (
               <Card className="absolute right-6 top-16 z-30 w-[300px] p-4 shadow-pop">
@@ -382,22 +406,39 @@ export function SequenciamentoPage() {
         </SectionCard>
 
         <SectionCard
-          titulo={`Ordens Críticas (${ordensCriticas.length})`}
-          info="Ordens de Anápolis ordenadas por situação e prontidão de materiais."
+          titulo="Ordens Críticas"
+          contagem={{ visiveis: ordensCriticas.length, total: ordensRecorte.length }}
+          info="Ordens do recorte atual ordenadas por situação e prontidão de materiais."
           corpoSemPadding
         >
-          <DataTable
-            rotulo="Ordens críticas da semana"
-            colunas={colunasOrdensCriticas}
-            linhas={ordensCriticas}
-            chave={(o) => o.id}
-          />
+          {ordensCriticas.length > 0 ? (
+            <DataTable
+              rotulo="Ordens críticas da semana"
+              colunas={colunasOrdensCriticas}
+              linhas={ordensCriticas}
+              chave={(o) => o.id}
+              linhaDestacada={destaque}
+            />
+          ) : (
+            <EmptyState
+              titulo="Nenhuma ordem no recorte atual"
+              descricao="Ajuste fábrica, área, turno ou período para ver as ordens da semana."
+              acao={{ rotulo: 'Limpar filtros', onClick: () => useAppStore.getState().resetFiltros() }}
+            />
+          )}
         </SectionCard>
 
         <SectionCard
           titulo={`Restrições e Conflitos (${restricoes.length})`}
-          info="Restrições ativas consideradas pelo otimizador de sequência."
+          info="Restrições ativas consideradas pelo otimizador de sequência — modeladas para Anápolis."
         >
+          {filtros.fabrica !== 'Anápolis' ? (
+            <EmptyState
+              titulo={`Sem restrições mapeadas para ${filtros.fabrica}`}
+              descricao="As restrições do otimizador cobrem as linhas L03 – L15 de Anápolis nesta demo."
+              acao={{ rotulo: 'Voltar para Anápolis', onClick: () => setFiltro('fabrica', 'Anápolis' as NomeFabrica) }}
+            />
+          ) : (
           <ul className="flex flex-col gap-2.5">
             {restricoes.map((restricao) => {
               const Icone = iconeDaRestricao[restricao.tipo]
@@ -424,6 +465,7 @@ export function SequenciamentoPage() {
               )
             })}
           </ul>
+          )}
         </SectionCard>
       </div>
 

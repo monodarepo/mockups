@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CalendarRange, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react'
+import { CalendarRange, CalendarX2, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   Bar,
   BarChart,
@@ -15,6 +15,8 @@ import { addDays } from 'date-fns'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { KpiRow } from '@/components/shared/KpiCard'
+import { FiltroChips } from '@/components/shared/FilterBar'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
@@ -43,11 +45,14 @@ import {
   fabricas,
   kpisPorTela,
   linhaPorId,
+  linhasFiltradas,
   ordens,
+  ordensFiltradas,
   planoPorLinha,
   produtoPorId,
   skusRisco,
   type FamiliaProduto,
+  type NomeFabrica,
   type OrdemProducao,
   type PlanoLinha,
   type SkuRisco,
@@ -194,16 +199,30 @@ export function PlanejamentoPage() {
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
   const cenarioAtivo = useAppStore((s) => s.cenarioAtivo)
+  const filtros = useAppStore((s) => s.filtros)
+  const setFiltro = useAppStore((s) => s.setFiltro)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
 
   const [abaAtiva, setAbaAtiva] = useState('visao-geral')
-  const [fabricaFiltro, setFabricaFiltro] = useState('Todas')
   const [horizonte, setHorizonte] = useState('Semanal')
   const [deslocamentoPeriodo, setDeslocamentoPeriodo] = useState(0)
   const [cargaRedistribuida, setCargaRedistribuida] = useState(false)
 
-  const inicioPeriodo = addDays(new Date(2025, 4, 20), deslocamentoPeriodo * 28)
-  const fimPeriodo = addDays(inicioPeriodo, 27)
+  const diasHorizonte = horizonte === 'Semanal' ? 7 : 28
+  const inicioPeriodo = addDays(new Date(2025, 4, 20), deslocamentoPeriodo * diasHorizonte)
+  const fimPeriodo = addDays(inicioPeriodo, diasHorizonte - 1)
   const rotuloPeriodo = `${formatDiaMes(inicioPeriodo)} – ${formatData(fimPeriodo)}`
+
+  // Recorte global aplicado às tabelas da tela.
+  const ordensRecorte = useMemo(() => ordensFiltradas(filtros), [filtros])
+  const linhasRecorte = useMemo(() => linhasFiltradas(filtros), [filtros])
+  const idsLinhasRecorte = useMemo(() => new Set(linhasRecorte.map((linha) => linha.id)), [linhasRecorte])
+  const skusRecorte = useMemo(() => skusRisco.filter((sku) => sku.fabrica === filtros.fabrica), [filtros])
+  const planoRecorte = useMemo(() => planoPorLinha.filter((plano) => idsLinhasRecorte.has(plano.linhaId)), [idsLinhasRecorte])
+  const campanhasRecorte = useMemo(
+    () => calendarioCampanhas.filter((campanha) => idsLinhasRecorte.has(campanha.rotulo.split('— ')[1] ?? '')),
+    [idsLinhasRecorte],
+  )
 
   const nomeCenario = cenarioAtivo === 'cenario-base' ? 'Plano Mestre' : cenarioPorId(cenarioAtivo)?.nome ?? cenarioAtivo
 
@@ -242,9 +261,14 @@ export function PlanejamentoPage() {
         descricao="Planeje, simule e otimize sua produção de ponta a ponta."
       />
 
-      {/* Barra de contexto */}
+      {/* Barra de contexto — o Select de fábrica lê e grava o filtro global */}
       <div className="flex flex-wrap items-center gap-2 rounded-card border border-line bg-card px-3 py-2.5 shadow-card">
-        <Select rotulo="Fábrica" valor={fabricaFiltro} opcoes={['Todas', ...FABRICAS]} onChange={setFabricaFiltro} />
+        <Select
+          rotulo="Fábrica"
+          valor={filtros.fabrica}
+          opcoes={FABRICAS}
+          onChange={(valor) => setFiltro('fabrica', valor as NomeFabrica)}
+        />
         <Select rotulo="Horizonte" valor={horizonte} opcoes={['Semanal', 'Mensal']} onChange={setHorizonte} />
         <span className="flex h-9 items-center gap-1 rounded-lg border border-line bg-card pl-3 pr-1">
           <CalendarRange size={14} className="text-muted" aria-hidden="true" />
@@ -280,6 +304,8 @@ export function PlanejamentoPage() {
           <Button onClick={() => abrirSimulador()}>Novo Cenário</Button>
         </span>
       </div>
+
+      <FiltroChips />
 
       <KpiRow kpis={kpisPorTela['/planejamento']} />
 
@@ -392,47 +418,47 @@ export function PlanejamentoPage() {
                 </SectionCard>
 
                 <SectionCard
-                  titulo={`SKUs em Risco de Ruptura (${TOTAL_SKUS_RISCO})`}
-                  info="Amostra dos SKUs com ruptura projetada nas próximas 2 semanas."
+                  titulo="SKUs em Risco de Ruptura"
+                  contagem={{ visiveis: skusRecorte.length, total: skusRisco.length }}
+                  info={`Amostra dos ${TOTAL_SKUS_RISCO} SKUs com ruptura projetada nas próximas 2 semanas, no recorte da fábrica selecionada.`}
                   acao={{ rotulo: 'Ver todos os riscos', onClick: () => navigate('/materiais') }}
                   corpoSemPadding
                 >
-                  <DataTable rotulo="SKUs em risco de ruptura" colunas={colunasSkus} linhas={skusRisco} chave={(sku) => sku.codigo} />
+                  {skusRecorte.length > 0 ? (
+                    <DataTable rotulo="SKUs em risco de ruptura" colunas={colunasSkus} linhas={skusRecorte} chave={(sku) => sku.codigo} />
+                  ) : (
+                    <EmptyState
+                      titulo={`Sem SKUs em risco para ${filtros.fabrica}`}
+                      descricao="Os riscos de ruptura das próximas 2 semanas estão concentrados nas demais plantas."
+                      acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+                    />
+                  )}
                 </SectionCard>
               </div>
 
               <SectionCard
-                titulo={`Ordens Planejadas (${formatNumero(TOTAL_ORDENS_PLANEJADAS)})`}
-                info="Amostra das ordens do horizonte — as 14 ordens da semana 20 – 26/mai."
-                direita={
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variante="outline"
-                      tamanho="sm"
-                      onClick={() => addToast({ titulo: 'Filtros', descricao: 'Filtros avançados disponíveis na demo completa.', tone: 'info' })}
-                    >
-                      <SlidersHorizontal size={14} aria-hidden="true" />
-                      Filtros
-                    </Button>
-                    <button
-                      type="button"
-                      onClick={() => addToast({ titulo: 'Todas as ordens', descricao: 'Lista completa disponível na demo completa.', tone: 'info' })}
-                      className="whitespace-nowrap text-body-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      Ver todas as ordens →
-                    </button>
-                  </div>
-                }
+                titulo="Ordens Planejadas"
+                contagem={{ visiveis: ordensRecorte.length, total: ordens.length }}
+                info={`Ordens da semana 20 – 26/mai no recorte atual — amostra das ${formatNumero(TOTAL_ORDENS_PLANEJADAS)} ordens do horizonte.`}
                 corpoSemPadding
               >
-                <DataTable
-                  rotulo="Ordens planejadas do horizonte"
-                  colunas={colunasOrdens}
-                  linhas={ordens}
-                  chave={(o) => o.id}
-                  alturaMax={420}
-                  ordenacaoInicial={{ coluna: 'inicio', direcao: 'asc' }}
-                />
+                {ordensRecorte.length > 0 ? (
+                  <DataTable
+                    rotulo="Ordens planejadas do horizonte"
+                    colunas={colunasOrdens}
+                    linhas={ordensRecorte}
+                    chave={(o) => o.id}
+                    alturaMax={420}
+                    ordenacaoInicial={{ coluna: 'inicio', direcao: 'asc' }}
+                  />
+                ) : (
+                  <EmptyState
+                    icone={CalendarX2}
+                    titulo="Nenhuma ordem no recorte atual"
+                    descricao="Ajuste fábrica, área, turno ou período para voltar a ver ordens da semana."
+                    acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+                  />
+                )}
               </SectionCard>
             </>
           ) : null}
@@ -440,24 +466,43 @@ export function PlanejamentoPage() {
           {abaAtiva === 'plano-linha' ? (
             <SectionCard
               titulo="Plano por Linha"
-              info="Horas planejadas por linha e semana no horizonte W21 – W25."
+              contagem={{ visiveis: planoRecorte.length, total: planoPorLinha.length }}
+              info="Horas planejadas por linha e semana no horizonte W21 – W25, no recorte atual."
               corpoSemPadding
             >
-              <DataTable
-                rotulo="Plano de horas por linha e semana"
-                colunas={colunasPlanoLinha}
-                linhas={planoPorLinha}
-                chave={(plano) => plano.linhaId}
-                ordenacaoInicial={{ coluna: 'linha', direcao: 'asc' }}
-              />
+              {planoRecorte.length > 0 ? (
+                <DataTable
+                  rotulo="Plano de horas por linha e semana"
+                  colunas={colunasPlanoLinha}
+                  linhas={planoRecorte}
+                  chave={(plano) => plano.linhaId}
+                  ordenacaoInicial={{ coluna: 'linha', direcao: 'asc' }}
+                />
+              ) : (
+                <EmptyState
+                  titulo="Nenhuma linha no recorte atual"
+                  descricao="A combinação de fábrica e área não corresponde a nenhuma linha de produção."
+                  acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+                />
+              )}
             </SectionCard>
           ) : null}
 
           {abaAtiva === 'calendario' ? (
             <SectionCard
               titulo="Calendário de Campanhas"
-              info="Campanhas por família e semana. As cores seguem a família do produto."
+              contagem={{ visiveis: campanhasRecorte.length, total: calendarioCampanhas.length }}
+              info="Campanhas por família e semana no recorte atual. As cores seguem a família do produto."
             >
+              {campanhasRecorte.length === 0 ? (
+                <EmptyState
+                  icone={CalendarX2}
+                  titulo="Nenhuma campanha no recorte atual"
+                  descricao="Ajuste fábrica ou área para ver as campanhas da semana."
+                  acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+                />
+              ) : (
+              <>
               <div className="overflow-x-auto">
                 <table className="w-full border-separate border-spacing-1" aria-label="Calendário de campanhas por família e semana">
                   <thead>
@@ -482,7 +527,7 @@ export function PlanejamentoPage() {
                           {familia}
                         </th>
                         {SEMANAS_PLANEJAMENTO.map((semana) => {
-                          const campanhas = calendarioCampanhas.filter(
+                          const campanhas = campanhasRecorte.filter(
                             (campanha) => campanha.familia === familia && campanha.semana === semana,
                           )
                           return (
@@ -517,6 +562,8 @@ export function PlanejamentoPage() {
                   </span>
                 ))}
               </div>
+              </>
+              )}
             </SectionCard>
           ) : null}
         </div>

@@ -28,6 +28,8 @@ interface DataTableProps<T> {
   onLinhaClick?: (linha: T) => void
   /** Chave da linha selecionada — destacada em azul suave. */
   linhaSelecionada?: string
+  /** Chave da linha destacada pela busca global — pisca 2x e rola até ela. */
+  linhaDestacada?: string
 }
 
 function comparar(a: string | number | Date, b: string | number | Date): number {
@@ -62,7 +64,13 @@ export function DataTable<T>({
   ordenacaoInicial,
   onLinhaClick,
   linhaSelecionada,
+  linhaDestacada,
 }: DataTableProps<T>) {
+  const rolarParaDestaque = (elemento: HTMLTableRowElement | null) => {
+    if (!elemento) return
+    const reduzMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    elemento.scrollIntoView({ block: 'center', behavior: reduzMotion ? 'auto' : 'smooth' })
+  }
   const [ordenacao, setOrdenacao] = useState<{ coluna: string; direcao: 'asc' | 'desc' } | null>(
     ordenacaoInicial ?? null,
   )
@@ -141,6 +149,7 @@ export function DataTable<T>({
           {ordenadas.map((linha) => (
             <tr
               key={chave(linha)}
+              ref={chave(linha) === linhaDestacada ? rolarParaDestaque : undefined}
               onClick={onLinhaClick ? () => onLinhaClick(linha) : undefined}
               onKeyDown={
                 onLinhaClick
@@ -159,6 +168,8 @@ export function DataTable<T>({
                 onLinhaClick &&
                   'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
                 chave(linha) === linhaSelecionada ? 'bg-primary-soft/60 hover:bg-primary-soft' : 'hover:bg-app/70',
+                chave(linha) === linhaDestacada &&
+                  'animate-destaque bg-primary/[.14] motion-reduce:animate-none',
               )}
             >
               {colunas.map((coluna) => (

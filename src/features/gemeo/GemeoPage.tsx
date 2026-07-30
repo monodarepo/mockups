@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
@@ -82,6 +83,9 @@ export function GemeoPage() {
   const navigate = useNavigate()
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
   const aplicarCenario = useAppStore((s) => s.aplicarCenario)
+  const filtros = useAppStore((s) => s.filtros)
+  const setFiltro = useAppStore((s) => s.setFiltro)
+  const foraDeAnapolis = filtros.fabrica !== 'Anápolis'
 
   const [areaSelecionada, setAreaSelecionada] = useState<string | null>(null)
 
@@ -197,17 +201,26 @@ export function GemeoPage() {
           info="Clique em uma área ou em um pin para abrir o detalhe da operação."
           corpoSemPadding
         >
-          <div className="p-4">
-            <FactoryMap
-              pins={pins}
-              estadosBlocos={estadosAreasGemeo as Record<string, StatusPin>}
-              onSelecionarBloco={(nome) => setAreaSelecionada(nome)}
-              onSelecionarPin={(pin) => {
-                const linhaId = pin.id.replace('pin-', '')
-                setAreaSelecionada(AREA_DA_LINHA[linhaId] ?? null)
-              }}
+          {foraDeAnapolis ? (
+            <EmptyState
+              titulo={`Sem gêmeo digital para ${filtros.fabrica}`}
+              descricao="A planta interativa deste mockup está modelada para Anápolis."
+              acao={{ rotulo: 'Voltar para Anápolis', onClick: () => setFiltro('fabrica', 'Anápolis') }}
+              alturaMin={360}
             />
-          </div>
+          ) : (
+            <div className="p-4">
+              <FactoryMap
+                pins={pins}
+                estadosBlocos={estadosAreasGemeo as Record<string, StatusPin>}
+                onSelecionarBloco={(nome) => setAreaSelecionada(nome)}
+                onSelecionarPin={(pin) => {
+                  const linhaId = pin.id.replace('pin-', '')
+                  setAreaSelecionada(AREA_DA_LINHA[linhaId] ?? null)
+                }}
+              />
+            </div>
+          )}
         </SectionCard>
       </div>
 
@@ -218,15 +231,23 @@ export function GemeoPage() {
           info="Mesmo conteúdo do mapa em formato de lista — clique para abrir o detalhe."
           corpoSemPadding
         >
-          <DataTable
-            rotulo="Áreas da planta de Anápolis"
-            colunas={colunasAreas}
-            linhas={listaAreas}
-            chave={(item) => item.area}
-            alturaMax={430}
-            onLinhaClick={(item) => setAreaSelecionada(item.area)}
-            linhaSelecionada={areaSelecionada ?? undefined}
-          />
+          {foraDeAnapolis ? (
+            <EmptyState
+              titulo="Sem áreas mapeadas neste recorte"
+              descricao="As áreas da planta interativa pertencem a Anápolis nesta demo."
+              acao={{ rotulo: 'Voltar para Anápolis', onClick: () => setFiltro('fabrica', 'Anápolis') }}
+            />
+          ) : (
+            <DataTable
+              rotulo="Áreas da planta de Anápolis"
+              colunas={colunasAreas}
+              linhas={listaAreas}
+              chave={(item) => item.area}
+              alturaMax={430}
+              onLinhaClick={(item) => setAreaSelecionada(item.area)}
+              linhaSelecionada={areaSelecionada ?? undefined}
+            />
+          )}
         </SectionCard>
 
         <CopilotPanel conteudo={conteudoCopilot['/gemeo']} onAcao={aoAcaoCopilot} />

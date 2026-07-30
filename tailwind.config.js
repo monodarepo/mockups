@@ -72,12 +72,18 @@ export default {
         flow: {
           to: { strokeDashoffset: '-16' },
         },
+        // Pisca 2x e estabiliza no primário suave; a página remove a classe aos 3s.
+        destaque: {
+          '0%, 40%, 80%': { backgroundColor: 'transparent' },
+          '20%, 60%, 100%': { backgroundColor: 'rgba(37,99,235,.14)' },
+        },
       },
       animation: {
         'pulse-live': 'pulse-live 1.8s ease-in-out infinite',
         'pulse-critical': 'pulse-critical 2s ease-out infinite',
         'toast-in': 'toast-in 180ms ease-out',
         flow: 'flow 1.2s linear infinite',
+        destaque: 'destaque 1.2s ease-out',
       },
     },
   },

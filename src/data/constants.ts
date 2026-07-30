@@ -33,6 +33,31 @@ export const AREAS = [
 ] as const
 export type Area = (typeof AREAS)[number]
 
+/** Área de produção concreta (sem o agregador "Todas as áreas"). */
+export type AreaProducao = Exclude<Area, 'Todas as áreas'>
+
+/**
+ * Área de produção de cada linha — base do filtro de área dos seletores.
+ * Derivada do tipo da linha: Comprimidos → Compressão · Drágeas → Revestimento ·
+ * Sólidos → Granulação · Cápsulas/Semissólidos/Líquidos → Envase ·
+ * Pó/Sachês → Embalagem.
+ */
+export const AREA_POR_LINHA: Record<string, AreaProducao> = {
+  L03: 'Envase',
+  L05: 'Revestimento',
+  L08: 'Granulação',
+  L12: 'Compressão',
+  L15: 'Embalagem',
+  P23: 'Granulação',
+  P24: 'Envase',
+  P25: 'Envase',
+  P26: 'Granulação',
+  P27: 'Envase',
+  P28: 'Granulação',
+  P29: 'Embalagem',
+  P30: 'Compressão',
+}
+
 export const TURNOS = [
   'Turno A (06:00 – 14:00)',
   'Turno B (14:00 – 22:00)',

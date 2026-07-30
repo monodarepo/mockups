@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FileText } from 'lucide-react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -9,6 +9,7 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { TrendDelta } from '@/components/shared/TrendDelta'
 import { DataTable, IdLink, type ColunaDataTable } from '@/components/shared/DataTable'
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
 import { colors, toneSoftClass, toneTextClass, type Tone } from '@/lib/colors'
 import { formatDiaMes, formatDuracao, formatHora, formatNumero, formatPercent } from '@/lib/format'
+import { useDestaque } from '@/lib/useDestaque'
 import { useAppStore } from '@/store'
 import {
   PRONTIDAO_QUALIDADE_SCORE,
@@ -23,8 +25,10 @@ import {
   desviosRanking,
   kpisPorTela,
   linhaPorId,
+  linhasFiltradas,
   lotePorId,
   lotes,
+  lotesFiltrados,
   mapaQualidadeAreas,
   ordemPorId,
   produtoPorId,
@@ -66,15 +70,35 @@ function PictogramaComprimido() {
 export function QualidadePage() {
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const filtros = useAppStore((s) => s.filtros)
+  const resetFiltros = useAppStore((s) => s.resetFiltros)
+  const destaque = useDestaque()
 
   // Ordem da fila vive em estado local — "Priorizar lote" move o lote ao topo.
   const [ordemFila, setOrdemFila] = useState<string[]>(() => lotes.map((lote) => lote.id))
   const [loteSelecionadoId, setLoteSelecionadoId] = useState('2456789A')
 
-  const filaLotes = useMemo(
-    () => ordemFila.map((id) => lotePorId(id)).filter((lote): lote is Lote => lote !== undefined),
-    [ordemFila],
-  )
+  const filaLotes = useMemo(() => {
+    const idsRecorte = new Set(lotesFiltrados(filtros).map((lote) => lote.id))
+    return ordemFila
+      .map((id) => lotePorId(id))
+      .filter((lote): lote is Lote => lote !== undefined && idsRecorte.has(lote.id))
+  }, [ordemFila, filtros])
+
+  // Mantém o detalhe apontando para um lote visível no recorte.
+  useEffect(() => {
+    if (filaLotes.length === 0) return
+    if (!filaLotes.some((item) => item.id === loteSelecionadoId)) setLoteSelecionadoId(filaLotes[0].id)
+  }, [filaLotes, loteSelecionadoId])
+
+  const areasQualidadeRecorte = useMemo(() => {
+    const idsLinhas = new Set(linhasFiltradas(filtros).map((linha) => linha.id))
+    return mapaQualidadeAreas.filter((area) => {
+      const linhaId = area.area.match(/[LP]\d+/)?.[0]
+      if (!linhaId) return filtros.fabrica === 'Anápolis' && filtros.area === 'Todas as áreas'
+      return idsLinhas.has(linhaId)
+    })
+  }, [filtros])
 
   const lote = lotePorId(loteSelecionadoId) ?? lotes[0]
   const ordemDoLote = lote.ordemId ? ordemPorId(lote.ordemId) : undefined
@@ -198,29 +222,47 @@ export function QualidadePage() {
       <KpiRow kpis={kpisPorTela['/qualidade']} />
 
       <SectionCard
-        titulo="Fila de Liberação de Lotes (18)"
-        info="18 lotes na rede — exibindo os 6 de Anápolis. Clique em uma linha para abrir o detalhe abaixo."
+        titulo="Fila de Liberação de Lotes"
+        contagem={{ visiveis: filaLotes.length, total: lotes.length }}
+        info="18 lotes na rede — a fila detalhada cobre os 6 de Anápolis, no recorte atual. Clique em uma linha para abrir o detalhe abaixo."
         corpoSemPadding
       >
-        <DataTable
-          rotulo="Fila de liberação de lotes de Anápolis"
-          colunas={colunasFila}
-          linhas={filaLotes}
-          chave={(item) => item.id}
-          acao={{ rotulo: 'Priorizar lote', onClick: (item) => priorizarLote(item.id) }}
-          onLinhaClick={(item) => setLoteSelecionadoId(item.id)}
-          linhaSelecionada={loteSelecionadoId}
-        />
+        {filaLotes.length > 0 ? (
+          <DataTable
+            rotulo="Fila de liberação de lotes de Anápolis"
+            colunas={colunasFila}
+            linhas={filaLotes}
+            chave={(item) => item.id}
+            acao={{ rotulo: 'Priorizar lote', onClick: (item) => priorizarLote(item.id) }}
+            onLinhaClick={(item) => setLoteSelecionadoId(item.id)}
+            linhaSelecionada={loteSelecionadoId}
+            linhaDestacada={destaque}
+          />
+        ) : (
+          <EmptyState
+            titulo="Nenhum lote na fila para este recorte"
+            descricao="A fila de QA detalhada desta demo cobre os lotes de Anápolis no Turno A de 19/mai."
+            acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+          />
+        )}
       </SectionCard>
 
       <div className="grid grid-cols-3 items-start gap-5">
         <div className="col-span-2 flex min-w-0 flex-col gap-5">
           <SectionCard
             titulo="Mapa da Qualidade por Área"
+            contagem={{ visiveis: areasQualidadeRecorte.length, total: mapaQualidadeAreas.length }}
             info="Índice de qualidade por área — Normal ≥ 90 · Atenção 80–89 · Crítico < 80."
           >
+            {areasQualidadeRecorte.length === 0 ? (
+              <EmptyState
+                titulo="Sem áreas de qualidade neste recorte"
+                descricao="O mapa de qualidade detalhado cobre as áreas de Anápolis nesta demo."
+                acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+              />
+            ) : (
             <div className="grid grid-cols-3 gap-3">
-              {mapaQualidadeAreas.map((area) => {
+              {areasQualidadeRecorte.map((area) => {
                 const situacao = statusDaAreaQualidade(area.percent)
                 const tone = toneDaArea[situacao]
                 return (
@@ -242,6 +284,7 @@ export function QualidadePage() {
                 )
               })}
             </div>
+            )}
           </SectionCard>
 
           <div className="grid grid-cols-2 items-start gap-5">
@@ -347,7 +390,14 @@ export function QualidadePage() {
           </div>
         }
       >
-        {/* key força remontagem com fade suave ao trocar o lote */}
+        {filaLotes.length === 0 ? (
+          <EmptyState
+            titulo="Sem lote selecionado neste recorte"
+            descricao="Volte ao recorte de Anápolis para acompanhar a fila de liberação."
+            acao={{ rotulo: 'Limpar filtros', onClick: resetFiltros }}
+          />
+        ) : (
+        // key força remontagem com fade suave ao trocar o lote
         <div key={lote.id} className="animate-toast-in motion-reduce:animate-none">
           <div className="flex flex-wrap items-center gap-3">
             <PictogramaComprimido />
@@ -449,6 +499,7 @@ export function QualidadePage() {
             </p>
           )}
         </div>
+        )}
       </SectionCard>
 
         <SectionCard titulo="Prontidão de Qualidade" info="Score consolidado da prontidão de QA da fábrica.">

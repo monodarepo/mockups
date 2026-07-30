@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
-import { FilterBar } from '@/components/shared/FilterBar'
 import { KpiRow } from '@/components/shared/KpiCard'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
@@ -457,8 +456,6 @@ export function AgentesPage() {
           </>
         }
       />
-
-      <FilterBar />
 
       <KpiRow kpis={kpisAgentes(decisoesEmAprovacao)} />
 
