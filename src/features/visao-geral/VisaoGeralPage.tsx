@@ -14,6 +14,7 @@ import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
 import { DataTable, type ColunaDataTable } from '@/components/shared/DataTable'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { Modal } from '@/components/ui/Modal'
 import { Select } from '@/components/ui/Select'
 import { cn } from '@/lib/cn'
 import { colors, type Tone } from '@/lib/colors'
@@ -92,6 +93,7 @@ export function VisaoGeralPage() {
 
   const [perspectiva, setPerspectiva] = useState<'operacoes' | 'supply'>('operacoes')
   const [modoPanorama, setModoPanorama] = useState<'mapa' | 'lista'>('mapa')
+  const [modalLinhas, setModalLinhas] = useState(false)
   const [fabricaSelecionada, setFabricaSelecionada] = useState('Todas as fábricas')
   const [ajusteAprovado, setAjusteAprovado] = useState(false)
   const panoramaRef = useRef<HTMLDivElement>(null)
@@ -395,13 +397,7 @@ export function VisaoGeralPage() {
         <SectionCard
           titulo="Linhas Críticas"
           info="Linhas com pior status e utilização na rede."
-          acao={{
-            rotulo: 'Ver todas as linhas',
-            onClick: () => {
-              setModoPanorama('lista')
-              panoramaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            },
-          }}
+          acao={{ rotulo: 'Ver todas as linhas', onClick: () => setModalLinhas(true) }}
         >
           <ul className="flex flex-col gap-3">
             {linhasCriticas.map((linha) => (
@@ -502,6 +498,29 @@ export function VisaoGeralPage() {
       </div>
         </div>
       )}
+
+      <Modal
+        aberto={modalLinhas}
+        onFechar={() => setModalLinhas(false)}
+        titulo="Todas as linhas da rede"
+        descricao="As 13 linhas das 3 fábricas operacionais — todas modeladas neste mockup."
+        largura="lg"
+      >
+        <DataTable
+          rotulo="Todas as linhas da rede"
+          colunas={colunasLista}
+          linhas={linhas}
+          chave={(linha) => linha.id}
+          ordenacaoInicial={{ coluna: 'status', direcao: 'asc' }}
+          acao={{
+            rotulo: 'Filtrar',
+            onClick: (linha) => {
+              setModalLinhas(false)
+              aoSelecionarFabrica(fabricas.find((f) => f.id === linha.fabricaId)?.nome ?? linha.fabricaId)
+            },
+          }}
+        />
+      </Modal>
 
       <PageFooter />
     </>

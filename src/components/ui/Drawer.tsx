@@ -8,12 +8,14 @@ interface DrawerProps {
   onFechar: () => void
   titulo: string
   descricao?: string
+  /** Chip ao lado do título (ex.: StatusPill da ficha universal). */
+  chip?: ReactNode
   children: ReactNode
   rodape?: ReactNode
 }
 
 /** Painel lateral direito com transição suave de entrada e saída. */
-export function Drawer({ aberto, onFechar, titulo, descricao, children, rodape }: DrawerProps) {
+export function Drawer({ aberto, onFechar, titulo, descricao, chip, children, rodape }: DrawerProps) {
   useEffect(() => {
     if (!aberto) return
     const aoTeclar = (evento: KeyboardEvent) => {
@@ -46,8 +48,11 @@ export function Drawer({ aberto, onFechar, titulo, descricao, children, rodape }
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
-          <div>
-            <h2 className="text-card-title font-semibold text-ink">{titulo}</h2>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-card-title font-semibold text-ink">{titulo}</h2>
+              {chip}
+            </div>
             {descricao ? <p className="mt-0.5 text-caption text-muted">{descricao}</p> : null}
           </div>
           <IconButton

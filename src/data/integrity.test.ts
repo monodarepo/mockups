@@ -15,8 +15,9 @@ import {
   otsFiltradas,
   type FiltrosSelecao,
 } from './selectors'
-import { buscar } from './busca'
+import { buscar, indiceBusca } from './busca'
 import { notificacoes } from './notificacoes'
+import { tipoDaEntidade } from './entidades'
 import { produtos } from './produtos'
 import { ORDENS_ANCORA, ordens } from './ordens'
 import {
@@ -1104,6 +1105,22 @@ describe('busca global e notificações', () => {
     // Consulta vazia devolve atalhos: ações rápidas + as 13 telas.
     const vazia = buscar('')
     expect(vazia.find((grupo) => grupo.tipo === 'acao')?.itens).toHaveLength(3)
+  })
+
+  it('o roteador de fichas reconhece toda entidade do índice pelo prefixo do ID', () => {
+    expect(tipoDaEntidade('OF-045678')).toBe('ordem')
+    expect(tipoDaEntidade('MAT-API-001')).toBe('material')
+    expect(tipoDaEntidade('OT-245689')).toBe('ot')
+    expect(tipoDaEntidade('eq-compressora-l12')).toBe('ativo')
+    expect(tipoDaEntidade('2456789A')).toBe('lote')
+    expect(tipoDaEntidade('101.123')).toBeUndefined()
+    // Toda entidade pesquisável tem ficha: o índice e o roteador concordam.
+    const tiposComFicha = new Set(['ordem', 'material', 'lote', 'ativo', 'ot'])
+    for (const entrada of indiceBusca) {
+      if (tiposComFicha.has(entrada.tipo)) {
+        expect(tipoDaEntidade(entrada.id), `sem ficha para ${entrada.id}`).toBe(entrada.tipo)
+      }
+    }
   })
 
   it('o sino tem 8 notificações do dia com destino navegável', () => {

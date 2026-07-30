@@ -25,6 +25,7 @@ import { DataTable, IdLink, type ColunaDataTable } from '@/components/shared/Dat
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { Modal } from '@/components/ui/Modal'
 import { Tabs } from '@/components/ui/Tabs'
 import { cn } from '@/lib/cn'
 import { colors, type Tone } from '@/lib/colors'
@@ -46,15 +47,19 @@ import {
   kpisPorTela,
   linhaPorId,
   linhasFiltradas,
+  materiais,
   ordens,
   ordensFiltradas,
   planoPorLinha,
   produtoPorId,
+  restricoes,
   skusRisco,
   type FamiliaProduto,
+  type Material,
   type NomeFabrica,
   type OrdemProducao,
   type PlanoLinha,
+  type Restricao,
   type SkuRisco,
 } from '@/data'
 
@@ -62,9 +67,9 @@ const ABAS = [
   { id: 'visao-geral', rotulo: 'Visão Geral' },
   { id: 'plano-linha', rotulo: 'Plano por Linha' },
   { id: 'calendario', rotulo: 'Calendário de Campanhas' },
-  { id: 'plano-produto', rotulo: 'Plano por Produto', desabilitada: true, motivoDesabilitada: 'Próxima fase' },
-  { id: 'necessidades', rotulo: 'Necessidades', desabilitada: true, motivoDesabilitada: 'Próxima fase' },
-  { id: 'restricoes', rotulo: 'Restrições e Riscos', desabilitada: true, motivoDesabilitada: 'Próxima fase' },
+  { id: 'plano-produto', rotulo: 'Plano por Produto' },
+  { id: 'necessidades', rotulo: 'Necessidades' },
+  { id: 'restricoes', rotulo: 'Restrições e Riscos' },
 ]
 
 const corDaFamilia: Record<FamiliaProduto, string> = {
@@ -84,7 +89,12 @@ function classeDaCobertura(dias: number): string {
 }
 
 const colunasSkus: ColunaDataTable<SkuRisco>[] = [
-  { id: 'codigo', titulo: 'SKU', render: (sku) => <IdLink id={sku.codigo} />, valor: (sku) => sku.codigo },
+  {
+    id: 'codigo',
+    titulo: 'SKU',
+    render: (sku) => <span className="font-medium text-ink">{sku.codigo}</span>,
+    valor: (sku) => sku.codigo,
+  },
   { id: 'produto', titulo: 'Produto', render: (sku) => sku.produto, valor: (sku) => sku.produto },
   { id: 'fabrica', titulo: 'Fábrica', render: (sku) => sku.fabrica, valor: (sku) => sku.fabrica },
   {
@@ -133,6 +143,176 @@ function toneDaProntidao(prontidao: number): Tone {
   if (prontidao < 80) return 'warning'
   return 'success'
 }
+
+// ── Tab Plano por Produto — agregação das 14 ordens da semana ────────────────
+
+interface PlanoProduto {
+  produtoId: string
+  ordens: OrdemProducao[]
+}
+
+const planoPorProduto: PlanoProduto[] = [...new Set(ordens.map((ordem) => ordem.produtoId))].map((produtoId) => ({
+  produtoId,
+  ordens: ordens.filter((ordem) => ordem.produtoId === produtoId),
+}))
+
+const colunasPlanoProduto: ColunaDataTable<PlanoProduto>[] = [
+  {
+    id: 'produto',
+    titulo: 'Produto',
+    render: (plano) => {
+      const produto = produtoPorId(plano.produtoId)
+      return (
+        <span className="leading-tight">
+          <span className="block font-medium text-ink">{produto?.nome ?? plano.produtoId}</span>
+          <span className="block text-caption text-muted">{produto?.apresentacao}</span>
+        </span>
+      )
+    },
+    valor: (plano) => produtoPorId(plano.produtoId)?.nome ?? plano.produtoId,
+  },
+  {
+    id: 'familia',
+    titulo: 'Família',
+    render: (plano) => produtoPorId(plano.produtoId)?.familia ?? '—',
+    valor: (plano) => produtoPorId(plano.produtoId)?.familia ?? '',
+  },
+  {
+    id: 'ordens',
+    titulo: 'Ordens',
+    render: (plano) => (
+      <span className="flex flex-wrap gap-x-2">
+        {plano.ordens.map((ordem) => (
+          <IdLink key={ordem.id} id={ordem.id} />
+        ))}
+      </span>
+    ),
+    valor: (plano) => plano.ordens.length,
+  },
+  {
+    id: 'quantidade',
+    titulo: 'Quantidade',
+    alinhar: 'direita',
+    render: (plano) =>
+      `${formatNumero(plano.ordens.reduce((soma, ordem) => soma + ordem.quantidade, 0))} ${plano.ordens[0].unidade}`,
+    valor: (plano) => plano.ordens.reduce((soma, ordem) => soma + ordem.quantidade, 0),
+  },
+  {
+    id: 'linhas',
+    titulo: 'Linhas',
+    render: (plano) => [...new Set(plano.ordens.map((ordem) => ordem.linhaId))].join(' · '),
+    valor: (plano) => plano.ordens.map((ordem) => ordem.linhaId).join(),
+  },
+  {
+    id: 'janela',
+    titulo: 'Janela',
+    render: (plano) => {
+      const inicio = new Date(Math.min(...plano.ordens.map((ordem) => ordem.inicio.getTime())))
+      const fim = new Date(Math.max(...plano.ordens.map((ordem) => ordem.fim.getTime())))
+      return `${formatDiaMes(inicio)} – ${formatDiaMes(fim)}`
+    },
+    valor: (plano) => Math.min(...plano.ordens.map((ordem) => ordem.inicio.getTime())),
+  },
+  {
+    id: 'prontidao',
+    titulo: 'Prontidão média',
+    largura: 'w-36',
+    render: (plano) => {
+      const media = Math.round(
+        plano.ordens.reduce((soma, ordem) => soma + ordem.prontidaoMateriais, 0) / plano.ordens.length,
+      )
+      return <ProgressBar valor={media} tone={toneDaProntidao(media)} />
+    },
+    valor: (plano) =>
+      plano.ordens.reduce((soma, ordem) => soma + ordem.prontidaoMateriais, 0) / plano.ordens.length,
+  },
+]
+
+// ── Tab Necessidades — demanda de 7 dias por material ────────────────────────
+
+const colunasNecessidades: ColunaDataTable<Material>[] = [
+  {
+    id: 'material',
+    titulo: 'Material',
+    render: (material) => (
+      <span className="leading-tight">
+        <IdLink id={material.id} />
+        <span className="block text-caption text-muted">{material.nome}</span>
+      </span>
+    ),
+    valor: (material) => material.nome,
+  },
+  { id: 'categoria', titulo: 'Categoria', render: (material) => material.categoria, valor: (material) => material.categoria },
+  {
+    id: 'necessidade',
+    titulo: 'Necessidade (7 dias)',
+    alinhar: 'direita',
+    render: (material) =>
+      material.consumoDia !== undefined ? `${formatNumero(material.consumoDia * 7)} ${material.unidade}` : '—',
+    valor: (material) => (material.consumoDia ?? 0) * 7,
+  },
+  {
+    id: 'estoque',
+    titulo: 'Estoque',
+    alinhar: 'direita',
+    render: (material) => `${formatNumero(material.estoque)} ${material.unidade}`,
+    valor: (material) => material.estoque,
+  },
+  {
+    id: 'cobertura',
+    titulo: 'Cobertura',
+    alinhar: 'direita',
+    render: (material) => (
+      <span className={material.coberturaDias < 2 ? 'font-semibold text-danger' : 'text-ink'}>
+        {formatNumero(material.coberturaDias, 1)} dias
+      </span>
+    ),
+    valor: (material) => material.coberturaDias,
+  },
+  {
+    id: 'pedidos',
+    titulo: 'Pedidos abertos',
+    alinhar: 'direita',
+    render: (material) => `${formatNumero(material.pedidosAbertos)} ${material.unidade}`,
+    valor: (material) => material.pedidosAbertos,
+  },
+  {
+    id: 'status',
+    titulo: 'Status',
+    render: (material) => <StatusPill status={material.status} pulsar={material.status === 'Crítico'} />,
+    valor: (material) => material.status,
+  },
+]
+
+// ── Tab Restrições e Riscos — as restrições ativas do otimizador ─────────────
+
+const colunasRestricoes: ColunaDataTable<Restricao>[] = [
+  {
+    id: 'tipo',
+    titulo: 'Tipo',
+    render: (restricao) => <span className="capitalize text-muted">{restricao.tipo}</span>,
+    valor: (restricao) => restricao.tipo,
+  },
+  {
+    id: 'titulo',
+    titulo: 'Restrição',
+    render: (restricao) => <span className="font-medium text-ink">{restricao.titulo}</span>,
+    valor: (restricao) => restricao.titulo,
+  },
+  {
+    id: 'detalhe',
+    titulo: 'Detalhe',
+    render: (restricao) => (
+      <span className="block max-w-[420px] whitespace-normal text-muted">{restricao.detalhe}</span>
+    ),
+  },
+  {
+    id: 'severidade',
+    titulo: 'Severidade',
+    render: (restricao) => <StatusPill status={restricao.severidade} pulsar={restricao.severidade === 'Crítica'} />,
+    valor: (restricao) => ({ Crítica: 0, Alta: 1, Média: 2, Baixa: 3 })[restricao.severidade],
+  },
+]
 
 const colunasOrdens: ColunaDataTable<OrdemProducao>[] = [
   { id: 'id', titulo: 'Ordem', render: (o) => <IdLink id={o.id} />, valor: (o) => o.id },
@@ -204,6 +384,7 @@ export function PlanejamentoPage() {
   const resetFiltros = useAppStore((s) => s.resetFiltros)
 
   const [abaAtiva, setAbaAtiva] = useState('visao-geral')
+  const [modalLista, setModalLista] = useState<'riscos' | 'ordens' | null>(null)
   const [horizonte, setHorizonte] = useState('Semanal')
   const [deslocamentoPeriodo, setDeslocamentoPeriodo] = useState(0)
   const [cargaRedistribuida, setCargaRedistribuida] = useState(false)
@@ -421,7 +602,7 @@ export function PlanejamentoPage() {
                   titulo="SKUs em Risco de Ruptura"
                   contagem={{ visiveis: skusRecorte.length, total: skusRisco.length }}
                   info={`Amostra dos ${TOTAL_SKUS_RISCO} SKUs com ruptura projetada nas próximas 2 semanas, no recorte da fábrica selecionada.`}
-                  acao={{ rotulo: 'Ver todos os riscos', onClick: () => navigate('/materiais') }}
+                  acao={{ rotulo: 'Ver todos os riscos', onClick: () => setModalLista('riscos') }}
                   corpoSemPadding
                 >
                   {skusRecorte.length > 0 ? (
@@ -440,6 +621,7 @@ export function PlanejamentoPage() {
                 titulo="Ordens Planejadas"
                 contagem={{ visiveis: ordensRecorte.length, total: ordens.length }}
                 info={`Ordens da semana 20 – 26/mai no recorte atual — amostra das ${formatNumero(TOTAL_ORDENS_PLANEJADAS)} ordens do horizonte.`}
+                acao={{ rotulo: 'Ver todas as ordens', onClick: () => setModalLista('ordens') }}
                 corpoSemPadding
               >
                 {ordensRecorte.length > 0 ? (
@@ -566,10 +748,92 @@ export function PlanejamentoPage() {
               )}
             </SectionCard>
           ) : null}
+
+          {abaAtiva === 'plano-produto' ? (
+            <SectionCard
+              titulo="Plano por Produto"
+              contagem={{ visiveis: planoPorProduto.length, total: planoPorProduto.length }}
+              info="Agregação das 14 ordens da semana 20 – 26/mai por produto."
+              corpoSemPadding
+            >
+              <DataTable
+                rotulo="Plano da semana agregado por produto"
+                colunas={colunasPlanoProduto}
+                linhas={planoPorProduto}
+                chave={(plano) => plano.produtoId}
+                ordenacaoInicial={{ coluna: 'quantidade', direcao: 'desc' }}
+              />
+            </SectionCard>
+          ) : null}
+
+          {abaAtiva === 'necessidades' ? (
+            <SectionCard
+              titulo="Necessidades de Materiais"
+              contagem={{ visiveis: materiais.length, total: materiais.length }}
+              info="Demanda de 7 dias contra estoque e pedidos abertos — clique no código para abrir a ficha."
+              corpoSemPadding
+            >
+              <DataTable
+                rotulo="Necessidades de materiais da semana"
+                colunas={colunasNecessidades}
+                linhas={materiais}
+                chave={(material) => material.id}
+                ordenacaoInicial={{ coluna: 'cobertura', direcao: 'asc' }}
+              />
+            </SectionCard>
+          ) : null}
+
+          {abaAtiva === 'restricoes' ? (
+            <SectionCard
+              titulo="Restrições e Riscos"
+              contagem={{ visiveis: restricoes.length, total: restricoes.length }}
+              info="Restrições ativas consideradas pelo otimizador da semana — as mesmas do Sequenciamento."
+              corpoSemPadding
+            >
+              <DataTable
+                rotulo="Restrições e riscos da semana"
+                colunas={colunasRestricoes}
+                linhas={restricoes}
+                chave={(restricao) => restricao.id}
+                ordenacaoInicial={{ coluna: 'severidade', direcao: 'asc' }}
+              />
+            </SectionCard>
+          ) : null}
         </div>
 
         <CopilotPanel conteudo={conteudoCopilot['/planejamento']} onAcao={aoAcaoCopilot} />
       </div>
+
+      <Modal
+        aberto={modalLista === 'riscos'}
+        onFechar={() => setModalLista(null)}
+        titulo="SKUs em Risco de Ruptura"
+        descricao={`Exibindo os ${skusRisco.length} SKUs modelados de um universo de ${TOTAL_SKUS_RISCO} em risco nas próximas 2 semanas.`}
+        largura="lg"
+        rodape={
+          <Button variante="outline" tamanho="sm" onClick={() => { setModalLista(null); navigate('/materiais') }}>
+            Ir para Materiais
+          </Button>
+        }
+      >
+        <DataTable rotulo="Todos os SKUs em risco modelados" colunas={colunasSkus} linhas={skusRisco} chave={(sku) => sku.codigo} />
+      </Modal>
+
+      <Modal
+        aberto={modalLista === 'ordens'}
+        onFechar={() => setModalLista(null)}
+        titulo="Ordens Planejadas"
+        descricao={`Exibindo as ${ordens.length} ordens modeladas da semana 20 – 26/mai de um universo de ${formatNumero(TOTAL_ORDENS_PLANEJADAS)} no horizonte.`}
+        largura="lg"
+      >
+        <DataTable
+          rotulo="Todas as ordens planejadas modeladas"
+          colunas={colunasOrdens}
+          linhas={ordens}
+          chave={(ordem) => ordem.id}
+          ordenacaoInicial={{ coluna: 'inicio', direcao: 'asc' }}
+        />
+      </Modal>
 
       <PageFooter />
     </>

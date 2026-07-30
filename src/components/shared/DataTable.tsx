@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { useAppStore } from '@/store'
 
 export interface ColunaDataTable<T> {
   id: string
@@ -38,12 +39,22 @@ function comparar(a: string | number | Date, b: string | number | Date): number 
   return String(a).localeCompare(String(b), 'pt-BR', { numeric: true })
 }
 
-/** ID renderizado como link azul (OF-, OT-, MAT-, lotes). */
+/**
+ * ID renderizado como link azul (OF-, OT-, MAT-, eq-, lotes). Sempre abre a
+ * ficha universal da entidade, roteada pelo prefixo do ID; um onClick extra
+ * (ex.: selecionar a linha na tela) roda junto.
+ */
 export function IdLink({ id, onClick }: { id: string; onClick?: (id: string) => void }) {
+  const abrirFicha = useAppStore((s) => s.abrirFicha)
   return (
     <button
       type="button"
-      onClick={() => onClick?.(id)}
+      onClick={(evento) => {
+        // Dentro de tabelas com onLinhaClick, o link não dispara a seleção da linha.
+        evento.stopPropagation()
+        onClick?.(id)
+        abrirFicha(id)
+      }}
       className={cn(
         'font-medium text-primary transition-colors duration-150 hover:text-primary-hover hover:underline',
         'rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',

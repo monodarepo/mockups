@@ -6,6 +6,7 @@ import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { KpiRow } from '@/components/shared/KpiCard'
 import { SectionCard } from '@/components/shared/SectionCard'
+import { Modal } from '@/components/ui/Modal'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
@@ -38,8 +39,6 @@ import {
   kpisPorTela,
   linhaPorId,
   linhasFiltradas,
-  ordensManutencao,
-  otRecomendadaCompressora,
   otsFiltradas,
   prontidaoManutencao,
   tendenciaCondicao,
@@ -138,14 +137,16 @@ function CampoAtivo({
 }
 
 export function ManutencaoPage() {
-  const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
   const filtros = useAppStore((s) => s.filtros)
   const resetFiltros = useAppStore((s) => s.resetFiltros)
   const destaque = useDestaque()
 
-  // A fila vive em estado local: "Acionar manutenção" insere a OT-245690 no topo.
-  const [filaOts, setFilaOts] = useState<OrdemManutencao[]>(ordensManutencao)
+  // A fila vive no store: "Acionar manutenção" (aqui ou na ficha) insere a OT-245690 no topo.
+  const filaOts = useAppStore((s) => s.filaOts)
+  const acionarManutencao = useAppStore((s) => s.acionarManutencaoCompressora)
+  const priorizarOtStore = useAppStore((s) => s.priorizarOt)
+  const abrirFicha = useAppStore((s) => s.abrirFicha)
   // ?ativo= permite chegar com contexto (ex.: "Ver Manutenção" no Gêmeo da Fábrica).
   const [parametrosBusca] = useSearchParams()
   const [ativoSelecionadoId, setAtivoSelecionadoId] = useState(() => {
@@ -153,6 +154,7 @@ export function ManutencaoPage() {
     return ativoParam && equipamentoPorId(ativoParam) ? ativoParam : 'eq-compressora-l12'
   })
   const [janela, setJanela] = useState<JanelaCondicao>('24h')
+  const [modalTodas, setModalTodas] = useState(false)
 
   // A busca global pode trocar o ?ativo= com a tela já montada.
   useEffect(() => {
@@ -162,7 +164,6 @@ export function ManutencaoPage() {
 
   const ativo = equipamentoPorId(ativoSelecionadoId) ?? equipamentoPorId('eq-compressora-l12')!
   const tendencia = useMemo(() => tendenciaCondicao(ativo.id, janela), [ativo.id, janela])
-  const otCriada = filaOts.some((ot) => ot.id === otRecomendadaCompressora.id)
   const impactoProducao = impactoDoRisco[ativo.nivelRiscoFalha ?? 'Baixa']
 
   // Recorte global sobre a fila local (mantém a ordem de priorização).
@@ -190,28 +191,12 @@ export function ManutencaoPage() {
   )
 
   const criarOtRecomendada = () => {
-    if (otCriada) {
-      addToast({ titulo: 'OT 245690 já está na fila', descricao: 'Programada para quarta, 02:00 – 05:00.', tone: 'info' })
-      return
-    }
-    setFilaOts((atual) => [otRecomendadaCompressora, ...atual])
+    acionarManutencao()
     setAtivoSelecionadoId('eq-compressora-l12')
-    addToast({
-      titulo: 'OT 245690 criada',
-      descricao: 'Janela de menor impacto: quarta, 02:00 – 05:00 — recomendação do Agente de Manutenção.',
-      tone: 'success',
-    })
   }
 
   const priorizarOtDoAtivo = () => {
-    const otId = ativo.otVinculada
-    if (!otId) return
-    setFilaOts((atual) => {
-      const alvo = atual.find((ot) => ot.id === otId)
-      if (!alvo) return atual
-      return [alvo, ...atual.filter((ot) => ot.id !== otId)]
-    })
-    addToast({ titulo: `${otId} priorizada`, descricao: 'Reordenada para o topo da carteira do turno.', tone: 'success' })
+    if (ativo.otVinculada) priorizarOtStore(ativo.otVinculada)
   }
 
   const aoAcaoCopilot = (rotulo: string) => {
@@ -381,6 +366,7 @@ export function ManutencaoPage() {
         titulo="Fila de Ordens de Manutenção"
         contagem={{ visiveis: filaRecorte.length, total: filaOts.length }}
         info="28 OTs na rede — a carteira detalhada cobre as de Anápolis, no recorte atual. Clique em uma linha para abrir o detalhe do ativo."
+        acao={{ rotulo: 'Ver todas (28)', onClick: () => setModalTodas(true) }}
         corpoSemPadding
       >
         {filaRecorte.length > 0 ? (
@@ -407,10 +393,7 @@ export function ManutencaoPage() {
           className="col-span-2"
           titulo="Detalhe do Ativo Selecionado"
           info="Clique em uma OT, em um pin do mapa ou em um alerta para trocar este card."
-          acao={{
-            rotulo: 'Ver histórico do ativo',
-            onClick: () => addToast({ titulo: 'Histórico do ativo', descricao: 'Disponível na demo completa.', tone: 'info' }),
-          }}
+          acao={{ rotulo: 'Abrir ficha do ativo', onClick: () => abrirFicha(ativo.id) }}
         >
           {filtros.fabrica !== 'Anápolis' ? (
             <EmptyState
@@ -610,6 +593,25 @@ export function ManutencaoPage() {
         </>
         )}
       </SectionCard>
+
+      <Modal
+        aberto={modalTodas}
+        onFechar={() => setModalTodas(false)}
+        titulo="Toda a carteira de manutenção"
+        descricao={`Exibindo as ${filaOts.length} OTs modeladas de Anápolis de um universo de 28 na rede.`}
+        largura="lg"
+      >
+        <DataTable
+          rotulo="Todas as ordens de manutenção modeladas"
+          colunas={colunasFila}
+          linhas={filaOts}
+          chave={(item) => item.id}
+          onLinhaClick={(item) => {
+            setModalTodas(false)
+            setAtivoSelecionadoId(item.ativoId)
+          }}
+        />
+      </Modal>
 
       <PageFooter />
     </>

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FileText } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { FileText, LayoutDashboard, Zap } from 'lucide-react'
+import { MenuAcoes } from '@/components/shared/MenuAcoes'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
@@ -14,6 +16,7 @@ import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { TrendDelta } from '@/components/shared/TrendDelta'
 import { DataTable, IdLink, type ColunaDataTable } from '@/components/shared/DataTable'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { cn } from '@/lib/cn'
 import { colors, toneSoftClass, toneTextClass, type Tone } from '@/lib/colors'
 import { formatDiaMes, formatDuracao, formatHora, formatNumero, formatPercent } from '@/lib/format'
@@ -74,9 +77,15 @@ export function QualidadePage() {
   const resetFiltros = useAppStore((s) => s.resetFiltros)
   const destaque = useDestaque()
 
-  // Ordem da fila vive em estado local — "Priorizar lote" move o lote ao topo.
-  const [ordemFila, setOrdemFila] = useState<string[]>(() => lotes.map((lote) => lote.id))
+  // Ordem da fila vive no store — "Priorizar lote" (aqui ou na ficha) move ao topo.
+  const ordemFila = useAppStore((s) => s.ordemFilaLotes)
+  const priorizarLoteStore = useAppStore((s) => s.priorizarLote)
+  const abrirFicha = useAppStore((s) => s.abrirFicha)
   const [loteSelecionadoId, setLoteSelecionadoId] = useState('2456789A')
+  const [modalLista, setModalLista] = useState<'lotes' | 'desvios' | null>(null)
+  /** Painéis salvos: Compacto reduz densidade (fila menor, sem gráfico de tendência). */
+  const [densidade, setDensidade] = useState<'padrao' | 'compacto'>('padrao')
+  const navigate = useNavigate()
 
   const filaLotes = useMemo(() => {
     const idsRecorte = new Set(lotesFiltrados(filtros).map((lote) => lote.id))
@@ -105,9 +114,8 @@ export function QualidadePage() {
   const produtoDoLote = produtoPorId(lote.produtoId)
 
   const priorizarLote = (id: string) => {
-    setOrdemFila((atual) => [id, ...atual.filter((item) => item !== id)])
+    priorizarLoteStore(id)
     setLoteSelecionadoId(id)
-    addToast({ titulo: `Lote ${id} priorizado na fila de análise`, tone: 'success' })
   }
 
   const colunasFila: ColunaDataTable<Lote>[] = useMemo(
@@ -215,6 +223,27 @@ export function QualidadePage() {
       <PageHeader
         titulo="Qualidade"
         descricao="Monitore desvios, liberação de lotes e desempenho da qualidade em tempo real."
+        acoes={
+          <>
+            <MenuAcoes
+              rotulo="Painéis salvos"
+              icone={<LayoutDashboard size={14} aria-hidden="true" />}
+              itens={[
+                { rotulo: 'Padrão', ativo: densidade === 'padrao', onClick: () => setDensidade('padrao') },
+                { rotulo: 'Compacto', ativo: densidade === 'compacto', onClick: () => setDensidade('compacto') },
+              ]}
+            />
+            <MenuAcoes
+              rotulo="Ações rápidas"
+              icone={<Zap size={14} aria-hidden="true" />}
+              itens={[
+                { rotulo: 'Priorizar lote em investigação', onClick: () => priorizarLote('2456791C') },
+                { rotulo: 'Simular impacto do desvio', onClick: () => abrirSimulador('EV-005') },
+                { rotulo: 'Gerar resumo do turno', onClick: () => navigate('/relatorios?acao=gerar-resumo') },
+              ]}
+            />
+          </>
+        }
       />
 
       <FilterBar />
@@ -225,6 +254,7 @@ export function QualidadePage() {
         titulo="Fila de Liberação de Lotes"
         contagem={{ visiveis: filaLotes.length, total: lotes.length }}
         info="18 lotes na rede — a fila detalhada cobre os 6 de Anápolis, no recorte atual. Clique em uma linha para abrir o detalhe abaixo."
+        acao={{ rotulo: 'Ver todos (18)', onClick: () => setModalLista('lotes') }}
         corpoSemPadding
       >
         {filaLotes.length > 0 ? (
@@ -233,6 +263,7 @@ export function QualidadePage() {
             colunas={colunasFila}
             linhas={filaLotes}
             chave={(item) => item.id}
+            alturaMax={densidade === 'compacto' ? 220 : undefined}
             acao={{ rotulo: 'Priorizar lote', onClick: (item) => priorizarLote(item.id) }}
             onLinhaClick={(item) => setLoteSelecionadoId(item.id)}
             linhaSelecionada={loteSelecionadoId}
@@ -291,6 +322,7 @@ export function QualidadePage() {
         <SectionCard
           titulo="Desvios e Não Conformidades"
           info="Ranking dos últimos 7 dias, por quantidade de ocorrências."
+          acao={{ rotulo: 'Ver todos', onClick: () => setModalLista('desvios') }}
         >
           <ol className="flex flex-col gap-3">
             {desviosRanking.map((desvio, indice) => (
@@ -323,6 +355,13 @@ export function QualidadePage() {
           titulo="Tendência da Qualidade (últimas 24h)"
           info="Taxa de aprovação, desvios abertos e lotes liberados por hora."
         >
+          {densidade === 'compacto' ? (
+            <p className="rounded-xl border border-line bg-app/50 px-3 py-2.5 text-body-sm text-muted">
+              Gráfico oculto no painel Compacto — aprovação em <strong className="text-ink">97,4%</strong> na média das
+              últimas 24 h. Volte ao painel Padrão para ver a tendência completa.
+            </p>
+          ) : (
+          <>
           <p className="mb-1 flex flex-wrap items-center gap-3 text-caption text-muted">
             <span className="flex items-center gap-1.5">
               <span className="h-0.5 w-4 rounded bg-success" aria-hidden="true" />
@@ -363,6 +402,8 @@ export function QualidadePage() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+          </>
+          )}
         </SectionCard>
           </div>
         </div>
@@ -382,10 +423,10 @@ export function QualidadePage() {
             </Button>
             <button
               type="button"
-              onClick={() => addToast({ titulo: 'Histórico do lote', descricao: 'Disponível na demo completa.', tone: 'info' })}
+              onClick={() => abrirFicha(lote.id)}
               className="whitespace-nowrap rounded text-body-sm font-medium text-primary transition-colors duration-150 hover:text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              Ver histórico do lote →
+              Abrir ficha do lote →
             </button>
           </div>
         }
@@ -519,6 +560,69 @@ export function QualidadePage() {
           </ul>
         </SectionCard>
       </div>
+
+      <Modal
+        aberto={modalLista === 'lotes'}
+        onFechar={() => setModalLista(null)}
+        titulo="Toda a fila de liberação"
+        descricao={`Exibindo os ${lotes.length} lotes modelados de Anápolis de um universo de 18 na rede.`}
+        largura="lg"
+      >
+        <DataTable
+          rotulo="Todos os lotes modelados"
+          colunas={colunasFila}
+          linhas={lotes}
+          chave={(item) => item.id}
+          acao={{ rotulo: 'Priorizar lote', onClick: (item) => priorizarLote(item.id) }}
+          onLinhaClick={(item) => {
+            setModalLista(null)
+            setLoteSelecionadoId(item.id)
+          }}
+        />
+      </Modal>
+
+      <Modal
+        aberto={modalLista === 'desvios'}
+        onFechar={() => setModalLista(null)}
+        titulo="Desvios e Não Conformidades"
+        descricao="Exibindo os 6 tipos de desvio modelados — 89 ocorrências nos últimos 7 dias."
+        largura="lg"
+      >
+        <DataTable
+          rotulo="Todos os desvios dos últimos 7 dias"
+          colunas={[
+            {
+              id: 'desvio',
+              titulo: 'Desvio',
+              render: (item) => <span className="font-medium text-ink">{item.desvio}</span>,
+              valor: (item) => item.desvio,
+            },
+            {
+              id: 'severidade',
+              titulo: 'Severidade',
+              render: (item) => <StatusPill status={item.severidade} />,
+              valor: (item) => item.severidade,
+            },
+            {
+              id: 'quantidade',
+              titulo: 'Ocorrências',
+              alinhar: 'direita',
+              render: (item) => formatNumero(item.quantidade),
+              valor: (item) => item.quantidade,
+            },
+            {
+              id: 'percent',
+              titulo: '% do total',
+              alinhar: 'direita',
+              render: (item) => formatPercent(item.percent, 0),
+              valor: (item) => item.percent,
+            },
+          ]}
+          linhas={desviosRanking}
+          chave={(item) => item.id}
+          ordenacaoInicial={{ coluna: 'quantidade', direcao: 'desc' }}
+        />
+      </Modal>
 
       <PageFooter />
     </>

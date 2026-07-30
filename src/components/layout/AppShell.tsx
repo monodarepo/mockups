@@ -5,6 +5,7 @@ import { Header } from './Header'
 import { CommandPalette } from './CommandPalette'
 import { ToastHost } from '@/components/ui/Toast'
 import { SimuladorCenarios } from '@/components/shared/SimuladorCenarios'
+import { FichaUniversal } from '@/features/fichas/FichaUniversal'
 import { itemPorRota } from '@/data/navigation'
 
 /** Esqueleto exibido por ~300 ms na troca de rota — respeita reduced-motion. */
@@ -66,6 +67,7 @@ export function AppShell() {
         </main>
       </div>
       <CommandPalette />
+      <FichaUniversal />
       <SimuladorCenarios />
       <ToastHost />
     </div>

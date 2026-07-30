@@ -420,8 +420,8 @@ export function CustosPage() {
           titulo="Drivers de Custo e Desvios (Top 6)"
           info="Principais desvios de custo do turno, em R$ e % do desvio total."
           acao={{
-            rotulo: 'Ver análise detalhada',
-            onClick: () => addToast({ titulo: 'Análise detalhada', descricao: 'Disponível na demo completa.', tone: 'info' }),
+            rotulo: 'Ver ordens impactadas',
+            onClick: () => ordensRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
           }}
         >
           <MiniBarList

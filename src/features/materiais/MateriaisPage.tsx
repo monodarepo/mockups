@@ -13,6 +13,7 @@ import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { TrendDelta } from '@/components/shared/TrendDelta'
 import { FactoryMap, type PinFabrica } from '@/components/shared/FactoryMap'
 import { DataTable, IdLink, type ColunaDataTable } from '@/components/shared/DataTable'
+import { Modal } from '@/components/ui/Modal'
 import { colors, toneHex, type Tone } from '@/lib/colors'
 import { formatNumero, formatPercentAssinado } from '@/lib/format'
 import { useDestaque } from '@/lib/useDestaque'
@@ -159,7 +160,9 @@ export function MateriaisPage() {
   const resetFiltros = useAppStore((s) => s.resetFiltros)
   const destaque = useDestaque()
 
+  const abrirFicha = useAppStore((s) => s.abrirFicha)
   const [materialSelecionadoId, setMaterialSelecionadoId] = useState('MAT-API-001')
+  const [modalTodos, setModalTodos] = useState(false)
 
   const materiaisRecorte = useMemo(() => materiaisFiltrados(filtros), [filtros])
 
@@ -381,6 +384,7 @@ export function MateriaisPage() {
             titulo="Fila de Materiais Críticos"
             contagem={{ visiveis: filaCriticos.length, total: materiais.length }}
             info="Os materiais do recorte com menor cobertura. Clique em uma linha para abrir o detalhe abaixo."
+            acao={{ rotulo: 'Ver todos os materiais', onClick: () => setModalTodos(true) }}
             corpoSemPadding
           >
             {filaCriticos.length > 0 ? (
@@ -411,11 +415,7 @@ export function MateriaisPage() {
           titulo="Detalhe do Material Selecionado"
           info="Selecione outro material na fila para trocar este card."
           className="col-span-2"
-          acao={{
-            rotulo: 'Ver histórico do material',
-            onClick: () =>
-              addToast({ titulo: 'Histórico do material', descricao: 'Disponível na demo completa.', tone: 'info' }),
-          }}
+          acao={{ rotulo: 'Abrir ficha do material', onClick: () => abrirFicha(material.id) }}
         >
           {filaCriticos.length === 0 ? (
             <EmptyState
@@ -629,6 +629,25 @@ export function MateriaisPage() {
           />
         )}
       </SectionCard>
+
+      <Modal
+        aberto={modalTodos}
+        onFechar={() => setModalTodos(false)}
+        titulo="Todos os materiais"
+        descricao={`Exibindo os ${materiais.length} materiais modelados do almoxarifado de Anápolis, ordenados por cobertura.`}
+        largura="lg"
+      >
+        <DataTable
+          rotulo="Todos os materiais modelados"
+          colunas={colunasFila}
+          linhas={[...materiais].sort((a, b) => a.coberturaDias - b.coberturaDias)}
+          chave={(item) => item.id}
+          onLinhaClick={(item) => {
+            setModalTodos(false)
+            setMaterialSelecionadoId(item.id)
+          }}
+        />
+      </Modal>
 
       <PageFooter />
     </>

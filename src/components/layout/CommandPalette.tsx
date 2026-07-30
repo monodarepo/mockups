@@ -29,6 +29,7 @@ export function CommandPalette() {
   const otimizarSequencia = useAppStore((s) => s.otimizarSequencia)
   const sequenciaOtimizada = useAppStore((s) => s.sequenciaOtimizada)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const abrirFicha = useAppStore((s) => s.abrirFicha)
   const navigate = useNavigate()
 
   const [consulta, setConsulta] = useState('')
@@ -91,7 +92,12 @@ export function CommandPalette() {
       }
       return
     }
-    navigate(item.destino)
+    if (item.tipo === 'tela' || item.tipo === 'produto') {
+      navigate(item.destino)
+      return
+    }
+    // Entidades abrem a ficha universal diretamente.
+    abrirFicha(item.id)
   }
 
   const aoTeclarNoInput = (evento: React.KeyboardEvent<HTMLInputElement>) => {

@@ -19,12 +19,12 @@ const planoBase = cenarios[0]
  * KPIs de /agentes — "Decisões em Aprovação" é reativo: aprovar ou rejeitar
  * uma ação na fila decrementa o valor.
  */
-export function kpisAgentes(decisoesEmAprovacao: number): KpiCardData[] {
+export function kpisAgentes(decisoesEmAprovacao: number, agentesAtivos = 12): KpiCardData[] {
   return [
     {
       id: 'ag-ativos',
       label: 'Agentes Ativos',
-      valor: formatNumero(12),
+      valor: formatNumero(agentesAtivos),
       delta: formatPercentAssinado(9.1),
       deltaGoodWhen: 'up',
       sublabel: 'rede · vs último mês',

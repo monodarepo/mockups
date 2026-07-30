@@ -26,6 +26,8 @@ import { ScoreDonut } from '@/components/shared/ScoreDonut'
 import { DataTable, type ColunaDataTable } from '@/components/shared/DataTable'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { Modal } from '@/components/ui/Modal'
+import { Drawer } from '@/components/ui/Drawer'
 import { cn } from '@/lib/cn'
 import { colors, toneHex, type Tone } from '@/lib/colors'
 import { formatDataHora, formatHora, formatMoedaCompacta, formatNumero, formatPercent } from '@/lib/format'
@@ -43,10 +45,12 @@ import {
   niveisAutonomia,
   orquestracaoPrincipal,
   orquestracaoRamos,
+  playbooks,
   selosGovernanca,
   type AcaoAgente,
   type AgenteIA,
   type DesempenhoAgente,
+  type NivelAutonomia,
   type StatusAcaoAgente,
   type StatusAgente,
 } from '@/data'
@@ -165,7 +169,16 @@ function DiagramaOrquestracao() {
   )
 }
 
-function CardAgente({ agente }: { agente: AgenteIA }) {
+function CardAgente({
+  agente,
+  status,
+  onAlternar,
+}: {
+  agente: AgenteIA
+  status: StatusAgente
+  onAlternar: () => void
+}) {
+  const pausado = status === 'Pausado'
   return (
     <div className="flex min-w-0 flex-col gap-2 rounded-xl border border-line bg-app/40 p-3.5 transition-shadow duration-150 hover:shadow-card">
       <div className="flex items-center gap-2.5">
@@ -173,7 +186,7 @@ function CardAgente({ agente }: { agente: AgenteIA }) {
         <p className="min-w-0 flex-1 text-body-sm font-semibold leading-snug text-ink">{agente.nome}</p>
       </div>
       <p className="flex flex-wrap items-center gap-1.5">
-        <StatusPill status={agente.status} tone={toneDoStatusAgente[agente.status]} />
+        <StatusPill status={status} tone={toneDoStatusAgente[status]} />
         <Badge tone="info">{agente.autonomia}</Badge>
       </p>
       <p className="line-clamp-2 min-h-[36px] text-caption leading-snug text-muted" title={agente.descricao}>
@@ -199,6 +212,9 @@ function CardAgente({ agente }: { agente: AgenteIA }) {
           </dd>
         </div>
       </dl>
+      <Button variante="outline" tamanho="sm" className="w-full" onClick={onAlternar}>
+        {pausado ? 'Ativar agente' : 'Pausar agente'}
+      </Button>
     </div>
   )
 }
@@ -206,18 +222,56 @@ function CardAgente({ agente }: { agente: AgenteIA }) {
 export function AgentesPage() {
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const agentesAlternados = useAppStore((s) => s.agentesAlternados)
+  const alternarAgente = useAppStore((s) => s.alternarAgente)
+  const agentesCriados = useAppStore((s) => s.agentesCriados)
+  const criarAgente = useAppStore((s) => s.criarAgente)
 
   const [modoCatalogo, setModoCatalogo] = useState<'grade' | 'lista'>('grade')
   // Decisões em aprovação (KPI reativo) e status locais da fila de ações.
   const [decisoesEmAprovacao, setDecisoesEmAprovacao] = useState(9)
   const [statusAcoes, setStatusAcoes] = useState<Record<string, StatusAcaoAgente>>({})
+  const [modalNovoAgente, setModalNovoAgente] = useState(false)
+  const [formAgente, setFormAgente] = useState({ nome: '', dominio: 'Execução', autonomia: 'N2' as NivelAutonomia })
+  const [playbooksAbertos, setPlaybooksAbertos] = useState(false)
   const desempenhoRef = useRef<HTMLDivElement | null>(null)
 
   const statusDaAcao = (acao: AcaoAgente): StatusAcaoAgente => statusAcoes[acao.id] ?? acao.status
   const aguardaDecisao = (status: StatusAcaoAgente) => status === 'Pendente' || status === 'Em análise'
 
-  // Catálogo: 8 cards — o Agente de Auditoria aparece na tabela de desempenho.
-  const catalogoAgentes = useMemo(() => agentes.filter((agente) => agente.dominio !== 'Auditoria'), [])
+  // Catálogo: 8 cards base + agentes criados na sessão — Auditoria fica no desempenho.
+  const catalogoAgentes = useMemo(
+    () => [...agentes.filter((agente) => agente.dominio !== 'Auditoria'), ...agentesCriados],
+    [agentesCriados],
+  )
+
+  /** Pausar/ativar inverte o status base do agente (persistido no store). */
+  const statusVivo = (agente: AgenteIA): StatusAgente => {
+    if (!agentesAlternados.includes(agente.id)) return agente.status
+    return agente.status === 'Pausado' ? 'Ativo' : 'Pausado'
+  }
+  const alternar = (agente: AgenteIA) => {
+    alternarAgente(agente.id, agente.nome, statusVivo(agente) !== 'Pausado')
+  }
+
+  // KPI "Agentes Ativos": 12 na rede ± toggles da sessão.
+  // Pausar um agente ativo tira 1; ativar um agente pausado soma 1.
+  const agentesAtivosKpi = useMemo(() => {
+    let delta = 0
+    for (const agente of catalogoAgentes) {
+      if (!agentesAlternados.includes(agente.id)) continue
+      if (agente.status === 'Ativo') delta -= 1
+      else if (agente.status === 'Pausado') delta += 1
+    }
+    return 12 + delta
+  }, [catalogoAgentes, agentesAlternados])
+
+  const confirmarNovoAgente = () => {
+    if (!formAgente.nome.trim()) return
+    criarAgente({ ...formAgente, nome: formAgente.nome.trim() })
+    setModalNovoAgente(false)
+    setFormAgente({ nome: '', dominio: 'Execução', autonomia: 'N2' })
+  }
 
   const aprovarAcao = (acao: AcaoAgente) => {
     if (!aguardaDecisao(statusDaAcao(acao))) return
@@ -267,8 +321,8 @@ export function AgentesPage() {
       {
         id: 'status',
         titulo: 'Status',
-        render: (item) => <StatusPill status={item.status} tone={toneDoStatusAgente[item.status]} />,
-        valor: (item) => item.status,
+        render: (item) => <StatusPill status={statusVivo(item)} tone={toneDoStatusAgente[statusVivo(item)]} />,
+        valor: (item) => statusVivo(item),
       },
       {
         id: 'nivel',
@@ -298,7 +352,8 @@ export function AgentesPage() {
         valor: (item) => item.taxaAceitacao,
       },
     ],
-    [],
+    // Recriadas quando um toggle de agente muda.
+    [agentesAlternados], // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   const colunasFila: ColunaDataTable<AcaoAgente>[] = useMemo(
@@ -438,18 +493,11 @@ export function AgentesPage() {
         descricao="Orquestre agentes inteligentes, acompanhe automações e governe decisões operacionais em tempo real."
         acoes={
           <>
-            <Button
-              tamanho="sm"
-              onClick={() => addToast({ titulo: 'Novo agente', descricao: 'Assistente de criação disponível na demo completa.', tone: 'info' })}
-            >
+            <Button tamanho="sm" onClick={() => setModalNovoAgente(true)}>
               <Plus size={14} aria-hidden="true" />
               Novo agente
             </Button>
-            <Button
-              variante="outline"
-              tamanho="sm"
-              onClick={() => addToast({ titulo: 'Playbooks', descricao: 'Biblioteca de playbooks disponível na demo completa.', tone: 'info' })}
-            >
+            <Button variante="outline" tamanho="sm" onClick={() => setPlaybooksAbertos(true)}>
               <BookOpen size={14} aria-hidden="true" />
               Playbooks
             </Button>
@@ -457,7 +505,7 @@ export function AgentesPage() {
         }
       />
 
-      <KpiRow kpis={kpisAgentes(decisoesEmAprovacao)} />
+      <KpiRow kpis={kpisAgentes(decisoesEmAprovacao, agentesAtivosKpi)} />
 
       <div className="grid grid-cols-3 items-start gap-5">
         <div className="col-span-2 flex min-w-0 flex-col gap-5">
@@ -494,7 +542,12 @@ export function AgentesPage() {
             {modoCatalogo === 'grade' ? (
               <div className="grid grid-cols-4 gap-3">
                 {catalogoAgentes.map((agente) => (
-                  <CardAgente key={agente.id} agente={agente} />
+                  <CardAgente
+                    key={agente.id}
+                    agente={agente}
+                    status={statusVivo(agente)}
+                    onAlternar={() => alternar(agente)}
+                  />
                 ))}
               </div>
             ) : (
@@ -503,6 +556,10 @@ export function AgentesPage() {
                 colunas={colunasCatalogo}
                 linhas={catalogoAgentes}
                 chave={(item) => item.id}
+                acao={{
+                  rotulo: (item) => (statusVivo(item) === 'Pausado' ? 'Ativar' : 'Pausar'),
+                  onClick: alternar,
+                }}
               />
             )}
           </SectionCard>
@@ -611,6 +668,98 @@ export function AgentesPage() {
           </p>
         </SectionCard>
       </div>
+
+      {/* + Novo agente — entra no catálogo Pausado, aguardando escopo */}
+      <Modal
+        aberto={modalNovoAgente}
+        onFechar={() => setModalNovoAgente(false)}
+        titulo="Novo agente"
+        descricao="O agente entra no catálogo como Pausado até a aprovação de escopo pela governança."
+        rodape={
+          <>
+            <Button variante="outline" tamanho="sm" onClick={() => setModalNovoAgente(false)}>
+              Cancelar
+            </Button>
+            <Button tamanho="sm" disabled={!formAgente.nome.trim()} onClick={confirmarNovoAgente}>
+              <Plus size={14} aria-hidden="true" />
+              Criar agente
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="text-caption font-medium text-muted">Nome do agente</span>
+            <input
+              type="text"
+              value={formAgente.nome}
+              onChange={(evento) => setFormAgente((atual) => ({ ...atual, nome: evento.target.value }))}
+              placeholder="Ex.: Agente de Embalagem"
+              className="h-9 rounded-lg border border-line bg-card px-3 text-body-sm text-ink placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-caption font-medium text-muted">Domínio</span>
+              <select
+                value={formAgente.dominio}
+                onChange={(evento) => setFormAgente((atual) => ({ ...atual, dominio: evento.target.value }))}
+                className="h-9 rounded-lg border border-line bg-card px-2 text-body-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {Object.keys(ICONES_DOMINIO).map((dominio) => (
+                  <option key={dominio}>{dominio}</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-caption font-medium text-muted">Nível de autonomia</span>
+              <select
+                value={formAgente.autonomia}
+                onChange={(evento) =>
+                  setFormAgente((atual) => ({ ...atual, autonomia: evento.target.value as NivelAutonomia }))
+                }
+                className="h-9 rounded-lg border border-line bg-card px-2 text-body-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <option value="N2">N2 — recomenda, humano decide</option>
+                <option value="N3">N3 — executa com aprovação</option>
+                <option value="N4">N4 — executa e reporta</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Playbooks — biblioteca dos fluxos operacionais dos agentes */}
+      <Drawer
+        aberto={playbooksAbertos}
+        onFechar={() => setPlaybooksAbertos(false)}
+        titulo="Playbooks dos agentes"
+        descricao="Fluxos padronizados que os agentes seguem do gatilho à execução."
+      >
+        <div className="flex flex-col gap-4">
+          {playbooks.map((playbook) => (
+            <article key={playbook.id} className="rounded-xl border border-line bg-app/40 p-3.5">
+              <h3 className="text-body-sm font-semibold text-ink">{playbook.nome}</h3>
+              <p className="mt-1 text-caption leading-snug text-muted">{playbook.objetivo}</p>
+              <p className="mt-2 text-caption text-ink">
+                <strong className="text-muted">Gatilho:</strong> {playbook.gatilho}
+              </p>
+              <ol className="mt-2 flex list-decimal flex-col gap-1 pl-4 text-caption leading-snug text-ink">
+                {playbook.passos.map((passo) => (
+                  <li key={passo}>{passo}</li>
+                ))}
+              </ol>
+              <p className="mt-2.5 flex flex-wrap gap-1.5 border-t border-line pt-2">
+                {playbook.agentesEnvolvidos.map((dominio) => (
+                  <Badge key={dominio} tone="info">
+                    {dominio}
+                  </Badge>
+                ))}
+              </p>
+            </article>
+          ))}
+        </div>
+      </Drawer>
 
       <PageFooter />
     </>

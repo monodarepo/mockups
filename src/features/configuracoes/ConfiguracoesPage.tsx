@@ -17,6 +17,7 @@ import { StatusPill } from '@/components/shared/StatusPill'
 import { DataTable, type ColunaDataTable } from '@/components/shared/DataTable'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { Modal } from '@/components/ui/Modal'
 import { Tabs } from '@/components/ui/Tabs'
 import { formatDataHora, formatNumero } from '@/lib/format'
 import { useAppStore } from '@/store'
@@ -28,6 +29,7 @@ import {
   configuracoesRapidas,
   conteudoCopilot,
   eventosAuditoria,
+  historicoReleases,
   integracoesConfig,
   parametrosSistema,
   perfisUsuarios,
@@ -81,10 +83,35 @@ function BlocoLista({
   )
 }
 
+/** Destino real de cada configuração rápida: a tab que gerencia o assunto. */
+const TAB_DA_RAPIDA: Record<string, string> = {
+  'cr-parametros': 'sistema',
+  'cr-dashboards': 'usuarios',
+  'cr-kpis': 'sistema',
+  'cr-alertas': 'notificacoes',
+  'cr-backup': 'sistema',
+  'cr-logs': 'auditoria',
+}
+
 export function ConfiguracoesPage() {
   const addToast = useAppStore((s) => s.addToast)
+  const regrasCriadas = useAppStore((s) => s.regrasCriadas)
+  const criarRegra = useAppStore((s) => s.criarRegra)
 
   const [aba, setAba] = useState('visao-geral')
+  const [modalNovaRegra, setModalNovaRegra] = useState(false)
+  const [formRegra, setFormRegra] = useState({ nome: '', criticidade: 'Média' as RegraNegocio['criticidade'] })
+  const [modalReleases, setModalReleases] = useState(false)
+
+  const todasRegras = useMemo(() => [...regrasNegocio, ...regrasCriadas], [regrasCriadas])
+
+  const confirmarNovaRegra = () => {
+    if (!formRegra.nome.trim()) return
+    criarRegra({ ...formRegra, nome: formRegra.nome.trim() })
+    setModalNovaRegra(false)
+    setFormRegra({ nome: '', criticidade: 'Média' })
+    setAba('regras')
+  }
 
   const aoAcaoCopilot = (rotulo: string) => {
     if (rotulo === 'Revisar autonomia') setAba('ia')
@@ -162,10 +189,7 @@ export function ConfiguracoesPage() {
         titulo="Configurações"
         descricao="Gerencie parâmetros do sistema, integrações, IA e permissões."
         acoes={
-          <Button
-            tamanho="sm"
-            onClick={() => addToast({ titulo: 'Nova configuração', descricao: 'Assistente de criação disponível na demo completa.', tone: 'info' })}
-          >
+          <Button tamanho="sm" onClick={() => setModalNovaRegra(true)}>
             <Plus size={14} aria-hidden="true" />
             Nova Configuração
           </Button>
@@ -217,10 +241,7 @@ export function ConfiguracoesPage() {
 
                 <SectionCard
                   titulo="Ambiente"
-                  acao={{
-                    rotulo: 'Histórico de releases',
-                    onClick: () => addToast({ titulo: 'Histórico de releases', descricao: 'Disponível na demo completa.', tone: 'info' }),
-                  }}
+                  acao={{ rotulo: 'Histórico de releases', onClick: () => setModalReleases(true) }}
                 >
                   <dl className="flex flex-col gap-2.5 text-body-sm">
                     <div className="flex items-center justify-between gap-2">
@@ -275,7 +296,7 @@ export function ConfiguracoesPage() {
 
                 <BlocoLista titulo="Regras de Negócio" acaoRotulo="Gerenciar regras" onAcao={gerenciar('regras')}>
                   <ul className="flex flex-col gap-2.5">
-                    {regrasNegocio.map((regra) => (
+                    {todasRegras.slice(0, 6).map((regra) => (
                       <li key={regra.id} className="flex items-center justify-between gap-2">
                         <span className="min-w-0 truncate text-body-sm text-ink" title={regra.nome}>
                           {regra.nome}
@@ -306,7 +327,7 @@ export function ConfiguracoesPage() {
                       <button
                         key={config.id}
                         type="button"
-                        onClick={() => addToast({ titulo: config.titulo, descricao: 'Disponível na demo completa.', tone: 'info' })}
+                        onClick={() => setAba(TAB_DA_RAPIDA[config.id] ?? 'sistema')}
                         className="flex flex-col gap-1.5 rounded-xl border border-line bg-app/40 px-3.5 py-3 text-left transition-shadow duration-150 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
@@ -352,8 +373,13 @@ export function ConfiguracoesPage() {
       ) : null}
 
       {aba === 'regras' ? (
-        <SectionCard titulo={`Regras de Negócio (${regrasNegocio.length} de 32)`} info="Regras principais — 32 ativas na rede." corpoSemPadding>
-          <DataTable rotulo="Regras de negócio ativas" colunas={colunasRegras} linhas={regrasNegocio} chave={(r) => r.id} />
+        <SectionCard
+          titulo={`Regras de Negócio (${todasRegras.length} de 32)`}
+          info="Regras principais — 32 ativas na rede. Nova Configuração insere aqui."
+          acao={{ rotulo: 'Nova Configuração', onClick: () => setModalNovaRegra(true) }}
+          corpoSemPadding
+        >
+          <DataTable rotulo="Regras de negócio ativas" colunas={colunasRegras} linhas={todasRegras} chave={(r) => r.id} />
         </SectionCard>
       ) : null}
 
@@ -374,6 +400,72 @@ export function ConfiguracoesPage() {
           <DataTable rotulo="Trilha de auditoria" colunas={colunasAuditoria} linhas={eventosAuditoria} chave={(e) => e.id} />
         </SectionCard>
       ) : null}
+
+      {/* + Nova Configuração — insere uma regra de negócio ativa */}
+      <Modal
+        aberto={modalNovaRegra}
+        onFechar={() => setModalNovaRegra(false)}
+        titulo="Nova Configuração"
+        descricao="A regra entra ativa no motor de regras e aparece na aba Regras de Negócio."
+        rodape={
+          <>
+            <Button variante="outline" tamanho="sm" onClick={() => setModalNovaRegra(false)}>
+              Cancelar
+            </Button>
+            <Button tamanho="sm" disabled={!formRegra.nome.trim()} onClick={confirmarNovaRegra}>
+              <Plus size={14} aria-hidden="true" />
+              Criar regra
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="text-caption font-medium text-muted">Regra de negócio</span>
+            <input
+              type="text"
+              value={formRegra.nome}
+              onChange={(evento) => setFormRegra((atual) => ({ ...atual, nome: evento.target.value }))}
+              placeholder="Ex.: Bloquear liberação sem CoA do lote"
+              className="h-9 rounded-lg border border-line bg-card px-3 text-body-sm text-ink placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-caption font-medium text-muted">Criticidade</span>
+            <select
+              value={formRegra.criticidade}
+              onChange={(evento) =>
+                setFormRegra((atual) => ({ ...atual, criticidade: evento.target.value as RegraNegocio['criticidade'] }))
+              }
+              className="h-9 rounded-lg border border-line bg-card px-2 text-body-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <option>Alta</option>
+              <option>Média</option>
+              <option>Baixa</option>
+            </select>
+          </label>
+        </div>
+      </Modal>
+
+      {/* Histórico de releases do ambiente */}
+      <Modal
+        aberto={modalReleases}
+        onFechar={() => setModalReleases(false)}
+        titulo="Histórico de releases"
+        descricao={`Ambiente ${ambiente.atual} · região ${ambiente.regiao}`}
+      >
+        <ol className="flex flex-col gap-3">
+          {historicoReleases.map((release, indice) => (
+            <li key={release.versao} className="flex items-start gap-3 rounded-xl border border-line bg-app/40 px-3.5 py-3">
+              <Badge tone={indice === 0 ? 'success' : 'neutral'}>{release.versao}</Badge>
+              <div className="min-w-0 leading-tight">
+                <p className="text-body-sm font-medium text-ink">{formatDataHora(release.data)}</p>
+                <p className="mt-0.5 text-caption leading-snug text-muted">{release.destaque}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </Modal>
 
       <PageFooter />
     </>

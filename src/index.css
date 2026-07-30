@@ -50,3 +50,37 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Impressão do preview de relatório (Exportar PDF) ─────────────────────────
+   Apenas a .area-impressao sai no papel: A4, com cabeçalho HPO dedicado. */
+.apenas-impressao {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .area-impressao,
+  .area-impressao * {
+    visibility: visible;
+  }
+
+  .area-impressao {
+    position: fixed;
+    inset: 0 auto auto 0;
+    width: 100%;
+    overflow: visible;
+    background: #fff;
+  }
+
+  .apenas-impressao {
+    display: block;
+  }
+}

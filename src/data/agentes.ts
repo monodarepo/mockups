@@ -219,3 +219,55 @@ export const selosGovernanca: SeloGovernanca[] = [
 ]
 
 export const ULTIMA_VERIFICACAO_GOVERNANCA = new Date(2025, 4, 19, 10, 15)
+
+/** Playbooks operacionais dos agentes — abertos pelo drawer "Playbooks". */
+export interface Playbook {
+  id: string
+  nome: string
+  objetivo: string
+  gatilho: string
+  passos: string[]
+  agentesEnvolvidos: string[]
+}
+
+export const playbooks: Playbook[] = [
+  {
+    id: 'pb-ruptura-material',
+    nome: 'Resposta a risco de ruptura de material',
+    objetivo: 'Evitar parada de linha por falta de insumo crítico sem intervenção manual tardia.',
+    gatilho: 'Cobertura de material abaixo de 2 dias com ordem ativa vinculada.',
+    passos: [
+      'Agente de Materiais projeta a ruptura e calcula o impacto financeiro.',
+      'Alternativas são simuladas (transferência entre plantas, redução de ritmo).',
+      'Ação recomendada entra na fila de aprovações com alçada de Suprimentos.',
+      'Aprovada, o Agente de Execução dispara a transferência e monitora a chegada.',
+    ],
+    agentesEnvolvidos: ['Materiais', 'Execução'],
+  },
+  {
+    id: 'pb-falha-ativo',
+    nome: 'Janela ótima de manutenção preditiva',
+    objetivo: 'Intervir em ativos com risco de falha na janela de menor impacto produtivo.',
+    gatilho: 'Probabilidade de falha acima de 70% em 7 dias em ativo de linha crítica.',
+    passos: [
+      'Agente de Manutenção cruza a condição do ativo com o Gantt da semana.',
+      'A janela de menor impacto é proposta com custo de oportunidade calculado.',
+      'OT preditiva é criada na carteira com alçada de Manutenção.',
+      'Pós-execução, o modelo preditivo é recalibrado com o laudo da intervenção.',
+    ],
+    agentesEnvolvidos: ['Manutenção', 'Sequenciamento'],
+  },
+  {
+    id: 'pb-replanejamento',
+    nome: 'Replanejamento por desvio de aderência',
+    objetivo: 'Reagrupar campanhas quando a aderência da sequência cai abaixo da meta.',
+    gatilho: 'Aderência de linha abaixo de 60% por mais de 4 horas no turno.',
+    passos: [
+      'Agente de Sequenciamento identifica setups evitáveis e janelas livres.',
+      'Cenários alternativos são pontuados por atendimento, custo e risco.',
+      'O melhor cenário entra em Próximas Aprovações com alçada de PCP.',
+      'Aplicado, o Gantt é republicado e o MES notifica os líderes de turno.',
+    ],
+    agentesEnvolvidos: ['Sequenciamento', 'Planejamento', 'Execução'],
+  },
+]

@@ -61,6 +61,8 @@ vermelho), CAUSAS PROVÁVEIS (âmbar), AÇÕES RECOMENDADAS (verde); 2–3 botõ
 input "Pergunte ao assistente…". Conteúdo por tela em src/data/copilot.ts. Recolhível.
 DataTable: colunas tipadas, ordenação por clique, StatusPill, IDs como link (OF-, OT-, MAT-,
 lotes), ação por linha opcional.
+IDs são sempre clicáveis e abrem a ficha universal da entidade (drawers de Ordem, Material,
+Lote, Ativo e OT em src/features/fichas, roteados por prefixo do ID via store.abrirFicha).
 
 ## Formatação pt-BR (sempre via src/lib/format.ts)
 Milhar com ponto e decimal com vírgula: 1.256.840 · 92,4% · Moeda compacta: R$ 620 mil ·

@@ -99,3 +99,10 @@ export const eventosAuditoria: EventoAuditoria[] = [
   { id: 'aud-05', quando: '18/05 22:15', usuario: 'Administração', acao: 'Deploy da versão v2.8.1 concluído', origem: 'Plataforma' },
   { id: 'aud-06', quando: '18/05 18:40', usuario: 'Administração', acao: 'Atualizou limite de alçada das ações N4', origem: 'Configurações' },
 ]
+
+/** Histórico de releases da plataforma — modal "Histórico de releases". */
+export const historicoReleases = [
+  { versao: 'v2.8.1', data: new Date(2025, 4, 18, 22, 15), destaque: 'Correções no conector LIMS e ajuste fino do otimizador de sequência.' },
+  { versao: 'v2.8.0', data: new Date(2025, 4, 11, 22, 0), destaque: 'Fichas de ativo com preditiva de 7 dias e novos limiares de vibração.' },
+  { versao: 'v2.7.4', data: new Date(2025, 3, 28, 21, 40), destaque: 'Gêmeo da fábrica com drawer por área e simulador de cenários A/B/C.' },
+]

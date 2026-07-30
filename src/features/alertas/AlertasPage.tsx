@@ -80,6 +80,7 @@ export function AlertasPage() {
   const resetFiltros = useAppStore((s) => s.resetFiltros)
   const destaque = useDestaque()
   const alertasRecorte = useMemo(() => alertasFiltrados(filtros), [filtros])
+  const [modalTodos, setModalTodos] = useState(false)
 
   const statusDe = useMemo(() => {
     return (alerta: Alerta): StatusExibido => {
@@ -236,6 +237,7 @@ export function AlertasPage() {
             titulo="Central de Alertas"
             contagem={{ visiveis: alertasRecorte.length, total: alertas.length }}
             info="Clique em um alerta para abrir o detalhe com recomendação, alternativas e decisão."
+            acao={{ rotulo: 'Ver todos (14)', onClick: () => setModalTodos(true) }}
             corpoSemPadding
           >
             {alertasRecorte.length > 0 ? (
@@ -572,6 +574,25 @@ export function AlertasPage() {
         />
       </Modal>
 
+      <Modal
+        aberto={modalTodos}
+        onFechar={() => setModalTodos(false)}
+        titulo="Todos os alertas do dia"
+        descricao="Exibindo os 7 alertas modelados de um universo de 14 detectados hoje na rede."
+        largura="lg"
+      >
+        <DataTable
+          rotulo="Todos os alertas modelados"
+          colunas={colunas}
+          linhas={alertas}
+          chave={(alerta) => alerta.id}
+          onLinhaClick={(alerta) => {
+            setModalTodos(false)
+            setAlertaAberto(alerta)
+          }}
+          ordenacaoInicial={{ coluna: 'severidade', direcao: 'asc' }}
+        />
+      </Modal>
 
       <PageFooter />
     </>

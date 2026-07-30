@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, ChevronDown, LayoutDashboard, Zap } from 'lucide-react'
+import { CheckCircle2, LayoutDashboard, Zap } from 'lucide-react'
+import { MenuAcoes } from '@/components/shared/MenuAcoes'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
@@ -123,51 +124,20 @@ function MiniKpi({
   )
 }
 
-/** Menu suspenso decorativo do PageHeader. */
-function MenuHeader({ rotulo, icone, itens }: { rotulo: string; icone: React.ReactNode; itens: string[] }) {
-  const [aberto, setAberto] = useState(false)
-  const addToast = useAppStore((s) => s.addToast)
-
-  return (
-    <div className="relative">
-      <Button variante="outline" tamanho="sm" onClick={() => setAberto((v) => !v)} aria-expanded={aberto}>
-        {icone}
-        {rotulo}
-        <ChevronDown size={14} aria-hidden="true" className={cn('transition-transform duration-150', aberto && 'rotate-180')} />
-      </Button>
-      {aberto ? (
-        <>
-          <button type="button" aria-label="Fechar menu" className="fixed inset-0 z-20 cursor-default" onClick={() => setAberto(false)} />
-          <div className="absolute right-0 top-full z-30 mt-1 w-52 rounded-xl border border-line bg-card p-1 shadow-pop">
-            {itens.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => {
-                  setAberto(false)
-                  addToast({ titulo: item, descricao: 'Disponível na demo completa.', tone: 'info' })
-                }}
-                className="block w-full rounded-lg px-3 py-2 text-left text-body-sm text-ink transition-colors duration-150 hover:bg-app focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </>
-      ) : null}
-    </div>
-  )
-}
 
 export function ExecucaoPage() {
   const navigate = useNavigate()
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const otimizarSequencia = useAppStore((s) => s.otimizarSequencia)
+  const sequenciaOtimizada = useAppStore((s) => s.sequenciaOtimizada)
   const filtros = useAppStore((s) => s.filtros)
   const resetFiltros = useAppStore((s) => s.resetFiltros)
   const destaque = useDestaque()
 
   const [ordemSelecionada, setOrdemSelecionada] = useState('OF-045678')
+  /** Painéis salvos: Compacto reduz densidade (tabela menor, sem gráfico horário). */
+  const [densidade, setDensidade] = useState<'padrao' | 'compacto'>('padrao')
   const [modoGrafico, setModoGrafico] = useState<'hora' | 'acumulado'>('hora')
   const [acoesAceitas, setAcoesAceitas] = useState<string[]>([])
   const [modalTurno, setModalTurno] = useState(false)
@@ -328,15 +298,28 @@ export function ExecucaoPage() {
         descricao="Monitore a operação em tempo real, resolva desvios e assegure aderência ao plano."
         acoes={
           <>
-            <MenuHeader
+            <MenuAcoes
               rotulo="Painéis salvos"
               icone={<LayoutDashboard size={14} aria-hidden="true" />}
-              itens={['Visão do turno', 'Somente linhas críticas', 'Painel do PCP']}
+              itens={[
+                { rotulo: 'Padrão', ativo: densidade === 'padrao', onClick: () => setDensidade('padrao') },
+                { rotulo: 'Compacto', ativo: densidade === 'compacto', onClick: () => setDensidade('compacto') },
+              ]}
             />
-            <MenuHeader
+            <MenuAcoes
               rotulo="Ações rápidas"
               icone={<Zap size={14} aria-hidden="true" />}
-              itens={['Registrar parada', 'Registrar desvio', 'Exportar resumo do turno']}
+              itens={[
+                { rotulo: 'Abrir simulador', onClick: () => abrirSimulador('EV-001') },
+                {
+                  rotulo: 'Otimizar sequência',
+                  onClick: () => {
+                    if (!sequenciaOtimizada) otimizarSequencia()
+                    navigate('/sequenciamento')
+                  },
+                },
+                { rotulo: 'Gerar resumo do turno', onClick: () => navigate('/relatorios?acao=gerar-resumo') },
+              ]}
             />
           </>
         }
@@ -360,6 +343,7 @@ export function ExecucaoPage() {
                 colunas={colunasLinhas}
                 linhas={linhasExecRecorte}
                 chave={(item) => item.ordemId}
+                alturaMax={densidade === 'compacto' ? 240 : undefined}
                 onLinhaClick={(item) => setOrdemSelecionada(item.ordemId)}
                 linhaSelecionada={ordemSelecionada}
                 linhaDestacada={destaque}
@@ -489,6 +473,7 @@ export function ExecucaoPage() {
                 />
               </div>
 
+              {densidade === 'compacto' ? null : (
               <div className="mt-4">
                 <p className="mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-caption text-muted">
                   <span className="font-semibold text-ink">
@@ -545,6 +530,7 @@ export function ExecucaoPage() {
                   </ResponsiveContainer>
                 </div>
               </div>
+              )}
             </div>
             )}
           </SectionCard>
@@ -664,7 +650,12 @@ export function ExecucaoPage() {
               tamanho="sm"
               onClick={() => {
                 setModalTurno(false)
-                addToast({ titulo: 'Turno encerrado', descricao: 'Passagem de turno registrada e enviada ao Turno B.', tone: 'success' })
+                addToast({
+                  titulo: 'Turno encerrado — relatório de turno disponível',
+                  descricao: 'Passagem registrada e enviada ao Turno B.',
+                  tone: 'success',
+                  acao: { rotulo: 'Abrir relatório de turno', para: '/relatorios' },
+                })
               }}
             >
               Encerrar turno
