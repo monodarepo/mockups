@@ -8,7 +8,8 @@ import {
   Radar,
   Search,
 } from 'lucide-react'
-import { Area, AreaChart, ReferenceDot, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Area, AreaChart, ReferenceDot, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -322,6 +323,7 @@ export function AlertasPage() {
           <div className="h-[170px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={impactoAlertas24h} margin={{ top: 18, right: 58, bottom: 0, left: 8 }}>
+                <CartesianGrid {...GRID} />
                 <defs>
                   <linearGradient id="grad-impacto-alertas" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={colors.danger} stopOpacity={0.2} />
@@ -330,16 +332,16 @@ export function AlertasPage() {
                 </defs>
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fill: colors.muted }}
+                  tick={EIXO.tick}
                   tickLine={false}
-                  axisLine={{ stroke: colors.line }}
+                  axisLine={false}
                   interval="preserveStartEnd"
                   minTickGap={40}
                 />
                 <YAxis hide domain={['dataMin - 120', 'dataMax + 80']} />
                 <ChartTooltip
                   cursor={{ stroke: colors.line }}
-                  contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                  content={<TooltipHpo />}
                   formatter={(valor: number) => [formatMoedaCompacta(valor * 1000), 'Em risco']}
                 />
                 <Area
@@ -349,6 +351,7 @@ export function AlertasPage() {
                   strokeWidth={2}
                   fill="url(#grad-impacto-alertas)"
                   dot={false}
+                  activeDot={DOT_HOVER}
                   isAnimationActive={false}
                 />
                 <ReferenceDot

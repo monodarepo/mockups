@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, LayoutDashboard, Zap } from 'lucide-react'
 import { MenuAcoes } from '@/components/shared/MenuAcoes'
-import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo, linhaDeMeta } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -178,6 +179,13 @@ export function ExecucaoPage() {
         .slice(0, 5),
     [alertasRecorte],
   )
+
+  /** Meta média por hora do detalhe — ReferenceLine rotulada do gráfico. */
+  const metaMediaHora = useMemo(() => {
+    if (!detalhe) return null
+    const metas = detalhe.producaoPorHora.map((ponto) => ponto.meta)
+    return Math.round(metas.reduce((soma, meta) => soma + meta, 0) / metas.length)
+  }, [detalhe])
 
   const dadosGrafico = useMemo(() => {
     if (!detalhe) return []
@@ -492,17 +500,24 @@ export function ExecucaoPage() {
                 </p>
                 <div className="h-[170px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dadosGrafico} margin={{ top: 6, right: 12, bottom: 0, left: 12 }}>
+                    <LineChart data={dadosGrafico} margin={{ top: 14, right: 12, bottom: 0, left: 12 }}>
+                      <CartesianGrid {...GRID} />
+                      {modoGrafico === 'hora' && metaMediaHora !== null ? (
+                        <ReferenceLine
+                          y={metaMediaHora}
+                          {...linhaDeMeta(`Meta ${formatNumero(metaMediaHora)} mil un/h`)}
+                        />
+                      ) : null}
                       <XAxis
                         dataKey="label"
-                        tick={{ fontSize: 10, fill: colors.muted }}
+                        tick={EIXO.tick}
                         tickLine={false}
-                        axisLine={{ stroke: colors.line }}
+                        axisLine={false}
                       />
                       <YAxis hide domain={[0, 'dataMax + 40']} />
                       <ChartTooltip
                         cursor={{ stroke: colors.line }}
-                        contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                        content={<TooltipHpo />}
                         formatter={(valor: number, nome: string) => [
                           `${formatNumero(valor)} mil un`,
                           nome === 'real' ? 'Real' : 'Meta',
@@ -515,6 +530,7 @@ export function ExecucaoPage() {
                         strokeWidth={1.6}
                         strokeDasharray="5 4"
                         dot={false}
+                        activeDot={DOT_HOVER}
                         isAnimationActive={false}
                       />
                       <Line
@@ -523,6 +539,7 @@ export function ExecucaoPage() {
                         stroke={colors.primary}
                         strokeWidth={2}
                         dot={false}
+                        activeDot={DOT_HOVER}
                         isAnimationActive={false}
                         connectNulls={false}
                       />

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CalendarRange, CalendarX2, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
+  CartesianGrid,
   Bar,
   BarChart,
   Legend,
@@ -12,6 +13,7 @@ import {
   YAxis,
 } from 'recharts'
 import { addDays } from 'date-fns'
+import { EIXO, GRID, TooltipHpo } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { KpiRow } from '@/components/shared/KpiCard'
@@ -503,14 +505,15 @@ export function PlanejamentoPage() {
                 <div className="h-[260px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dadosCarga} margin={{ top: 12, right: 12, bottom: 0, left: 12 }} barCategoryGap="32%">
+                      <CartesianGrid {...GRID} />
                       <XAxis
                         dataKey="rotulo"
-                        tick={{ fontSize: 11, fill: colors.muted }}
+                        tick={EIXO.tick}
                         tickLine={false}
-                        axisLine={{ stroke: colors.line }}
+                        axisLine={false}
                       />
                       <YAxis
-                        tick={{ fontSize: 10, fill: colors.muted }}
+                        tick={EIXO.tick}
                         tickLine={false}
                         axisLine={false}
                         width={44}
@@ -518,7 +521,7 @@ export function PlanejamentoPage() {
                       />
                       <ChartTooltip
                         cursor={{ fill: colors.line, fillOpacity: 0.3 }}
-                        contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                        content={<TooltipHpo />}
                         formatter={(valor: number, nome: string) => [
                           `${formatNumero(valor)} h`,
                           nome === 'carga' ? 'Carga Planejada' : nome === 'adicional' ? 'Capacidade Adicional' : 'Excedente',

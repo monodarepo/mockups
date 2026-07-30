@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -553,18 +554,19 @@ export function MateriaisPage() {
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={tendencia} margin={{ top: 6, right: 12, bottom: 0, left: 12 }}>
+                <CartesianGrid {...GRID} />
                 <XAxis
                   dataKey="label"
                   interval={3}
-                  tick={{ fontSize: 10, fill: colors.muted }}
+                  tick={EIXO.tick}
                   tickLine={false}
-                  axisLine={{ stroke: colors.line }}
+                  axisLine={false}
                 />
                 <YAxis yAxisId="quantidade" hide domain={[0, 'dataMax + 40']} />
                 <YAxis yAxisId="dias" hide orientation="right" domain={[0, 'dataMax + 1']} />
                 <ChartTooltip
                   cursor={{ stroke: colors.line }}
-                  contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                  content={<TooltipHpo />}
                   formatter={(valor: number, nome: string) => {
                     if (nome === 'cobertura') return [rotuloDias(valor), 'Cobertura']
                     return [
@@ -573,8 +575,8 @@ export function MateriaisPage() {
                     ]
                   }}
                 />
-                <Line yAxisId="quantidade" type="monotone" dataKey="consumo" stroke={colors.primary} strokeWidth={2} dot={false} isAnimationActive={false} />
-                <Line yAxisId="quantidade" type="monotone" dataKey="estoque" stroke={colors.info} strokeWidth={1.8} dot={false} isAnimationActive={false} />
+                <Line yAxisId="quantidade" type="monotone" dataKey="consumo" stroke={colors.primary} strokeWidth={2} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
+                <Line yAxisId="quantidade" type="monotone" dataKey="estoque" stroke={colors.info} strokeWidth={1.8} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
                 <Line
                   yAxisId="dias"
                   type="monotone"
@@ -583,6 +585,7 @@ export function MateriaisPage() {
                   strokeWidth={1.6}
                   strokeDasharray="5 4"
                   dot={false}
+                  activeDot={DOT_HOVER}
                   isAnimationActive={false}
                 />
               </LineChart>

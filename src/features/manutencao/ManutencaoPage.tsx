@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -565,28 +566,29 @@ export function ManutencaoPage() {
         <div className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={tendencia} margin={{ top: 6, right: 14, bottom: 0, left: 14 }}>
+              <CartesianGrid {...GRID} />
               <XAxis
                 dataKey="label"
                 interval={janela === '24h' ? 3 : 0}
-                tick={{ fontSize: 10, fill: colors.muted }}
+                tick={EIXO.tick}
                 tickLine={false}
-                axisLine={{ stroke: colors.line }}
+                axisLine={false}
               />
               <YAxis yAxisId="vibracao" hide domain={[0, 'dataMax + 4']} />
               <YAxis yAxisId="temperatura" hide domain={[0, 'dataMax + 20']} />
               <YAxis yAxisId="energia" hide orientation="right" domain={[0, 'dataMax + 40']} />
               <ChartTooltip
                 cursor={{ stroke: colors.line }}
-                contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                content={<TooltipHpo />}
                 formatter={(valor: number, nome: string) => {
                   if (nome === 'vibracao') return [`${formatNumero(valor, 1)} mm/s`, 'Vibração']
                   if (nome === 'temperatura') return [`${formatNumero(valor, 1)} °C`, 'Temperatura']
                   return [`${formatNumero(valor)} kW`, 'Energia']
                 }}
               />
-              <Line yAxisId="vibracao" type="monotone" dataKey="vibracao" stroke={colors.danger} strokeWidth={2} dot={false} isAnimationActive={false} />
-              <Line yAxisId="temperatura" type="monotone" dataKey="temperatura" stroke={colors.warning} strokeWidth={1.6} dot={false} isAnimationActive={false} />
-              <Line yAxisId="energia" type="monotone" dataKey="energia" stroke={colors.primary} strokeWidth={1.6} dot={false} isAnimationActive={false} />
+              <Line yAxisId="vibracao" type="monotone" dataKey="vibracao" stroke={colors.danger} strokeWidth={2} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
+              <Line yAxisId="temperatura" type="monotone" dataKey="temperatura" stroke={colors.warning} strokeWidth={1.6} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
+              <Line yAxisId="energia" type="monotone" dataKey="energia" stroke={colors.primary} strokeWidth={1.6} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

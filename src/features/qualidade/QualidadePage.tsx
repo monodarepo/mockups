@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText, LayoutDashboard, Zap } from 'lucide-react'
 import { MenuAcoes } from '@/components/shared/MenuAcoes'
-import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -318,7 +319,8 @@ export function QualidadePage() {
             )}
           </SectionCard>
 
-          <div className="grid grid-cols-2 items-start gap-5">
+          {/* Fileira alinhada: os dois cards esticam à mesma altura. */}
+          <div className="grid grid-cols-2 gap-5">
         <SectionCard
           titulo="Desvios e Não Conformidades"
           info="Ranking dos últimos 7 dias, por quantidade de ocorrências."
@@ -361,7 +363,7 @@ export function QualidadePage() {
               últimas 24 h. Volte ao painel Padrão para ver a tendência completa.
             </p>
           ) : (
-          <>
+          <div className="flex h-full flex-col">
           <p className="mb-1 flex flex-wrap items-center gap-3 text-caption text-muted">
             <span className="flex items-center gap-1.5">
               <span className="h-0.5 w-4 rounded bg-success" aria-hidden="true" />
@@ -376,33 +378,35 @@ export function QualidadePage() {
               Lotes liberados
             </span>
           </p>
-          <div className="h-[190px]">
+          {/* O gráfico preenche a altura do card, alinhado ao vizinho da fileira. */}
+          <div className="min-h-[190px] flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={tendenciaQualidade24h} margin={{ top: 6, right: 14, bottom: 0, left: 14 }}>
+                <CartesianGrid {...GRID} />
                 <XAxis
                   dataKey="label"
                   interval={5}
-                  tick={{ fontSize: 10, fill: colors.muted }}
+                  tick={EIXO.tick}
                   tickLine={false}
-                  axisLine={{ stroke: colors.line }}
+                  axisLine={false}
                 />
                 <YAxis yAxisId="percent" hide domain={[90, 100]} />
                 <YAxis yAxisId="contagem" hide orientation="right" domain={[0, 8]} />
                 <ChartTooltip
                   cursor={{ stroke: colors.line }}
-                  contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                  content={<TooltipHpo />}
                   formatter={(valor: number, nome: string) => {
                     if (nome === 'aprovacao') return [formatPercent(valor), 'Aprovação']
                     return [formatNumero(valor), nome === 'desvios' ? 'Desvios' : 'Lotes liberados']
                   }}
                 />
-                <Line yAxisId="percent" type="monotone" dataKey="aprovacao" stroke={colors.success} strokeWidth={2} dot={false} isAnimationActive={false} />
-                <Line yAxisId="contagem" type="monotone" dataKey="desvios" stroke={colors.danger} strokeWidth={1.6} dot={false} isAnimationActive={false} />
-                <Line yAxisId="contagem" type="monotone" dataKey="liberados" stroke={colors.primary} strokeWidth={1.6} dot={false} isAnimationActive={false} />
+                <Line yAxisId="percent" type="monotone" dataKey="aprovacao" stroke={colors.success} strokeWidth={2} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
+                <Line yAxisId="contagem" type="monotone" dataKey="desvios" stroke={colors.danger} strokeWidth={1.6} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
+                <Line yAxisId="contagem" type="monotone" dataKey="liberados" stroke={colors.primary} strokeWidth={1.6} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
-          </>
+          </div>
           )}
         </SectionCard>
           </div>

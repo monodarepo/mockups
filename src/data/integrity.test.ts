@@ -138,7 +138,8 @@ import {
 } from './supply'
 import { ANALISE_CENARIOS, FONTES_COPILOT, RESPOSTA_PADRAO_QA, bancoQA, buscarResposta, conteudoCopilot } from './copilot'
 import * as todosOsModulos from './index'
-import { kpisPorTela } from './kpis'
+import { kpisAgentes, kpisAlertas, kpisPorTela } from './kpis'
+import { glossarioKpis } from './glossario'
 import { producaoVsPlano } from './graficos'
 import { navegacao } from './navigation'
 import { AREAS_ALERTA } from './types'
@@ -1083,6 +1084,28 @@ describe('seletores — recorte global da FilterBar', () => {
     const filtros: FiltrosSelecao = { ...filtrosPadrao, turno: 'Turno B (14:00 – 22:00)', periodo: 'Hoje' }
     expect(ordensFiltradas(filtros).length).toBeGreaterThan(0)
     expect(lotesFiltrados(filtros)).toHaveLength(0)
+  })
+})
+
+describe('glossário de indicadores', () => {
+  it('todo KPI das 13 telas (e da perspectiva Supply) tem definição, escopo e rota no glossário', () => {
+    const todos = [
+      ...Object.values(kpisPorTela).flat(),
+      ...kpisSequenciamento(false),
+      ...kpisSequenciamento(true),
+      ...kpisAlertas(12),
+      ...kpisAgentes(9),
+      ...kpisSupply,
+      ...kpisSupplySecundarios,
+    ]
+    expect(todos.length).toBeGreaterThan(80)
+    for (const kpi of todos) {
+      const entrada = glossarioKpis[kpi.id]
+      expect(entrada, `KPI sem entrada no glossário: ${kpi.id} (${kpi.label})`).toBeDefined()
+      expect(entrada.definicao.length, `definição curta demais: ${kpi.id}`).toBeGreaterThan(30)
+      expect(entrada.escopo.length, `escopo curto demais: ${kpi.id}`).toBeGreaterThan(15)
+      expect(entrada.rota.startsWith('/'), `rota inválida: ${kpi.id}`).toBe(true)
+    }
   })
 })
 

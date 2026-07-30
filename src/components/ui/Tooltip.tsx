@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
 interface TooltipProps {
-  conteudo: string
+  conteudo: ReactNode
   children: ReactNode
   className?: string
 }

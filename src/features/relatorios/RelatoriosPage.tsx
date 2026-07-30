@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CalendarClock, Download, Eye, FileSpreadsheet, FileText, Plus, RefreshCw, Search, Send } from 'lucide-react'
-import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { KpiRow } from '@/components/shared/KpiCard'
@@ -438,19 +439,20 @@ export function RelatoriosPage() {
             <div className="h-[150px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={leiturasSemana} margin={{ top: 6, right: 14, bottom: 0, left: 14 }}>
+                  <CartesianGrid {...GRID} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 10, fill: colors.muted }}
+                    tick={EIXO.tick}
                     tickLine={false}
-                    axisLine={{ stroke: colors.line }}
+                    axisLine={false}
                   />
                   <YAxis hide domain={[0, 'dataMax + 60']} />
                   <ChartTooltip
                     cursor={{ stroke: colors.line }}
-                    contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                    content={<TooltipHpo />}
                     formatter={(valor: number) => [`${formatNumero(valor)} leituras`, 'Leituras']}
                   />
-                  <Line type="monotone" dataKey="valor" stroke={colors.primary} strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="valor" stroke={colors.primary} strokeWidth={2} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -655,20 +657,21 @@ export function RelatoriosPage() {
             <div className="h-[140px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={producaoVsPlano} margin={{ top: 6, right: 14, bottom: 0, left: 14 }}>
+                  <CartesianGrid {...GRID} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 10, fill: colors.muted }}
+                    tick={EIXO.tick}
                     tickLine={false}
-                    axisLine={{ stroke: colors.line }}
+                    axisLine={false}
                   />
                   <YAxis hide domain={['dataMin - 120', 'dataMax + 80']} />
                   <ChartTooltip
                     cursor={{ stroke: colors.line }}
-                    contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                    content={<TooltipHpo />}
                     formatter={(valor: number, nome: string) => [`${formatNumero(valor)} mil un`, nome === 'real' ? 'Real' : 'Plano']}
                   />
-                  <Line type="monotone" dataKey="plano" stroke="#94A3B8" strokeWidth={1.6} strokeDasharray="5 4" dot={false} isAnimationActive={false} />
-                  <Line type="monotone" dataKey="real" stroke={colors.primary} strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="plano" stroke="#94A3B8" strokeWidth={1.6} strokeDasharray="5 4" dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="real" stroke={colors.primary} strokeWidth={2} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

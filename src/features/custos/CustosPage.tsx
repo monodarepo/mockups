@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import {
+  CartesianGrid,
   Area,
   ComposedChart,
   Line,
@@ -8,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -328,6 +330,7 @@ export function CustosPage() {
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={dadosGrafico} margin={{ top: 6, right: 14, bottom: 0, left: 14 }}>
+                  <CartesianGrid {...GRID} />
                   <defs>
                     <linearGradient id="gradMargem" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={colors.success} stopOpacity={0.35} />
@@ -336,15 +339,15 @@ export function CustosPage() {
                   </defs>
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 10, fill: colors.muted }}
+                    tick={EIXO.tick}
                     tickLine={false}
-                    axisLine={{ stroke: colors.line }}
+                    axisLine={false}
                   />
                   <YAxis yAxisId="custo" hide domain={[0, 'dataMax + 60']} />
                   <YAxis yAxisId="margem" hide orientation="right" domain={[0, 'dataMax + 120']} />
                   <ChartTooltip
                     cursor={{ stroke: colors.line }}
-                    contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                    content={<TooltipHpo />}
                     formatter={(valor: number, nome: string) => [
                       formatMoedaCompacta(valor * 1000),
                       nome === 'custoReal' ? 'Custo Real' : nome === 'custoOrcado' ? 'Custo Orçado' : 'Margem',
@@ -367,6 +370,7 @@ export function CustosPage() {
                     strokeWidth={1.6}
                     strokeDasharray="5 4"
                     dot={false}
+                    activeDot={DOT_HOVER}
                     isAnimationActive={false}
                   />
                   <Line
@@ -376,6 +380,7 @@ export function CustosPage() {
                     stroke={colors.primary}
                     strokeWidth={2}
                     dot={false}
+                    activeDot={DOT_HOVER}
                     isAnimationActive={false}
                   />
                 </ComposedChart>

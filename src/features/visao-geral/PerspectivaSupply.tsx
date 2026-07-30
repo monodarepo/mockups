@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip as ChartTooltip } from 'recharts'
+import { TooltipHpo } from '@/components/charts'
 import { KpiRow } from '@/components/shared/KpiCard'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CopilotPanel } from '@/components/shared/CopilotPanel'
@@ -227,7 +228,7 @@ export function PerspectivaSupply() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <ChartTooltip
-                        contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                        content={<TooltipHpo />}
                         formatter={(valor: number, nome: string) => [formatPercent(valor, 0), nome]}
                       />
                       <Pie

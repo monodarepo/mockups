@@ -10,6 +10,9 @@
 
   body {
     @apply bg-app font-sans text-body text-ink;
+    /* Números profissionais em todo o app: KPIs, tabelas, tooltips e deltas
+       compartilham dígitos de largura fixa — colunas numéricas alinham. */
+    font-variant-numeric: tabular-nums;
   }
 
   /* Foco de teclado sempre visível. */

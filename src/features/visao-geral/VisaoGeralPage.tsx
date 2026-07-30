@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addDays } from 'date-fns'
 import { CalendarRange, Search } from 'lucide-react'
-import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
+import { DOT_HOVER, EIXO, GRID, TooltipHpo, linhaDeMeta } from '@/components/charts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
 import { PerspectivaSupply } from './PerspectivaSupply'
@@ -40,6 +41,11 @@ import {
   type NomeFabrica,
   type SituacaoOrdem,
 } from '@/data'
+
+/** Meta diária de produção da rede: média do plano dos últimos 7 dias. */
+const META_DIARIA_PRODUCAO = Math.round(
+  producaoVsPlano.reduce((soma, ponto) => soma + ponto.plano, 0) / producaoVsPlano.length,
+)
 
 const pesoStatusLinha = { critico: 0, parada: 1, atencao: 2, normal: 3 } as const
 const pesoSituacao: Record<SituacaoOrdem, number> = { 'Em risco': 0, Bloqueada: 1, Atenção: 2, 'No prazo': 3 }
@@ -368,26 +374,28 @@ export function VisaoGeralPage() {
           </div>
           <div className="h-[150px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={producaoVsPlano} margin={{ top: 6, right: 12, bottom: 0, left: 12 }}>
+              <LineChart data={producaoVsPlano} margin={{ top: 14, right: 12, bottom: 0, left: 12 }}>
+                <CartesianGrid {...GRID} />
+                <ReferenceLine y={META_DIARIA_PRODUCAO} {...linhaDeMeta(`Meta ${formatNumero(META_DIARIA_PRODUCAO)} mil un/dia`)} />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fill: colors.muted }}
+                  tick={EIXO.tick}
                   tickLine={false}
-                  axisLine={{ stroke: colors.line }}
+                  axisLine={false}
                   interval="preserveStartEnd"
                   minTickGap={24}
                 />
                 <YAxis hide domain={['dataMin - 120', 'dataMax + 60']} />
                 <ChartTooltip
                   cursor={{ stroke: colors.line }}
-                  contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${colors.line}` }}
+                  content={<TooltipHpo />}
                   formatter={(valor: number, nome: string) => [
                     `${formatNumero(valor)} mil un`,
                     nome === 'real' ? 'Real' : 'Plano',
                   ]}
                 />
-                <Line type="monotone" dataKey="plano" stroke="#94A3B8" strokeWidth={1.6} strokeDasharray="5 4" dot={false} isAnimationActive={false} />
-                <Line type="monotone" dataKey="real" stroke={colors.primary} strokeWidth={2} dot={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="plano" stroke="#94A3B8" strokeWidth={1.6} strokeDasharray="5 4" dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
+                <Line type="monotone" dataKey="real" stroke={colors.primary} strokeWidth={2} dot={false} activeDot={DOT_HOVER} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
