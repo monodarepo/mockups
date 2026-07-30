@@ -702,6 +702,111 @@ export interface GovernancaRelatorios {
   valorRotulo?: string
 }
 
+// ── Gêmeo da fábrica (planta interativa) ─────────────────────────────────────
+
+export type StatusAreaGemeo = 'normal' | 'atencao' | 'critico' | 'parada' | 'manutencao' | 'sem-dados'
+
+export interface ParametroArea {
+  nome: string
+  valor: string
+  situacao: 'Normal' | 'Atenção' | 'Crítico'
+}
+
+export interface EquipamentoArea {
+  nome: string
+  condicao: 'Normal' | 'Atenção' | 'Crítico'
+}
+
+export interface DetalheAreaGemeo {
+  /** Nome do bloco na planta: "Compressão (L12)", "Armazém MP"… */
+  area: string
+  tipo: 'linha' | 'apoio'
+  status: StatusAreaGemeo
+  /** Leitura de 1 linha exibida no pin/tooltip e no topo do drawer. */
+  resumo: string
+  linhaId?: string
+  ordemId?: string
+  loteId?: string
+  /** Perda acumulada do turno, em %. */
+  perdaAcumuladaPercent?: number
+  parametros?: ParametroArea[]
+  /** Rótulo da próxima ordem: "OF-045686 · Novalgina — 14:30". */
+  proximaOrdem?: string
+  previsaoTermino?: Date
+  equipamentos?: EquipamentoArea[]
+  /** Indicadores simples das áreas de apoio. */
+  indicadores?: Array<{ nome: string; valor: string }>
+  /** Ativo de manutenção associado — habilita "Ver Manutenção" com contexto. */
+  ativoId?: string
+  /** Nota do fio da história exibida em destaque no drawer. */
+  fio?: string
+}
+
+// ── Configurações ────────────────────────────────────────────────────────────
+
+export interface TileResumoConfig {
+  id: string
+  valor: number
+  rotulo: string
+  sublabel: string
+}
+
+export interface ServicoSistema {
+  servico: string
+  status: 'Operacional'
+  detalhe: string
+}
+
+export interface IntegracaoConfig {
+  id: string
+  nome: string
+  detalhe: string
+  status: 'Ativo'
+  ultimaSincronizacao: string
+  latenciaMs: number
+}
+
+export interface RegraNegocio {
+  id: string
+  nome: string
+  criticidade: 'Alta' | 'Média' | 'Baixa'
+  status: 'Ativa'
+  ultimaExecucao: string
+}
+
+export interface PerfilUsuarios {
+  perfil: string
+  quantidade: number
+  permissao: string
+}
+
+export interface ConfiguracaoRapida {
+  id: string
+  titulo: string
+  descricao: string
+}
+
+export interface ParametroSistema {
+  parametro: string
+  valor: string
+}
+
+export interface CanalNotificacao {
+  id: string
+  canal: string
+  evento: string
+  destinatarios: string
+  status: 'Ativo' | 'Pausado'
+}
+
+export interface EventoAuditoria {
+  id: string
+  quando: string
+  usuario: string
+  acao: string
+  origem: string
+}
+
 // ── Copiloto Gemini ──────────────────────────────────────────────────────────
 
 export interface ConteudoCopilot {

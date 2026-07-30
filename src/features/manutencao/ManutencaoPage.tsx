@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
@@ -139,7 +140,12 @@ export function ManutencaoPage() {
 
   // A fila vive em estado local: "Acionar manutenção" insere a OT-245690 no topo.
   const [filaOts, setFilaOts] = useState<OrdemManutencao[]>(ordensManutencao)
-  const [ativoSelecionadoId, setAtivoSelecionadoId] = useState('eq-compressora-l12')
+  // ?ativo= permite chegar com contexto (ex.: "Ver Manutenção" no Gêmeo da Fábrica).
+  const [parametrosBusca] = useSearchParams()
+  const [ativoSelecionadoId, setAtivoSelecionadoId] = useState(() => {
+    const ativoParam = parametrosBusca.get('ativo')
+    return ativoParam && equipamentoPorId(ativoParam) ? ativoParam : 'eq-compressora-l12'
+  })
   const [janela, setJanela] = useState<JanelaCondicao>('24h')
 
   // Persona desta tela: Camila Azevedo.

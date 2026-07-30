@@ -99,6 +99,18 @@ import {
   relatorios,
   resumoExecutivoKpis,
 } from './relatorios'
+import { detalhesAreasGemeo, estadosAreasGemeo, kpisPlantaGemeo, legendaGemeo } from './gemeo'
+import {
+  canaisNotificacao,
+  configuracoesRapidas,
+  eventosAuditoria,
+  integracoesConfig,
+  parametrosSistema,
+  perfisUsuarios,
+  regrasNegocio,
+  resumoConfiguracoes,
+  statusSistema,
+} from './configuracoes'
 import { ANALISE_CENARIOS, FONTES_COPILOT, RESPOSTA_PADRAO_QA, bancoQA, buscarResposta, conteudoCopilot } from './copilot'
 import { kpisPorTela } from './kpis'
 import { producaoVsPlano } from './graficos'
@@ -796,6 +808,62 @@ describe('gráficos', () => {
     expect(ultimo.real).toBe(2_094)
     expect(ultimo.plano).toBe(1_968)
     expect(ultimo.label).toBe('19/mai')
+  })
+})
+
+describe('gêmeo da fábrica', () => {
+  it('toda área com estado tem detalhe e vice-versa — nenhum clique sem conteúdo', () => {
+    const comEstado = Object.keys(estadosAreasGemeo).sort()
+    const comDetalhe = Object.keys(detalhesAreasGemeo).sort()
+    expect(comDetalhe).toEqual(comEstado)
+    expect(comEstado).toHaveLength(13)
+    for (const detalhe of Object.values(detalhesAreasGemeo)) {
+      expect(detalhe.resumo.length).toBeGreaterThan(15)
+      if (detalhe.linhaId) expect(idsLinhas.has(detalhe.linhaId)).toBe(true)
+      if (detalhe.ordemId) expect(idsOrdens.has(detalhe.ordemId)).toBe(true)
+      if (detalhe.loteId) expect(idsLotes.has(detalhe.loteId)).toBe(true)
+      if (detalhe.ativoId) expect(idsEquipamentos.has(detalhe.ativoId)).toBe(true)
+    }
+  })
+
+  it('os fios da história aparecem nas áreas certas com os números canônicos', () => {
+    expect(detalhesAreasGemeo['Compressão (L12)'].status).toBe('atencao')
+    expect(detalhesAreasGemeo['Compressão (L12)'].fio).toContain('78%')
+    expect(detalhesAreasGemeo['Sólidos (L08)'].resumo).toContain('45%')
+    expect(detalhesAreasGemeo['Pó e Sachês (L15)'].status).toBe('parada')
+    expect(detalhesAreasGemeo['Pó e Sachês (L15)'].resumo).toContain('62%')
+    expect(detalhesAreasGemeo['Utilidades'].status).toBe('manutencao')
+  })
+
+  it('KPIs verticais e legenda estão completos', () => {
+    expect(kpisPlantaGemeo).toHaveLength(5)
+    expect(kpisPlantaGemeo.find((kpi) => kpi.id === 'gm-oee')?.valor).toBe('78,4%')
+    expect(legendaGemeo).toHaveLength(5)
+  })
+})
+
+describe('configurações', () => {
+  it('tiles do resumo são coerentes com o resto do app', () => {
+    expect(resumoConfiguracoes).toHaveLength(4)
+    const usuarios = resumoConfiguracoes.find((tile) => tile.id === 'cf-usuarios')
+    expect(usuarios?.valor).toBe(perfisUsuarios.reduce((soma, perfil) => soma + perfil.quantidade, 0))
+    // Mesma rede de 12 agentes exibida na tela /agentes.
+    expect(resumoConfiguracoes.find((tile) => tile.id === 'cf-agentes')?.valor).toBe(12)
+  })
+
+  it('status do sistema, integrações, regras e perfis estão populados', () => {
+    expect(statusSistema).toHaveLength(4)
+    for (const servico of statusSistema) expect(servico.status).toBe('Operacional')
+    expect(integracoesConfig).toHaveLength(5)
+    expect(regrasNegocio).toHaveLength(5)
+    expect(perfisUsuarios).toHaveLength(5)
+    expect(configuracoesRapidas).toHaveLength(6)
+  })
+
+  it('abas simples têm conteúdo — nenhum placeholder vazio', () => {
+    expect(parametrosSistema.length).toBeGreaterThanOrEqual(5)
+    expect(canaisNotificacao).toHaveLength(5)
+    expect(eventosAuditoria.length).toBeGreaterThanOrEqual(5)
   })
 })
 

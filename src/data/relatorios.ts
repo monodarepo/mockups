@@ -33,7 +33,7 @@ export const relatorios: Relatorio[] = [
     formato: 'PDF',
     responsavel: 'Ricardo Martins',
     situacao: 'Atualizado',
-    destaque: 'L08 encerrou 18/mai com aderência de 47%.',
+    destaque: 'L08 opera com aderência de 45% por microparadas.',
   },
   {
     id: 'REL-003',

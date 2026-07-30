@@ -21,6 +21,10 @@ export interface PinFabrica {
 interface FactoryMapProps {
   pins: PinFabrica[]
   onSelecionarPin?: (pin: PinFabrica) => void
+  /** Tinge os blocos por status (chave = nome do bloco) — usado pelo Gêmeo. */
+  estadosBlocos?: Record<string, StatusPin>
+  /** Torna os blocos clicáveis (botões com foco de teclado sobre a planta). */
+  onSelecionarBloco?: (nomeBloco: string) => void
   className?: string
 }
 
@@ -69,7 +73,17 @@ const BLOCOS: BlocoPlanta[] = [
   { nome: 'Armazém PA', x: 578, y: 270, w: 182, h: 72 },
 ]
 
-function BlocoSvg({ bloco }: { bloco: BlocoPlanta }) {
+/** Fundos suaves por status — tingem a face superior do bloco no Gêmeo. */
+const fundoDoStatus: Record<StatusPin, string> = {
+  normal: '#EAF7EF',
+  atencao: '#FDF3E3',
+  critico: '#FCEAEA',
+  parada: '#FCEAEA',
+  manutencao: '#E7F5FD',
+  'sem-dados': '#F1F5F9',
+}
+
+function BlocoSvg({ bloco, estado }: { bloco: BlocoPlanta; estado?: StatusPin }) {
   const producao = bloco.nome.includes('(L')
   return (
     <g>
@@ -82,9 +96,10 @@ function BlocoSvg({ bloco }: { bloco: BlocoPlanta }) {
         width={bloco.w}
         height={bloco.h}
         rx="8"
-        fill={producao ? '#FFFFFF' : '#F3F7FC'}
-        stroke="#D7E0EC"
-        strokeWidth="1.2"
+        fill={estado ? fundoDoStatus[estado] : producao ? '#FFFFFF' : '#F3F7FC'}
+        stroke={estado ? corDoStatus[estado] : '#D7E0EC'}
+        strokeOpacity={estado ? 0.55 : 1}
+        strokeWidth={estado ? 1.6 : 1.2}
       />
       <text
         x={bloco.x + bloco.w / 2}
@@ -100,7 +115,7 @@ function BlocoSvg({ bloco }: { bloco: BlocoPlanta }) {
   )
 }
 
-export function FactoryMap({ pins, onSelecionarPin, className }: FactoryMapProps) {
+export function FactoryMap({ pins, onSelecionarPin, estadosBlocos, onSelecionarBloco, className }: FactoryMapProps) {
   return (
     <div className={cn('w-full overflow-hidden rounded-xl border border-line bg-app/60', className)}>
       {/* Container relativo próprio do SVG — as posições % dos pins mapeiam 1:1 no viewBox. */}
@@ -115,9 +130,31 @@ export function FactoryMap({ pins, onSelecionarPin, className }: FactoryMapProps
         <rect x="30" y="116" width="740" height="12" rx="6" fill="#DBE5F1" />
         <rect x="30" y="250" width="740" height="12" rx="6" fill="#DBE5F1" />
         {BLOCOS.map((bloco) => (
-          <BlocoSvg key={bloco.nome} bloco={bloco} />
+          <BlocoSvg key={bloco.nome} bloco={bloco} estado={estadosBlocos?.[bloco.nome]} />
         ))}
       </svg>
+
+      {/* Camada de blocos clicáveis — botões transparentes com foco visível */}
+      {onSelecionarBloco
+        ? BLOCOS.map((bloco) => (
+            <button
+              key={bloco.nome}
+              type="button"
+              onClick={() => onSelecionarBloco(bloco.nome)}
+              aria-label={`Abrir detalhe da área ${bloco.nome}`}
+              className={cn(
+                'absolute rounded-lg transition-colors duration-150 hover:bg-primary/5',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+              )}
+              style={{
+                left: `${(bloco.x / 800) * 100}%`,
+                top: `${(bloco.y / 420) * 100}%`,
+                width: `${(bloco.w / 800) * 100}%`,
+                height: `${(bloco.h / 420) * 100}%`,
+              }}
+            />
+          ))
+        : null}
 
       {/* Camada de pins */}
       {pins.map((pin) => {

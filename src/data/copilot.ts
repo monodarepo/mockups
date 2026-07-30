@@ -95,9 +95,9 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/gemeo': {
     tela: '/gemeo',
     perguntasSugeridas: ['Simule a parada da L12', 'Por que o Cenário B não venceu?', 'Quais SKUs correm risco de ruptura?'],
-    saudacao: 'Bom dia, {nome}. O gêmeo está calibrado com dados de 10:18.',
+    saudacao: 'Bom dia, {nome}. A planta opera com 1 linha parada e 3 em atenção.',
     resumo:
-      'Cinco eventos estão prontos para simulação. Na comparação vigente, o Cenário A entrega 97% de atendimento com risco Baixo — o melhor resultado.',
+      'O gêmeo reflete a planta às 10:18: L15 parada pelo blister, L12 com vibração crítica e L08 com aderência de 45%. Na comparação vigente, o Cenário A entrega 97% de atendimento com risco Baixo.',
     riscos: [
       'Parada de 8 h na L12 derrubaria o atendimento para 91% e atrasaria a OF-045678 em 6 h.',
       'Atraso de 48 h do Ibuprofeno API forçaria replanejamento completo da L12.',
