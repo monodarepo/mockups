@@ -69,11 +69,15 @@ export default {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        flow: {
+          to: { strokeDashoffset: '-16' },
+        },
       },
       animation: {
         'pulse-live': 'pulse-live 1.8s ease-in-out infinite',
         'pulse-critical': 'pulse-critical 2s ease-out infinite',
         'toast-in': 'toast-in 180ms ease-out',
+        flow: 'flow 1.2s linear infinite',
       },
     },
   },

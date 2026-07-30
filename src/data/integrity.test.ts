@@ -77,9 +77,28 @@ import {
   proximasAprovacoes,
   topRiscosCategorias,
 } from './alertas'
-import { acoesAgentes, agentes } from './agentes'
+import {
+  GOVERNANCA_AGENTES_SCORE,
+  acoesAgentes,
+  agentes,
+  desempenhoAgentes,
+  distribuicaoGovernanca,
+  niveisAutonomia,
+  orquestracaoPrincipal,
+  orquestracaoRamos,
+  selosGovernanca,
+} from './agentes'
 import { MELHOR_CENARIO_ID, cenarios, eventosSimulaveis } from './cenarios'
-import { relatorios } from './relatorios'
+import {
+  RELATORIOS_GOVERNANCA_SCORE,
+  agendamentos,
+  catalogoAnalitico,
+  consumoRelatorios,
+  governancaRelatorios,
+  leiturasSemana,
+  relatorios,
+  resumoExecutivoKpis,
+} from './relatorios'
 import { ANALISE_CENARIOS, FONTES_COPILOT, RESPOSTA_PADRAO_QA, bancoQA, buscarResposta, conteudoCopilot } from './copilot'
 import { kpisPorTela } from './kpis'
 import { producaoVsPlano } from './graficos'
@@ -549,10 +568,17 @@ describe('alertas', () => {
 })
 
 describe('agentes IA', () => {
-  it('tem 9 agentes e 4 ações pendentes referenciando agentes existentes', () => {
+  it('tem 9 agentes e 4 ações na fila referenciando agentes existentes', () => {
     expect(agentes).toHaveLength(9)
     expect(acoesAgentes).toHaveLength(4)
-    for (const acao of acoesAgentes) expect(idsAgentes.has(acao.agenteId)).toBe(true)
+    for (const acao of acoesAgentes) {
+      expect(idsAgentes.has(acao.agenteId)).toBe(true)
+      expect(acao.responsavel.length).toBeGreaterThan(3)
+    }
+    // A fila cobre o funil de decisão inteiro.
+    expect(acoesAgentes.map((acao) => acao.status).sort()).toEqual(
+      ['Aprovada', 'Em análise', 'Executada', 'Pendente'].sort(),
+    )
   })
 
   it('inclui a ação obrigatória de antecipar a compra de Ibuprofeno API', () => {
@@ -560,6 +586,46 @@ describe('agentes IA', () => {
     expect(acao).toBeDefined()
     expect(acao?.status).toBe('Pendente')
     expect(acao?.impacto).toContain('R$ 780 mil')
+  })
+
+  it('orquestração: fluxo principal de 4 nós e 4 ramos com origem válida', () => {
+    expect(orquestracaoPrincipal.map((no) => no.dominio)).toEqual([
+      'Planejamento',
+      'Sequenciamento',
+      'Materiais',
+      'Execução',
+    ])
+    expect(orquestracaoRamos).toHaveLength(4)
+    const principais = new Set(orquestracaoPrincipal.map((no) => no.dominio))
+    for (const ramo of orquestracaoRamos) {
+      expect(principais.has(ramo.origem)).toBe(true)
+      expect(ramo.eventos).toBeGreaterThan(0)
+    }
+  })
+
+  it('níveis de autonomia somam a rede de 12 agentes e 100%', () => {
+    expect(niveisAutonomia).toHaveLength(4)
+    expect(niveisAutonomia.reduce((soma, nivel) => soma + nivel.agentes, 0)).toBe(12)
+    expect(niveisAutonomia.reduce((soma, nivel) => soma + nivel.percent, 0)).toBe(100)
+    expect(niveisAutonomia[0]).toMatchObject({ nivel: 'N1', agentes: 0, percent: 0 })
+  })
+
+  it('desempenho cobre 6 agentes (incluindo Auditoria, sem ganho direto)', () => {
+    expect(desempenhoAgentes).toHaveLength(6)
+    for (const item of desempenhoAgentes) expect(idsAgentes.has(item.agenteId)).toBe(true)
+    const auditoria = desempenhoAgentes.find((item) => item.agenteId === 'ag-auditoria')
+    expect(auditoria?.ganho).toBeNull()
+    expect(desempenhoAgentes[0]).toMatchObject({ agenteId: 'ag-sequenciamento', acoes: 221, ganho: 612_000 })
+  })
+
+  it('governança: score 91, distribuição soma 100% e 6 selos preenchidos', () => {
+    expect(GOVERNANCA_AGENTES_SCORE).toBe(91)
+    expect(distribuicaoGovernanca.reduce((soma, faixa) => soma + faixa.percent, 0)).toBe(100)
+    expect(selosGovernanca).toHaveLength(6)
+    for (const selo of selosGovernanca) {
+      expect(selo.titulo.length).toBeGreaterThan(3)
+      expect(selo.detalhe.length).toBeGreaterThan(3)
+    }
   })
 })
 
@@ -734,8 +800,46 @@ describe('gráficos', () => {
 })
 
 describe('relatórios', () => {
-  it('tem 8 relatórios com IDs únicos', () => {
-    expect(relatorios).toHaveLength(8)
+  it('tem 10 relatórios com IDs únicos e o Resumo Executivo em primeiro', () => {
+    expect(relatorios).toHaveLength(10)
     semDuplicatas(relatorios.map((relatorio) => relatorio.id))
+    expect(relatorios[0]).toMatchObject({
+      id: 'REL-001',
+      nome: 'Resumo Executivo da Produção',
+      categoria: 'Executivo',
+      responsavel: 'Camila Azevedo',
+      situacao: 'Atualizado',
+    })
+  })
+
+  it('toda aba da biblioteca tem pelo menos 1 relatório — nenhum estado vazio', () => {
+    for (const categoria of ['Executivo', 'Operacional', 'Qualidade', 'Manutenção', 'Custos', 'Customizado']) {
+      expect(
+        relatorios.filter((relatorio) => relatorio.categoria === categoria).length,
+        `categoria vazia: ${categoria}`,
+      ).toBeGreaterThan(0)
+    }
+  })
+
+  it('agendamentos referenciam relatórios existentes e leituras crescem de 210 a 428', () => {
+    expect(agendamentos).toHaveLength(5)
+    const idsRelatorios = new Set(relatorios.map((relatorio) => relatorio.id))
+    for (const agendamento of agendamentos) expect(idsRelatorios.has(agendamento.relatorioId)).toBe(true)
+    expect(leiturasSemana).toHaveLength(7)
+    expect(leiturasSemana[0].valor).toBe(210)
+    expect(leiturasSemana[6].valor).toBe(428)
+    for (let i = 1; i < leiturasSemana.length; i++) {
+      expect(leiturasSemana[i].valor).toBeGreaterThan(leiturasSemana[i - 1].valor)
+    }
+  })
+
+  it('consumo, catálogo analítico e governança estão completos', () => {
+    expect(consumoRelatorios).toHaveLength(4)
+    expect(catalogoAnalitico).toHaveLength(6)
+    expect(catalogoAnalitico.reduce((soma, item) => soma + item.quantidade, 0)).toBe(104)
+    expect(governancaRelatorios).toHaveLength(4)
+    expect(RELATORIOS_GOVERNANCA_SCORE).toBe(96)
+    expect(resumoExecutivoKpis).toHaveLength(3)
+    expect(resumoExecutivoKpis[0]).toMatchObject({ label: 'OEE Global', valor: '78,6%' })
   })
 })

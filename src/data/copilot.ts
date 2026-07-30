@@ -220,39 +220,49 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/relatorios': {
     tela: '/relatorios',
     perguntasSugeridas: ['Prepare o resumo da reunião diária', 'Quais os maiores riscos da semana?', 'Por que o OEE caiu?'],
-    saudacao: 'Bom dia, {nome}. O resumo da reunião diária está pronto para gerar.',
+    saudacao: 'Bom dia, {nome}. O resumo executivo está pronto para gerar.',
     resumo:
-      'Oito relatórios disponíveis, três gerados hoje. O painel executivo da semana destaca R$ 1,34 mi em risco mapeado.',
+      'As leituras executivas cresceram 18,5% na semana e o tempo médio de geração melhorou 0,6 min. Três insights críticos aguardam distribuição.',
     riscos: [
+      '3 insights críticos aguardam distribuição para a diretoria.',
       'Relatório de aderência semanal mostrará a L08 abaixo de 50% pela segunda semana.',
     ],
     causas: [
       'Microparadas da L08 e parada da L15 dominam os desvios da semana.',
     ],
     acoes: [
-      'Gerar o resumo diário com os três riscos principais para a reunião das 11:00.',
-      'Exportar o OEE por linha para anexar ao painel executivo.',
+      'Gerar o resumo executivo com os três riscos principais para a reunião das 11:00.',
+      'Distribuir os insights críticos antes do comitê de diretoria.',
     ],
-    botoes: ['Gerar resumo diário', 'Exportar OEE por linha'],
+    impactos: [
+      'Leituras executivas +18,5% na semana.',
+      'Tempo médio de geração caiu de 3,0 para 2,4 min.',
+    ],
+    botoes: ['Gerar resumo executivo', 'Montar board pack', 'Enviar relatório'],
   },
   '/agentes': {
     tela: '/agentes',
     perguntasSugeridas: ['O que os agentes propuseram hoje?', 'Qual a cobertura do Ibuprofeno?', 'Quais os maiores riscos da semana?'],
-    saudacao: 'Bom dia, {nome}. Os agentes propuseram 4 ações hoje.',
+    saudacao: 'Bom dia, {nome}. A rede de agentes automatizou 148 ações hoje.',
     resumo:
-      'Nove agentes ativos concluíram 173 tarefas hoje com SLA médio de 97,7%. A ação de maior impacto — antecipar a compra de Ibuprofeno API — evita R$ 780 mil.',
+      'Doze agentes ativos operam com assertividade de 94,8%. A decisão de maior impacto — antecipar a compra de Ibuprofeno API — evita R$ 780 mil e aguarda sua aprovação.',
     riscos: [
-      'Ação ACA-001 (compra de Ibuprofeno) perde efeito se aprovada depois de 20/mai.',
-      'Agente de Auditoria em treinamento — decisões N4 sem trilha completa até 26/mai.',
+      'O Agente de Materiais identificou risco de falta de Ibuprofeno API na semana W24.',
+      'O Agente de Manutenção prevê possível falha no compressor da L12 em 4 dias.',
     ],
     causas: [
       'Lead time de 12 dias do fornecedor exige decisão antecipada.',
+      'Vibração do eixo principal 35% acima do baseline.',
     ],
     acoes: [
-      'Aprovar a ação do Agente de Materiais dentro do SLA.',
-      'Revisar a fila de ações pendentes antes da reunião diária.',
+      'Aprovar a compra antecipada de Ibuprofeno API dentro do SLA.',
+      'Manter a OT-245690 na janela de menor impacto (quarta, 02:00 – 05:00).',
     ],
-    botoes: ['Aprovar ação de Materiais', 'Ver histórico de ações'],
+    impactos: [
+      'O Agente de Sequenciamento reduziu 18% dos setups na semana.',
+      'O Agente de Qualidade priorizou 4 lotes para revisão.',
+    ],
+    botoes: ['Simular impacto', 'Aprovar automação', 'Ver agentes críticos'],
   },
   '/configuracoes': {
     tela: '/configuracoes',
@@ -393,7 +403,7 @@ export const bancoQA: ParQA[] = [
     id: 'qa-16',
     palavrasChave: ['agentes propuseram', 'ações dos agentes', 'fila de ações'],
     resposta:
-      'Os agentes propuseram 4 ações hoje, todas pendentes: antecipar a compra de Ibuprofeno API (evita risco de R$ 780 mil), aplicar a sequência otimizada na L08 (reduz 45 h de setup), antecipar a preditiva da Compressora L12 para 21/mai (falha de 78% para 12%) e priorizar a liberação do lote 2456789A (libera R$ 95 mil). A primeira perde efeito se aprovada depois de 20/mai.',
+      'A fila registra 4 ações hoje: transferir a campanha P27 para a L08 (+1,2% de OEE, em análise), antecipar a compra de Ibuprofeno API (evita risco de R$ 780 mil, pendente com você), abrir a OT corretiva da L12 (aprovada às 08:17) e priorizar a revisão do lote na QA (executada). A compra de Ibuprofeno perde efeito se aprovada depois de 20/mai.',
     fontes: ['SAP PP', 'Histórico de manutenção', 'LIMS'],
   },
 ]

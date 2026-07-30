@@ -7,21 +7,78 @@ import {
   formatPontosPercentuais,
 } from '@/lib/format'
 import type { KpiCardData } from './types'
-import { acoesAgentes, agentes } from './agentes'
+import { agentes } from './agentes'
 import { cenarios, eventosSimulaveis } from './cenarios'
-import { relatorios } from './relatorios'
 import { personas } from './personas'
 
 // ── Valores derivados dos próprios mocks — uma única fonte de verdade ────────
 
-const agentesAtivos = agentes.filter((a) => a.status === 'Ativo').length
-const tarefasHojeTotal = agentes.reduce((soma, a) => soma + a.tarefasHoje, 0)
-const slaMedioAgentes = agentes.reduce((soma, a) => soma + a.slaPercent, 0) / agentes.length
-const aceitacaoMedia = agentes.reduce((soma, a) => soma + a.taxaAceitacao, 0) / agentes.length
-const agentesN4 = agentes.filter((a) => a.autonomia === 'N4').length
-const acoesPendentes = acoesAgentes.filter((a) => a.status === 'Pendente').length
-
 const planoBase = cenarios[0]
+
+/**
+ * KPIs de /agentes — "Decisões em Aprovação" é reativo: aprovar ou rejeitar
+ * uma ação na fila decrementa o valor.
+ */
+export function kpisAgentes(decisoesEmAprovacao: number): KpiCardData[] {
+  return [
+    {
+      id: 'ag-ativos',
+      label: 'Agentes Ativos',
+      valor: formatNumero(12),
+      delta: formatPercentAssinado(9.1),
+      deltaGoodWhen: 'up',
+      sublabel: 'rede · vs último mês',
+      sparkline: serieSparkline('kpi-ag-ativos-rede', 12, { base: 10.5, tendencia: 1.6, ruido: 0.05, decimais: 0, max: 12 }),
+    },
+    {
+      id: 'ag-acoes',
+      label: 'Ações Automatizadas',
+      valor: formatNumero(148),
+      delta: formatPercentAssinado(14.2),
+      deltaGoodWhen: 'up',
+      sublabel: 'hoje · vs média diária',
+      sparkline: serieSparkline('kpi-ag-acoes-auto', 12, { base: 128, tendencia: 21, ruido: 0.05, decimais: 0 }),
+    },
+    {
+      id: 'ag-assertividade',
+      label: 'Taxa de Assertividade',
+      valor: formatPercent(94.8),
+      delta: formatPontosPercentuais(3.5),
+      deltaGoodWhen: 'up',
+      sublabel: 'últimos 30 dias',
+      sparkline: serieSparkline('kpi-ag-assertividade', 12, { base: 91.2, tendencia: 3.7, ruido: 0.008 }),
+    },
+    {
+      id: 'ag-aprovacao',
+      label: 'Decisões em Aprovação',
+      valor: formatNumero(decisoesEmAprovacao),
+      delta: formatPercentAssinado(12.5),
+      deltaGoodWhen: 'down',
+      sublabel: 'rede · vs ontem',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-ag-aprovacao', 12, { base: 7, tendencia: 2.2, ruido: 0.16, decimais: 0, min: 4 }),
+    },
+    {
+      id: 'ag-resposta',
+      label: 'Tempo Médio de Resposta',
+      valor: `${formatNumero(18)} s`,
+      delta: '-22%',
+      deltaGoodWhen: 'down',
+      sublabel: 'vs último mês',
+      tone: 'success',
+      sparkline: serieSparkline('kpi-ag-resposta', 12, { base: 24, tendencia: -6, ruido: 0.06 }),
+    },
+    {
+      id: 'ag-ganho',
+      label: 'Ganho Estimado',
+      valor: formatMoedaCompacta(1_840_000),
+      delta: formatPercentAssinado(16.7),
+      deltaGoodWhen: 'up',
+      sublabel: 'mês corrente · decisões dos agentes',
+      sparkline: serieSparkline('kpi-ag-ganho', 12, { base: 1560, tendencia: 270, ruido: 0.04 }),
+    },
+  ]
+}
 
 /**
  * KPIs de /sequenciamento — variam com o estado da otimização:
@@ -658,115 +715,63 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
   '/alertas': kpisAlertas(12),
   '/relatorios': [
     {
-      id: 'rl-disponiveis',
-      label: 'Relatórios disponíveis',
-      valor: formatNumero(relatorios.length),
-      sublabel: 'catálogo ativo',
-      sparkline: serieSparkline('kpi-rl-disponiveis', 12, { base: 8, ruido: 0.04, decimais: 0 }),
-    },
-    {
       id: 'rl-gerados',
-      label: 'Gerados hoje',
-      valor: formatNumero(3),
-      sublabel: 'até 10:18',
-      sparkline: serieSparkline('kpi-rl-gerados', 12, { base: 3, ruido: 0.25, decimais: 0, min: 0, max: 6 }),
+      label: 'Relatórios Gerados',
+      valor: formatNumero(148),
+      delta: formatPercentAssinado(14.2),
+      deltaGoodWhen: 'up',
+      sublabel: 'mês corrente · vs abril',
+      sparkline: serieSparkline('kpi-rl-gerados', 12, { base: 128, tendencia: 21, ruido: 0.04, decimais: 0 }),
     },
     {
       id: 'rl-agendados',
-      label: 'Agendados',
-      valor: formatNumero(5),
+      label: 'Relatórios Agendados',
+      valor: formatNumero(24),
+      delta: formatPercentAssinado(9.1),
+      deltaGoodWhen: 'up',
       sublabel: 'próximos 7 dias',
-      sparkline: serieSparkline('kpi-rl-agendados', 12, { base: 5, ruido: 0.15, decimais: 0, min: 2 }),
+      sparkline: serieSparkline('kpi-rl-agendados', 12, { base: 21, tendencia: 3, ruido: 0.08, decimais: 0 }),
     },
     {
-      id: 'rl-exportacoes',
-      label: 'Exportações na semana',
-      valor: formatNumero(26),
-      delta: '+8',
+      id: 'rl-prazo',
+      label: 'Execuções no Prazo',
+      valor: formatPercent(96.8),
+      delta: formatPontosPercentuais(2.3),
       deltaGoodWhen: 'up',
-      sublabel: 'vs semana anterior',
-      sparkline: serieSparkline('kpi-rl-exportacoes', 12, { base: 20, tendencia: 6, ruido: 0.1, decimais: 0 }),
+      sublabel: 'vs último mês',
+      sparkline: serieSparkline('kpi-rl-prazo', 12, { base: 94.4, tendencia: 2.4, ruido: 0.008 }),
+    },
+    {
+      id: 'rl-leituras',
+      label: 'Leituras Executivas',
+      valor: formatNumero(312),
+      delta: formatPercentAssinado(18.5),
+      deltaGoodWhen: 'up',
+      sublabel: 'semana · vs anterior',
+      sparkline: serieSparkline('kpi-rl-leituras', 12, { base: 258, tendencia: 55, ruido: 0.05, decimais: 0 }),
+    },
+    {
+      id: 'rl-criticos',
+      label: 'Insights Críticos',
+      valor: formatNumero(11),
+      delta: formatPercentAssinado(10),
+      deltaGoodWhen: 'down',
+      sublabel: 'aguardando distribuição',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-rl-criticos', 12, { base: 9, tendencia: 2, ruido: 0.18, decimais: 0, min: 6 }),
     },
     {
       id: 'rl-tempo',
-      label: 'Tempo médio de geração',
-      valor: '18 s',
-      delta: '-3 s',
+      label: 'Tempo Médio de Geração',
+      valor: `${formatNumero(2.4, 1)} min`,
+      delta: '-0,6 min',
       deltaGoodWhen: 'down',
-      sublabel: 'vs última semana',
+      sublabel: 'vs último mês',
       tone: 'success',
-      sparkline: serieSparkline('kpi-rl-tempo', 12, { base: 21, tendencia: -3, ruido: 0.08 }),
-    },
-    {
-      id: 'rl-dashboards',
-      label: 'Dashboards ativos',
-      valor: formatNumero(4),
-      sublabel: 'compartilhados com a diretoria',
-      sparkline: serieSparkline('kpi-rl-dashboards', 12, { base: 4, ruido: 0.12, decimais: 0, min: 2 }),
+      sparkline: serieSparkline('kpi-rl-tempo', 12, { base: 3.1, tendencia: -0.7, ruido: 0.05 }),
     },
   ],
-  '/agentes': [
-    {
-      id: 'ag-ativos',
-      label: 'Agentes ativos',
-      valor: `${formatNumero(agentesAtivos)} de ${formatNumero(agentes.length)}`,
-      sublabel: 'Auditoria em treinamento',
-      sparkline: serieSparkline('kpi-ag-ativos', 12, { base: 8, ruido: 0.05, decimais: 0, max: 9 }),
-    },
-    {
-      id: 'ag-acoes',
-      label: 'Ações propostas hoje',
-      valor: formatNumero(acoesPendentes),
-      sublabel: 'aguardando decisão',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-ag-acoes', 12, { base: 3, tendencia: 1, ruido: 0.3, decimais: 0, min: 0 }),
-    },
-    {
-      id: 'ag-tarefas',
-      label: 'Tarefas concluídas hoje',
-      valor: formatNumero(tarefasHojeTotal),
-      delta: formatPercentAssinado(12),
-      deltaGoodWhen: 'up',
-      sublabel: 'vs média diária',
-      sparkline: serieSparkline('kpi-ag-tarefas', 12, { base: 150, tendencia: 20, ruido: 0.06, decimais: 0 }),
-    },
-    {
-      id: 'ag-sla',
-      label: 'SLA médio',
-      valor: formatPercent(slaMedioAgentes),
-      delta: formatPontosPercentuais(0.4),
-      deltaGoodWhen: 'up',
-      sublabel: 'vs última semana',
-      tone: 'success',
-      sparkline: serieSparkline('kpi-ag-sla', 12, { base: 97.4, tendencia: 0.3, ruido: 0.004 }),
-    },
-    {
-      id: 'ag-aceitacao',
-      label: 'Taxa média de aceitação',
-      valor: formatPercent(aceitacaoMedia),
-      delta: formatPontosPercentuais(1.2),
-      deltaGoodWhen: 'up',
-      sublabel: 'últimos 30 dias',
-      sparkline: serieSparkline('kpi-ag-aceitacao', 12, { base: 90, tendencia: 1.6, ruido: 0.01 }),
-    },
-    {
-      id: 'ag-n4',
-      label: 'Autonomia N4',
-      valor: formatNumero(agentesN4),
-      sublabel: 'Materiais · Execução',
-      sparkline: serieSparkline('kpi-ag-n4', 12, { base: 2, ruido: 0.2, decimais: 0, min: 0, max: 3 }),
-    },
-    {
-      id: 'ag-intervencoes',
-      label: 'Intervenções humanas',
-      valor: formatNumero(6),
-      delta: '-2',
-      deltaGoodWhen: 'down',
-      sublabel: 'hoje · vs média diária',
-      tone: 'success',
-      sparkline: serieSparkline('kpi-ag-intervencoes', 12, { base: 8, tendencia: -2, ruido: 0.15, decimais: 0, min: 2 }),
-    },
-  ],
+  '/agentes': kpisAgentes(9),
   '/configuracoes': [
     {
       id: 'cf-usuarios',

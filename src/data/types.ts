@@ -501,8 +501,8 @@ export interface AprovacaoAgendada {
 // ── Agentes IA ───────────────────────────────────────────────────────────────
 
 export type NivelAutonomia = 'N2' | 'N3' | 'N4'
-export type StatusAgente = 'Ativo' | 'Pausado' | 'Em treinamento'
-export type StatusAcaoAgente = 'Pendente' | 'Aprovada' | 'Executada' | 'Rejeitada'
+export type StatusAgente = 'Ativo' | 'Monitorando' | 'Em aprovação' | 'Pausado' | 'Em treinamento'
+export type StatusAcaoAgente = 'Em análise' | 'Pendente' | 'Aprovada' | 'Executada' | 'Rejeitada'
 
 export interface AgenteIA {
   id: string
@@ -530,6 +530,43 @@ export interface AcaoAgente {
   impactoValor?: number
   status: StatusAcaoAgente
   criadaEm: Date
+  /** Decisor humano responsável: "Camila A.". */
+  responsavel: string
+}
+
+/** Nó do diagrama de orquestração dos agentes. */
+export interface NoOrquestracao {
+  dominio: string
+  /** Eventos processados hoje. */
+  eventos: number
+}
+
+export interface RamoOrquestracao extends NoOrquestracao {
+  /** Domínio do fluxo principal de onde o ramo deriva. */
+  origem: string
+}
+
+export interface NivelAutonomiaResumo {
+  nivel: 'N1' | 'N2' | 'N3' | 'N4'
+  rotulo: string
+  /** Participação dos agentes da rede neste nível, em %. */
+  percent: number
+  agentes: number
+}
+
+export interface DesempenhoAgente {
+  agenteId: string
+  /** Ações executadas nos últimos 30 dias. */
+  acoes: number
+  /** Ganho gerado em R$; null para agentes de suporte (Auditoria). */
+  ganho: number | null
+  assertividadePercent: number
+  incidentes: number
+}
+
+export interface SeloGovernanca {
+  titulo: string
+  detalhe: string
 }
 
 // ── Planejamento (horizonte semanal W21–W25) ─────────────────────────────────
@@ -605,7 +642,14 @@ export interface CenarioSimulacao {
 
 // ── Relatórios ───────────────────────────────────────────────────────────────
 
-export type CategoriaRelatorio = 'Operacional' | 'Executivo' | 'Qualidade' | 'Manutenção' | 'Custos'
+export type CategoriaRelatorio =
+  | 'Operacional'
+  | 'Executivo'
+  | 'Qualidade'
+  | 'Manutenção'
+  | 'Materiais'
+  | 'Custos'
+  | 'Customizado'
 export type PeriodicidadeRelatorio = 'Diário' | 'Semanal' | 'Mensal' | 'Sob demanda'
 
 export interface Relatorio {
@@ -617,7 +661,45 @@ export interface Relatorio {
   periodicidade: PeriodicidadeRelatorio
   ultimaGeracao: Date
   formato: 'PDF' | 'XLSX'
+  responsavel: string
+  situacao: 'Atualizado' | 'Sob demanda'
   destaque?: string
+}
+
+/** Ponto da linha de leituras dos últimos 7 dias. */
+export interface PontoLeituras {
+  label: string
+  valor: number
+}
+
+/** Mini-indicador do bloco "Distribuição e Consumo". */
+export interface IndicadorConsumo {
+  id: string
+  label: string
+  valor: string
+  delta: string
+  deltaGoodWhen: 'up' | 'down'
+}
+
+export interface AgendamentoRelatorio {
+  id: string
+  relatorioId: string
+  destinatarios: string
+  proximoEnvio: Date
+  canal: 'E-mail' | 'Teams'
+  status: 'Programado'
+}
+
+export interface CategoriaCatalogo {
+  area: string
+  quantidade: number
+}
+
+export interface GovernancaRelatorios {
+  item: string
+  percent: number
+  /** Rótulo exibido à direita quando não é um percentual puro: "22/24". */
+  valorRotulo?: string
 }
 
 // ── Copiloto Gemini ──────────────────────────────────────────────────────────
