@@ -17,11 +17,15 @@ const toneDoStatus: Record<StatusLinha, Tone> = {
   parada: 'neutral',
 }
 
-/** Posições fixas do desenho (viewBox 760×440): ponto no mapa e âncora do card. */
+/**
+ * Posições fixas do desenho (viewBox 760×440): ponto no mapa e âncora do card.
+ * Os pontos seguem a geografia real: Anápolis a sudoeste do DF, Goiânia logo
+ * abaixo, Jacareí no Vale do Paraíba paulista.
+ */
 const layout: Record<string, { ponto: [number, number]; anchor: [number, number]; card: string }> = {
-  anapolis: { ponto: [330, 138], anchor: [206, 90], card: 'left-2 top-2' },
-  goiania: { ponto: [298, 210], anchor: [206, 330], card: 'bottom-2 left-2' },
-  jacarei: { ponto: [618, 342], anchor: [556, 120], card: 'right-2 top-2' },
+  anapolis: { ponto: [378, 180], anchor: [206, 90], card: 'left-2 top-2' },
+  goiania: { ponto: [352, 212], anchor: [206, 330], card: 'bottom-2 left-2' },
+  jacarei: { ponto: [672, 352], anchor: [600, 140], card: 'right-2 top-2' },
 }
 
 const legenda: Array<{ rotulo: string; cor: string }> = [
@@ -39,26 +43,33 @@ export function MapaRede({ fabricas, onSelecionarFabrica }: MapaRedeProps) {
   return (
     <div className="relative w-full overflow-hidden rounded-xl border border-line bg-app/60">
       <svg viewBox="0 0 760 440" className="block h-auto w-full" aria-hidden="true">
-        {/* Silhueta estilizada de Goiás */}
+        {/* Contorno estilizado de Goiás: Araguaia a oeste, bloco do nordeste
+            goiano no alto, divisa com MG descendo até a ponta sul. */}
         <path
-          d="M238 66 L362 50 L442 88 L468 160 L434 240 L360 300 L268 290 L198 224 L188 138 Z"
+          d="M303 70 L373 78 L434 55 L494 59 L498 101 L486 122 L475 143 L442 158 L448 178 L455 196 L446 230 L438 260 L410 268 L392 282 L373 276 L360 288 L331 302 L300 285 L262 253 L208 200 L228 164 L249 139 L268 104 Z"
           fill="#E8EFF8"
           stroke="#CBD9EA"
           strokeWidth="1.5"
           strokeLinejoin="round"
         />
-        <text x="300" y="186" fontSize="13" fontWeight="600" letterSpacing="2" fill="#94A3B8">
+        <text x="310" y="102" fontSize="13" fontWeight="600" letterSpacing="2" fill="#94A3B8">
           GOIÁS
         </text>
-        {/* Silhueta estilizada de São Paulo */}
+        {/* Distrito Federal — enclave a leste de Anápolis. */}
+        <rect x="396" y="158" width="36" height="20" rx="2" fill="#DDE7F3" stroke="#CBD9EA" strokeWidth="1" />
+        <text x="406" y="172" fontSize="8" fontWeight="600" letterSpacing="1" fill="#94A3B8">
+          DF
+        </text>
+        {/* Contorno estilizado de São Paulo: Rio Grande ao norte, litoral em
+            diagonal a sudeste, ponta oeste no Rio Paraná. */}
         <path
-          d="M484 322 L562 276 L658 282 L730 322 L712 376 L606 400 L506 378 Z"
+          d="M496 260 L546 262 L568 265 L611 267 L633 278 L654 290 L686 310 L726 331 L712 364 L694 370 L665 381 L645 392 L622 402 L586 415 L540 392 L514 382 L478 378 L460 375 L420 345 L456 315 L476 286 Z"
           fill="#E8EFF8"
           stroke="#CBD9EA"
           strokeWidth="1.5"
           strokeLinejoin="round"
         />
-        <text x="554" y="356" fontSize="12" fontWeight="600" letterSpacing="2" fill="#94A3B8">
+        <text x="505" y="345" fontSize="12" fontWeight="600" letterSpacing="2" fill="#94A3B8">
           SÃO PAULO
         </text>
 
