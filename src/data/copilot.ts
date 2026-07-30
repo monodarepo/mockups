@@ -1,0 +1,382 @@
+import type { ConteudoCopilot, ParQA } from './types'
+
+/**
+ * Conteúdo do Copiloto Gemini por tela. A saudação usa o marcador {nome},
+ * substituído pelo primeiro nome da persona atual. Os textos amarram os
+ * quatro fios da história da demo: Ibuprofeno API/OF-045678, Compressora L12,
+ * microparadas da L08 e blister da L15.
+ */
+export const conteudoCopilot: Record<string, ConteudoCopilot> = {
+  '/': {
+    tela: '/',
+    saudacao: 'Bom dia, {nome}. Este é o panorama do Turno A de 19/mai.',
+    resumo:
+      'Anápolis opera com OEE de 68,4% e 4 ordens em execução. Três riscos combinados somam R$ 1,34 mi e exigem decisão nas próximas horas.',
+    riscos: [
+      'Ibuprofeno API com cobertura de 1,4 dia ameaça a OF-045678 na L12 — impacto de R$ 420 mil.',
+      'Compressora L12 com vibração de 12,3 mm/s e 78% de probabilidade de falha em 7 dias.',
+      'L08 com aderência de 45% por microparadas na esteira transportadora.',
+    ],
+    causas: [
+      'Reposição do Ibuprofeno API atrasada no fornecedor PharmaQuímica (lead time de 12 dias).',
+      'Desgaste do rolamento do eixo principal da compressora, sem preditiva desde 14/mai.',
+      'Variação de peso alvo gera ajustes frequentes e microparadas na L08.',
+    ],
+    acoes: [
+      'Aprovar a transferência de Ibuprofeno API entre plantas antes das 12:00.',
+      'Antecipar a preditiva da Compressora L12 para a janela noturna de 21/mai.',
+      'Aplicar a sequência otimizada na L08 e revisar o peso alvo com a Qualidade.',
+    ],
+    botoes: ['Ver plano de recuperação', 'Simular parada da L12', 'Aprovar transferência'],
+  },
+  '/planejamento': {
+    tela: '/planejamento',
+    saudacao: 'Bom dia, {nome}. O plano da semana 20–26/mai precisa de ajustes.',
+    resumo:
+      'O plano-base atende 94% da demanda com 320 h de setup e 12 SKUs em risco de ruptura. O Cenário A eleva o atendimento a 97% com custo de R$ 180 mil.',
+    riscos: [
+      '12 SKUs com risco de ruptura no plano-base, concentrados em Analgésicos.',
+      'Cobertura de Ibuprofeno API limita a carga da L12 a partir de 21/mai.',
+      'L15 sem programação firme enquanto o blister Alu/Alu não é liberado.',
+    ],
+    causas: [
+      'Demanda de Analgésicos 9% acima do previsto no S&OP de abril.',
+      'Plano atual não considera transferência de campanha entre plantas.',
+    ],
+    acoes: [
+      'Aplicar o Cenário A: transferir o Advil para Goiânia e liberar hora extra no sábado.',
+      'Replanejar a L15 assim que o substituto do blister for homologado.',
+    ],
+    botoes: ['Comparar cenários', 'Aplicar Cenário A'],
+  },
+  '/sequenciamento': {
+    tela: '/sequenciamento',
+    saudacao: 'Bom dia, {nome}. Há 45 h de setup recuperáveis nesta semana.',
+    resumo:
+      'A sequência vigente consome 320 h de setup com 18 trocas de família. A sequência otimizada agrupa famílias na L03 e na L08 e reduz o total para 275 h.',
+    riscos: [
+      'Setups da L08 28% acima do padrão — duas trocas de família evitáveis.',
+      'Limpeza completa entre Benegrip Multi e Apracur na L03 é dispensável (mesma família).',
+    ],
+    causas: [
+      'Sequência atual prioriza datas de entrega sem agrupar por família.',
+      'Janela de preditiva da Compressora L12 ainda não incorporada ao Gantt.',
+    ],
+    acoes: [
+      'Aplicar a sequência otimizada — economia de 45 h de setup na semana.',
+      'Encaixar a OT-245689 na janela noturna de 21/mai, sem parada extra da L12.',
+    ],
+    botoes: ['Otimizar sequência', 'Ver trocas de família'],
+  },
+  '/execucao': {
+    tela: '/execucao',
+    saudacao: 'Bom dia, {nome}. O Turno A tem 4 ordens em execução e 1 linha parada.',
+    resumo:
+      'A OF-045678 avança a 68% na L12, mas a L08 opera com aderência de 45% e a L15 segue parada por falta de blister.',
+    riscos: [
+      '23 microparadas na L08 desde as 06:00 — aderência do turno comprometida.',
+      'OF-045681 (Dorflex) a 38% com microparadas na alimentação de drágeas.',
+      'L15 parada consome disponibilidade sem produção desde 20/mai.',
+    ],
+    causas: [
+      'Tensionamento da esteira da L08 em correção pela OT-245683 (em execução).',
+      'Peso alvo da Neosaldina próximo ao limite superior da especificação.',
+    ],
+    acoes: [
+      'Acompanhar a conclusão da OT-245683 prevista para 14:00.',
+      'Registrar causa raiz das microparadas para o Agente de Execução aprender o padrão.',
+    ],
+    botoes: ['Abrir OF-045679', 'Registrar causa de microparada'],
+  },
+  '/gemeo': {
+    tela: '/gemeo',
+    saudacao: 'Bom dia, {nome}. O gêmeo está calibrado com dados de 10:18.',
+    resumo:
+      'Cinco eventos estão prontos para simulação. Na comparação vigente, o Cenário A entrega 97% de atendimento com risco Baixo — o melhor resultado.',
+    riscos: [
+      'Parada de 8 h na L12 derrubaria o atendimento para 91% e atrasaria a OF-045678 em 6 h.',
+      'Atraso de 48 h do Ibuprofeno API forçaria replanejamento completo da L12.',
+    ],
+    causas: [
+      'Plano-base sem folga de capacidade nas linhas de Anápolis (utilização média de 86,6%).',
+    ],
+    acoes: [
+      'Aplicar o Cenário A e recalcular o plano da semana.',
+      'Simular a parada da L12 para validar o plano de contingência.',
+    ],
+    botoes: ['Simular parada da L12', 'Aplicar Cenário A'],
+  },
+  '/qualidade': {
+    tela: '/qualidade',
+    saudacao: 'Bom dia, {nome}. A fila de QA tem 6 lotes e 1 bloqueio ativo.',
+    resumo:
+      'O lote 2456789A (Buscopan) está com parâmetros dentro da faixa e aguarda apenas o laudo. O 2456793E (Apracur) segue bloqueado após reprovação.',
+    riscos: [
+      'Lote 2456791C (Neosaldina) em investigação há 3h32 — mesma causa das microparadas da L08.',
+      'Reprovação do 2456793E pode exigir reprocesso e nova janela na L03.',
+    ],
+    causas: [
+      'Variação de peso na L08 desloca resultados para o limite superior da especificação.',
+      'Laudo do 2456789A pendente no laboratório desde 08:00.',
+    ],
+    acoes: [
+      'Priorizar a liberação do lote 2456789A — destrava a embalagem da L12.',
+      'Concluir a investigação do 2456791C junto com a análise das microparadas.',
+    ],
+    botoes: ['Priorizar lote 2456789A', 'Ver investigação'],
+  },
+  '/manutencao': {
+    tela: '/manutencao',
+    saudacao: 'Bom dia, {nome}. Dois ativos exigem atenção imediata.',
+    resumo:
+      'A Compressora L12 opera em estado crítico (78% de falha em 7 dias) e a Seladora L15 aguarda peça. A preventiva do HVAC AHU-03 está atrasada.',
+    riscos: [
+      'Falha da Compressora L12 pararia a OF-045678 — impacto de R$ 180 mil.',
+      'HVAC AHU-03 com preventiva vencida compromete a classificação de área.',
+    ],
+    causas: [
+      'Rolamento do eixo principal da compressora com desgaste acelerado (▲35% de vibração).',
+      'Janela da preventiva do HVAC perdida em 12/mai por prioridade da corretiva da L08.',
+    ],
+    acoes: [
+      'Aprovar a OT-245689 na janela noturna de 21/mai — peças disponíveis em estoque.',
+      'Executar a OT-245682 (HVAC) em 21/mai, 08:00, antes da auditoria interna.',
+    ],
+    botoes: ['Aprovar OT-245689', 'Ver saúde da Compressora L12'],
+  },
+  '/materiais': {
+    tela: '/materiais',
+    saudacao: 'Bom dia, {nome}. Dois materiais críticos pressionam o plano.',
+    resumo:
+      'Ibuprofeno API cobre 1,4 dia e o Blister Alu/Alu 10cp, 1,7 dia. A Sacarose está bloqueada aguardando CoA. Valor em risco: R$ 475 mil.',
+    riscos: [
+      'Ibuprofeno API abaixo do estoque de segurança (320 kg contra 500 kg).',
+      'Blister Alu/Alu 10cp mantém a L15 parada — lead time de reposição é de 15 dias.',
+    ],
+    causas: [
+      'Consumo de Ibuprofeno 15% acima do plano com a campanha de Buscopan.',
+      'Fornecedor Alumipack com atraso recorrente nas últimas 3 entregas.',
+    ],
+    acoes: [
+      'Priorizar transferência de Ibuprofeno API de Goiânia — chega em 24 h.',
+      'Liberar o blister substituto homologado e retomar a L15 em 21/mai.',
+    ],
+    botoes: ['Priorizar transferência', 'Liberar substituto'],
+  },
+  '/custos': {
+    tela: '/custos',
+    saudacao: 'Bom dia, {nome}. As perdas do dia somam R$ 620 mil.',
+    resumo:
+      'O custo do dia está 3,2% acima do orçamento. Microparadas da L08 e a parada da L15 respondem por 62% das perdas.',
+    riscos: [
+      'Perdas de produção em R$ 620 mil (▲18% vs média da semana).',
+      'Custo de setup em R$ 184 mil — sequência atual desperdiça 45 h.',
+    ],
+    causas: [
+      'L08 com aderência de 45% converte capacidade paga em perda.',
+      'L15 parada mantém custo fixo sem produção desde 20/mai.',
+    ],
+    acoes: [
+      'Aplicar a sequência otimizada — reduz o custo de setup em R$ 26 mil na semana.',
+      'Retomar a L15 com o blister substituto para diluir o custo fixo.',
+    ],
+    botoes: ['Ver perdas por linha', 'Comparar com orçamento'],
+  },
+  '/alertas': {
+    tela: '/alertas',
+    saudacao: 'Bom dia, {nome}. Há 12 decisões pendentes na fila.',
+    resumo:
+      'Sete alertas ativos somam R$ 1,34 mi de impacto. O risco de atraso da OF-045678 (R$ 510 mil) está escalado com SLA de 1 h.',
+    riscos: [
+      'OF-045678 com SLA de decisão vencendo às 11:18.',
+      'Dois alertas críticos concentrados na L12 — material e ativo.',
+    ],
+    causas: [
+      'Falta de Ibuprofeno API e vibração da compressora convergem na mesma linha.',
+    ],
+    acoes: [
+      'Decidir primeiro o alerta escalado AL-006 — simular recuperação antes de aprovar.',
+      'Aprovar a transferência de API (AL-001) para eliminar a causa comum.',
+    ],
+    botoes: ['Ver escalados', 'Simular recuperação'],
+  },
+  '/relatorios': {
+    tela: '/relatorios',
+    saudacao: 'Bom dia, {nome}. O resumo da reunião diária está pronto para gerar.',
+    resumo:
+      'Oito relatórios disponíveis, três gerados hoje. O painel executivo da semana destaca R$ 1,34 mi em risco mapeado.',
+    riscos: [
+      'Relatório de aderência semanal mostrará a L08 abaixo de 50% pela segunda semana.',
+    ],
+    causas: [
+      'Microparadas da L08 e parada da L15 dominam os desvios da semana.',
+    ],
+    acoes: [
+      'Gerar o resumo diário com os três riscos principais para a reunião das 11:00.',
+      'Exportar o OEE por linha para anexar ao painel executivo.',
+    ],
+    botoes: ['Gerar resumo diário', 'Exportar OEE por linha'],
+  },
+  '/agentes': {
+    tela: '/agentes',
+    saudacao: 'Bom dia, {nome}. Os agentes propuseram 4 ações hoje.',
+    resumo:
+      'Nove agentes ativos concluíram 173 tarefas hoje com SLA médio de 97,7%. A ação de maior impacto — antecipar a compra de Ibuprofeno API — evita R$ 780 mil.',
+    riscos: [
+      'Ação ACA-001 (compra de Ibuprofeno) perde efeito se aprovada depois de 20/mai.',
+      'Agente de Auditoria em treinamento — decisões N4 sem trilha completa até 26/mai.',
+    ],
+    causas: [
+      'Lead time de 12 dias do fornecedor exige decisão antecipada.',
+    ],
+    acoes: [
+      'Aprovar a ação do Agente de Materiais dentro do SLA.',
+      'Revisar a fila de ações pendentes antes da reunião diária.',
+    ],
+    botoes: ['Aprovar ação de Materiais', 'Ver histórico de ações'],
+  },
+  '/configuracoes': {
+    tela: '/configuracoes',
+    saudacao: 'Bom dia, {nome}. A configuração da plataforma está saudável.',
+    resumo:
+      'Três personas ativas, seis integrações conectadas e dois agentes operando em autonomia N4. A última sincronização com o SAP foi às 10:12.',
+    riscos: [
+      'Política de aprovação em lote não cobre ações de agentes N4 acima de R$ 500 mil.',
+    ],
+    causas: [
+      'Limite de alçada definido antes da ativação do Agente de Materiais em N4.',
+    ],
+    acoes: [
+      'Revisar o limite de alçada das ações N4 com a Administradora.',
+      'Agendar teste de contingência da integração SAP para 23/mai.',
+    ],
+    botoes: ['Revisar autonomia', 'Testar integração SAP'],
+  },
+}
+
+/** Fontes fictícias citadas nas respostas do assistente. */
+export const FONTES_COPILOT = ['MES L12', 'SAP PP', 'LIMS', 'POP-042', 'Histórico de manutenção'] as const
+
+/**
+ * Banco de perguntas e respostas do assistente. O matching é por
+ * palavras-chave (minúsculas, sem acento não é necessário — a busca da UI
+ * normaliza antes de comparar).
+ */
+export const bancoQA: ParQA[] = [
+  {
+    id: 'qa-01',
+    palavrasChave: ['maiores riscos', 'riscos da semana', 'principais riscos'],
+    resposta:
+      'Os três maiores riscos da semana são: (1) cobertura de 1,4 dia de Ibuprofeno API, que ameaça a OF-045678 na L12 com impacto de R$ 420 mil; (2) probabilidade de falha de 78% da Compressora L12 em 7 dias; (3) aderência de 45% na L08 por microparadas. Somados aos demais alertas, o impacto mapeado chega a R$ 1,34 mi.',
+    fontes: ['SAP PP', 'MES L12', 'Histórico de manutenção'],
+  },
+  {
+    id: 'qa-02',
+    palavrasChave: ['oee caiu', 'por que o oee', 'queda do oee'],
+    resposta:
+      'O OEE global caiu 2,1 p.p. na semana, para 68,4%. A decomposição mostra: microparadas da L08 respondem por 1,2 p.p., a parada da L15 por falta de blister por 0,6 p.p. e a disponibilidade reduzida da Compressora L12 (72%) pelos 0,3 p.p. restantes.',
+    fontes: ['MES L12', 'SAP PP'],
+  },
+  {
+    id: 'qa-03',
+    palavrasChave: ['sequência minimiza', 'minimiza setups', 'menos setups', 'otimizar sequência'],
+    resposta:
+      'A sequência otimizada agrupa produtos da mesma família: Neosaldina seguida de Novalgina na L08 e Benegrip Multi seguido de Apracur na L03, eliminando duas limpezas completas. O total de setup cai de 320 h para 275 h na semana — economia de 45 h. A preditiva da Compressora L12 entra na janela noturna de 21/mai, sem parada extra.',
+    fontes: ['SAP PP', 'POP-042'],
+  },
+  {
+    id: 'qa-04',
+    palavrasChave: ['simule a parada', 'parada da l12', 'se a l12 parar'],
+    resposta:
+      'Simulação de parada de 8 h na L12: o atendimento da semana cai de 94% para 91%, a OF-045678 atrasa 6 h e o impacto financeiro estimado é de R$ 510 mil. Mitigação recomendada: antecipar a preditiva (OT-245689) para 21/mai à noite e transferir o Advil para Goiânia — o atraso cai para zero com custo de R$ 180 mil.',
+    fontes: ['MES L12', 'Histórico de manutenção'],
+  },
+  {
+    id: 'qa-05',
+    palavrasChave: ['cenário b', 'por que o cenário', 'cenário recomendado', 'comparação de cenários'],
+    resposta:
+      'O recomendado é o Cenário A, não o B. O Cenário B (só hora extra no sábado) custa menos — R$ 95 mil contra R$ 180 mil — mas deixa 6 SKUs em ruptura e risco Médio. O Cenário A adiciona a transferência de campanha para Goiânia: atendimento de 97%, 4 SKUs em ruptura, OEE projetado de 73% e risco Baixo. O ganho de atendimento paga o custo adicional.',
+    fontes: ['SAP PP'],
+  },
+  {
+    id: 'qa-06',
+    palavrasChave: ['produtos podem romper', 'risco de ruptura', 'quais skus', 'ruptura de estoque'],
+    resposta:
+      'No plano-base, 12 SKUs correm risco de ruptura na semana. Os mais expostos: Buscopan Composto (depende do Ibuprofeno API, cobertura de 1,4 dia), Advil (mesmo API) e Rinosoro (parado na L15 por blister). Com o Cenário A aplicado, a lista cai para 4 SKUs, todos com ruptura inferior a 2 dias.',
+    fontes: ['SAP PP'],
+  },
+  {
+    id: 'qa-07',
+    palavrasChave: ['resumo da reunião', 'reunião diária', 'prepare o resumo', 'daily'],
+    resposta:
+      'Resumo para a reunião diária de 19/mai: (1) OEE 68,4%, ▼2,1 p.p.; (2) 4 ordens em execução, OF-045678 a 68%; (3) riscos críticos: Ibuprofeno API 1,4 dia, Compressora L12 com 78% de falha, L08 a 45% de aderência; (4) decisões pendentes: 12, sendo o alerta escalado AL-006 com SLA às 11:18; (5) recomendação: aprovar transferência de API, antecipar OT-245689 e aplicar sequência otimizada.',
+    fontes: ['MES L12', 'SAP PP', 'LIMS'],
+  },
+  {
+    id: 'qa-08',
+    palavrasChave: ['plano de recuperação', 'recuperar a of-045678', 'recuperação da l12'],
+    resposta:
+      'Plano de recuperação da OF-045678: (1) transferir 400 kg de Ibuprofeno API de Goiânia — chega em 24 h e eleva a cobertura para 3,2 dias; (2) antecipar a preditiva da compressora para 21/mai, 22:00, reduzindo a probabilidade de falha de 78% para 12%; (3) manter o lote 2456789A priorizado na QA para não travar a embalagem. Com os três passos, a entrega de 22/mai, 16:00 fica preservada.',
+    fontes: ['SAP PP', 'MES L12', 'LIMS'],
+  },
+  {
+    id: 'qa-09',
+    palavrasChave: ['status da of-045678', 'como está a of-045678', 'buscopan l12'],
+    resposta:
+      'OF-045678 (Buscopan Composto, L12): em execução com 68% de progresso — 820.560 de 1.200.000 comprimidos. Janela: 20/mai, 08:00 a 22/mai, 16:00. Prontidão de materiais em 100%, operador João Santos. Risco ativo: cobertura de Ibuprofeno API de 1,4 dia; alerta AL-006 escalado com impacto de R$ 510 mil.',
+    fontes: ['MES L12', 'SAP PP'],
+  },
+  {
+    id: 'qa-10',
+    palavrasChave: ['ibuprofeno', 'cobertura do ibuprofeno', 'quando chega o api'],
+    resposta:
+      'Ibuprofeno API (MAT-API-001): 320 kg em estoque, cobertura de 1,4 dia com consumo de 220 kg/dia (▲15%). Estoque de segurança é 500 kg e o lead time do fornecedor PharmaQuímica é de 12 dias — compra nova não chega a tempo. A ação recomendada é a transferência entre plantas (24 h) e a antecipação da compra para proteger as próximas semanas, que evita risco de R$ 780 mil.',
+    fontes: ['SAP PP'],
+  },
+  {
+    id: 'qa-11',
+    palavrasChave: ['vibração', 'compressora', 'risco de falha', 'saúde da l12'],
+    resposta:
+      'A Compressora L12 vibra a 12,3 mm/s (▲35% sobre o baseline) com temperatura de 86,4 °C (▲12%). O modelo preditivo indica 78% de probabilidade de falha em 7 dias, por desgaste do rolamento do eixo principal. Há 3 peças críticas em estoque e a OT-245689 está aberta para a janela de 21/mai, 22:00 — antecipá-la reduz a probabilidade para 12%.',
+    fontes: ['Histórico de manutenção', 'MES L12'],
+  },
+  {
+    id: 'qa-12',
+    palavrasChave: ['aderência da l08', 'microparadas', 'por que a l08'],
+    resposta:
+      'A L08 opera com aderência de 45% por causa de 23 microparadas desde as 06:00. Causa raiz: variação de peso alvo da Neosaldina, que dispara ajustes frequentes, agravada pelo tensionamento da esteira transportadora. A OT-245683 (corretiva) está em execução com conclusão prevista para 14:00; o lote 2456791C está em investigação pela mesma causa.',
+    fontes: ['MES L12', 'LIMS', 'POP-042'],
+  },
+  {
+    id: 'qa-13',
+    palavrasChave: ['l15', 'blister', 'quando a l15 volta'],
+    resposta:
+      'A L15 está parada desde 20/mai por criticidade do Blister Alu/Alu 10cp: cobertura de 1,7 dia e prontidão da OF-045682 (Rinosoro) em 62%. O lead time de reposição é de 15 dias, então a saída rápida é liberar o blister substituto homologado — com isso a linha retoma em 21/mai e a OF-045682 termina dentro da semana.',
+    fontes: ['SAP PP', 'POP-042'],
+  },
+  {
+    id: 'qa-14',
+    palavrasChave: ['lotes aguardando', 'fila de qa', 'liberação de lotes'],
+    resposta:
+      'A fila de QA tem 6 lotes: 2456789A (Buscopan, em análise, 2h18, prioridade Alta), 2456790B (Dorflex, aguardando documentação), 2456791C (Neosaldina, em investigação há 3h32), 2456792D (Benegrip Multi, liberado), 2456793E (Apracur, bloqueado após reprovação, 5h47) e 2456794F (Addera D3, em análise). O 2456789A tem todos os parâmetros dentro da faixa e aguarda apenas o laudo.',
+    fontes: ['LIMS'],
+  },
+  {
+    id: 'qa-15',
+    palavrasChave: ['impacto financeiro', 'quanto está em risco', 'valor em risco'],
+    resposta:
+      'O impacto financeiro mapeado soma R$ 1,34 mi em 7 alertas ativos: risco de atraso da OF-045678 (R$ 510 mil), falta de Ibuprofeno API (R$ 420 mil), vibração da compressora (R$ 180 mil), lote aguardando QA (R$ 95 mil), setup acima do padrão na L08 (R$ 60 mil), blister da L15 (R$ 55 mil) e energia acima do baseline (R$ 18 mil).',
+    fontes: ['SAP PP', 'MES L12'],
+  },
+  {
+    id: 'qa-16',
+    palavrasChave: ['agentes propuseram', 'ações dos agentes', 'fila de ações'],
+    resposta:
+      'Os agentes propuseram 4 ações hoje, todas pendentes: antecipar a compra de Ibuprofeno API (evita risco de R$ 780 mil), aplicar a sequência otimizada na L08 (reduz 45 h de setup), antecipar a preditiva da Compressora L12 para 21/mai (falha de 78% para 12%) e priorizar a liberação do lote 2456789A (libera R$ 95 mil). A primeira perde efeito se aprovada depois de 20/mai.',
+    fontes: ['SAP PP', 'Histórico de manutenção', 'LIMS'],
+  },
+]
+
+/** Resposta usada quando nenhuma palavra-chave corresponde à pergunta. */
+export const RESPOSTA_PADRAO_QA =
+  'Não encontrei essa informação nos dados do turno. Reformule citando uma linha (L03–L15), uma ordem (OF-045678…) ou um material, ou abra a tela correspondente no menu lateral.'

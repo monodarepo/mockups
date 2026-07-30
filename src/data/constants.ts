@@ -20,7 +20,8 @@ export const SEMANA_PLANEJAMENTO_INICIO = new Date(2025, 4, 20)
 export const SEMANA_PLANEJAMENTO_FIM = new Date(2025, 4, 26)
 
 export const FABRICAS = ['Anápolis', 'Goiânia', 'Jacareí'] as const
-export type Fabrica = (typeof FABRICAS)[number]
+/** Nome de fábrica usado nos filtros globais (a entidade Fabrica vive em types.ts). */
+export type NomeFabrica = (typeof FABRICAS)[number]
 
 export const AREAS = [
   'Todas as áreas',
