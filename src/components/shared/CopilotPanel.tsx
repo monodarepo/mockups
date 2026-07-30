@@ -14,6 +14,10 @@ interface CopilotPanelProps {
   conteudo: ConteudoCopilot
   /** Callback dos botões contextuais — recebe o rótulo acionado. */
   onAcao?: (rotulo: string) => void
+  /** Quando presente, cada ação recomendada ganha um botão "Aceitar". */
+  onAceitarAcao?: (acao: string) => void
+  /** Ações já aceitas — exibidas com selo "Aplicada". */
+  acoesAceitas?: string[]
 }
 
 function BlocoCopilot({
@@ -45,7 +49,7 @@ function BlocoCopilot({
   )
 }
 
-export function CopilotPanel({ conteudo, onAcao }: CopilotPanelProps) {
+export function CopilotPanel({ conteudo, onAcao, onAceitarAcao, acoesAceitas = [] }: CopilotPanelProps) {
   const persona = useAppStore((s) => s.persona)
   const aberto = useAppStore((s) => s.copilotoAberto)
   const alternarCopiloto = useAppStore((s) => s.alternarCopiloto)
@@ -110,12 +114,48 @@ export function CopilotPanel({ conteudo, onAcao }: CopilotPanelProps) {
               icone={<Search size={12} aria-hidden="true" />}
               itens={conteudo.causas}
             />
-            <BlocoCopilot
-              titulo="Ações recomendadas"
-              corTitulo="text-success"
-              icone={<CheckCircle2 size={12} aria-hidden="true" />}
-              itens={conteudo.acoes}
-            />
+            {onAceitarAcao ? (
+              <section>
+                <h3 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.07em] text-success">
+                  <CheckCircle2 size={12} aria-hidden="true" />
+                  Ações recomendadas
+                </h3>
+                <ul className="mt-1.5 flex flex-col gap-2">
+                  {conteudo.acoes.map((acao) => {
+                    const aceita = acoesAceitas.includes(acao)
+                    return (
+                      <li key={acao} className="flex items-start justify-between gap-2">
+                        <span className="flex min-w-0 gap-2 text-body-sm leading-snug text-ink">
+                          <span aria-hidden="true" className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-current opacity-40" />
+                          {acao}
+                        </span>
+                        {aceita ? (
+                          <Badge tone="success" className="mt-0.5 shrink-0">
+                            Aplicada
+                          </Badge>
+                        ) : (
+                          <Button
+                            variante="outline"
+                            tamanho="sm"
+                            className="h-7 shrink-0 px-2.5"
+                            onClick={() => onAceitarAcao(acao)}
+                          >
+                            Aceitar
+                          </Button>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
+            ) : (
+              <BlocoCopilot
+                titulo="Ações recomendadas"
+                corTitulo="text-success"
+                icone={<CheckCircle2 size={12} aria-hidden="true" />}
+                itens={conteudo.acoes}
+              />
+            )}
             {conteudo.impactos?.length ? (
               <BlocoCopilot
                 titulo="Impacto esperado"

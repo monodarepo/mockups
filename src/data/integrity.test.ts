@@ -15,6 +15,13 @@ import {
   restricoes,
 } from './sequencia'
 import { kpisSequenciamento } from './kpis'
+import {
+  TOTAL_PARADAS_MIN,
+  detalhesExecucao,
+  linhasExecucao,
+  motivosParada,
+  prontidaoOperacional,
+} from './execucao'
 import { materiais } from './materiais'
 import { lotes } from './lotes'
 import { equipamentos } from './equipamentos'
@@ -358,6 +365,45 @@ describe('KPIs por tela', () => {
         expect(card.sparkline.length).toBeGreaterThanOrEqual(8)
       }
     }
+  })
+})
+
+describe('execução', () => {
+  it('cobre as 5 linhas de Anápolis com ordens-âncora e detalhes por ordem', () => {
+    expect(linhasExecucao).toHaveLength(5)
+    for (const item of linhasExecucao) {
+      expect(idsLinhas.has(item.linhaId)).toBe(true)
+      expect(idsOrdens.has(item.ordemId)).toBe(true)
+      const ordem = ordens.find((o) => o.id === item.ordemId)
+      expect(ordem?.linhaId).toBe(item.linhaId)
+      expect(ordem?.fabricaId).toBe('anapolis')
+      expect(detalhesExecucao[item.ordemId]).toBeDefined()
+    }
+    const parada = linhasExecucao.find((item) => item.linhaId === 'L15')
+    expect(parada?.statusExecucao).toBe('Parada')
+  })
+
+  it('detalhe da OF-045678 mantém os fatos do acompanhamento', () => {
+    const detalhe = detalhesExecucao['OF-045678']
+    expect(detalhe).toMatchObject({
+      loteId: '2456789A',
+      eficienciaPercent: 82.3,
+      setupMinutos: 18,
+      velocidadeRealHora: 325_000,
+      velocidadeMetaHora: 360_000,
+      yieldPercent: 98.6,
+      refugoPercent: 0.78,
+    })
+    expect(detalhe.producaoPorHora).toHaveLength(8)
+    // Buckets após 10:00 ainda não decorreram
+    expect(detalhe.producaoPorHora[5].real).toBeNull()
+  })
+
+  it('pareto de paradas soma 150 min e 100%', () => {
+    expect(motivosParada).toHaveLength(6)
+    expect(motivosParada.reduce((soma, item) => soma + item.minutos, 0)).toBe(TOTAL_PARADAS_MIN)
+    expect(motivosParada.reduce((soma, item) => soma + item.percent, 0)).toBe(100)
+    expect(prontidaoOperacional).toHaveLength(5)
   })
 })
 

@@ -94,6 +94,58 @@ export interface BlocoSequencia {
   motivoRisco?: string
 }
 
+// ── Execução (piso de fábrica) ───────────────────────────────────────────────
+
+export type StatusExecucaoLinha = 'Normal' | 'Atenção' | 'Microparadas' | 'Parada'
+
+export interface ExecucaoLinha {
+  linhaId: string
+  ordemId: string
+  statusExecucao: StatusExecucaoLinha
+  /** OEE do turno corrente, em %. */
+  oeeTurno: number
+  terminoPrevisto: Date
+  turno: string
+}
+
+export interface PontoProducaoHora {
+  label: string
+  /** Produção real no bucket; null para horas ainda não decorridas. */
+  real: number | null
+  meta: number
+}
+
+export interface DetalheExecucaoOrdem {
+  ordemId: string
+  loteId?: string
+  inicio: Date
+  terminoPrevisto: Date
+  eficienciaPercent: number
+  eficienciaDeltaPP: number
+  setupMinutos: number
+  /** Δ vs plano em minutos — negativo = melhor que o plano. */
+  setupDeltaMinutos: number
+  velocidadeRealHora: number
+  velocidadeMetaHora: number
+  yieldPercent: number
+  yieldDeltaPP: number
+  refugoPercent: number
+  refugoDeltaPP: number
+  producaoPorHora: PontoProducaoHora[]
+}
+
+export interface MotivoParada {
+  motivo: string
+  minutos: number
+  percent: number
+}
+
+export interface ItemProntidaoOperacional {
+  item: string
+  situacao: string
+  percent: number
+}
+
 // ── Restrições do sequenciamento ─────────────────────────────────────────────
 
 export type TipoRestricao = 'material' | 'manutencao' | 'qualidade' | 'capacidade' | 'setup' | 'folga'

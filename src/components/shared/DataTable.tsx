@@ -24,6 +24,10 @@ interface DataTableProps<T> {
   /** Altura máxima em px — ativa scroll interno com header fixo. */
   alturaMax?: number
   ordenacaoInicial?: { coluna: string; direcao: 'asc' | 'desc' }
+  /** Torna as linhas clicáveis (seleção). */
+  onLinhaClick?: (linha: T) => void
+  /** Chave da linha selecionada — destacada em azul suave. */
+  linhaSelecionada?: string
 }
 
 function comparar(a: string | number | Date, b: string | number | Date): number {
@@ -56,6 +60,8 @@ export function DataTable<T>({
   acao,
   alturaMax,
   ordenacaoInicial,
+  onLinhaClick,
+  linhaSelecionada,
 }: DataTableProps<T>) {
   const [ordenacao, setOrdenacao] = useState<{ coluna: string; direcao: 'asc' | 'desc' } | null>(
     ordenacaoInicial ?? null,
@@ -135,7 +141,25 @@ export function DataTable<T>({
           {ordenadas.map((linha) => (
             <tr
               key={chave(linha)}
-              className="h-11 border-b border-line transition-colors duration-150 last:border-b-0 hover:bg-app/70"
+              onClick={onLinhaClick ? () => onLinhaClick(linha) : undefined}
+              onKeyDown={
+                onLinhaClick
+                  ? (evento) => {
+                      if (evento.key === 'Enter' || evento.key === ' ') {
+                        evento.preventDefault()
+                        onLinhaClick(linha)
+                      }
+                    }
+                  : undefined
+              }
+              tabIndex={onLinhaClick ? 0 : undefined}
+              aria-selected={onLinhaClick ? chave(linha) === linhaSelecionada : undefined}
+              className={cn(
+                'h-11 border-b border-line transition-colors duration-150 last:border-b-0',
+                onLinhaClick &&
+                  'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+                chave(linha) === linhaSelecionada ? 'bg-primary-soft/60 hover:bg-primary-soft' : 'hover:bg-app/70',
+              )}
             >
               {colunas.map((coluna) => (
                 <td

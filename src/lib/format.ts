@@ -67,6 +67,16 @@ export function formatUnidade(valor: number, unidade: string, decimais = 1): str
   return `${nf(decimais, decimais).format(valor)} ${unidade}`
 }
 
+/** Cronômetro HH:MM:SS a partir de segundos: 16038 → "04:27:18" */
+export function formatHorasMinSeg(totalSegundos: number): string {
+  const segundosPositivos = Math.max(0, Math.floor(totalSegundos))
+  const h = Math.floor(segundosPositivos / 3600)
+  const m = Math.floor((segundosPositivos % 3600) / 60)
+  const s = segundosPositivos % 60
+  const dois = (valor: number) => String(valor).padStart(2, '0')
+  return `${dois(h)}:${dois(m)}:${dois(s)}`
+}
+
 /** Duração em minutos → "2 h 15 min" · "45 min" */
 export function formatDuracao(minutos: number): string {
   const h = Math.floor(minutos / 60)

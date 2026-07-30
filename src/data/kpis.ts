@@ -21,7 +21,6 @@ import { personas } from './personas'
 
 // ── Valores derivados dos próprios mocks — uma única fonte de verdade ────────
 
-const ordensEmExecucao = ordens.filter((o) => o.status === 'Em execução').length
 const impactoTotalAlertas = alertas.reduce((soma, a) => soma + a.impactoEstimado, 0)
 const impactoMateriais = alertas
   .filter((a) => a.area === 'Materiais')
@@ -30,7 +29,6 @@ const slaMedioAlertas = alertas.reduce((soma, a) => soma + a.slaHoras, 0) / aler
 const alertasEscalados = alertas.filter((a) => a.status === 'Escalado').length
 
 const linhasAnapolis = linhas.filter((l) => l.fabricaId === 'anapolis')
-const linhasAtivasAnapolis = linhasAnapolis.filter((l) => l.status !== 'parada').length
 const utilizacaoMediaAnapolis =
   linhasAnapolis.reduce((soma, l) => soma + l.capacidadeUtilizada, 0) / linhasAnapolis.length
 
@@ -249,66 +247,60 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
   '/sequenciamento': kpisSequenciamento(false),
   '/execucao': [
     {
-      id: 'ex-ordens',
-      label: 'Ordens em execução',
-      valor: formatNumero(ordensEmExecucao),
-      sublabel: 'Anápolis · Turno A',
-      sparkline: serieSparkline('kpi-ex-ordens', 12, { base: 4, ruido: 0.12, decimais: 0, min: 2, max: 6 }),
-    },
-    {
-      id: 'ex-linhas',
-      label: 'Linhas ativas',
-      valor: `${formatNumero(linhasAtivasAnapolis)} de ${formatNumero(linhasAnapolis.length)}`,
-      sublabel: 'L15 parada por material',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-ex-linhas', 12, { base: 5, tendencia: -1, ruido: 0.08, decimais: 0, max: 5 }),
+      id: 'ex-oee',
+      label: 'OEE Atual',
+      valor: formatPercent(78.4),
+      delta: formatPontosPercentuais(-2.6),
+      deltaGoodWhen: 'up',
+      sublabel: 'vs turno anterior',
+      sparkline: serieSparkline('kpi-ex-oee', 12, { base: 80.5, tendencia: -2.4, ruido: 0.015 }),
     },
     {
       id: 'ex-producao',
-      label: 'Produção do turno',
-      valor: formatNumero(156_420),
-      delta: formatPercentAssinado(-6.2),
+      label: 'Produção do Turno',
+      valor: formatNumero(1_256_840),
+      delta: formatPercentAssinado(6.3),
       deltaGoodWhen: 'up',
-      sublabel: 'unidades · vs último turno',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-ex-producao', 12, { base: 165, tendencia: -10, ruido: 0.05 }),
-    },
-    {
-      id: 'ex-oee',
-      label: 'OEE do turno',
-      valor: formatPercent(66.8),
-      delta: formatPontosPercentuais(-1.6),
-      deltaGoodWhen: 'up',
-      sublabel: 'vs último turno',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-ex-oee', 12, { base: 68, tendencia: -1.5, ruido: 0.02 }),
-    },
-    {
-      id: 'ex-microparadas',
-      label: 'Microparadas',
-      valor: formatNumero(23),
-      delta: '+9',
-      deltaGoodWhen: 'down',
-      sublabel: 'desde 06:00 · concentradas na L08',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-ex-microparadas', 12, { base: 14, tendencia: 9, ruido: 0.15, decimais: 0, min: 4 }),
+      sublabel: 'unidades · vs turno anterior',
+      sparkline: serieSparkline('kpi-ex-producao', 12, { base: 1180, tendencia: 75, ruido: 0.04 }),
     },
     {
       id: 'ex-aderencia',
-      label: 'Aderência do turno',
-      valor: formatPercent(74.3),
-      delta: formatPontosPercentuais(-8.9),
+      label: 'Aderência ao Plano',
+      valor: formatPercent(92.1),
+      delta: formatPontosPercentuais(-3.1),
       deltaGoodWhen: 'up',
-      sublabel: 'vs último turno',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-ex-aderencia', 12, { base: 83, tendencia: -9, ruido: 0.03 }),
+      sublabel: 'vs turno anterior',
+      sparkline: serieSparkline('kpi-ex-aderencia', 12, { base: 95, tendencia: -3, ruido: 0.012 }),
     },
     {
-      id: 'ex-operadores',
-      label: 'Operadores em linha',
-      valor: formatNumero(32),
-      sublabel: 'Turno A · 06:00 – 14:00',
-      sparkline: serieSparkline('kpi-ex-operadores', 12, { base: 32, ruido: 0.05, decimais: 0 }),
+      id: 'ex-paradas',
+      label: 'Paradas Não Planejadas',
+      valor: '36 min',
+      delta: '+18 min',
+      deltaGoodWhen: 'down',
+      sublabel: 'no turno · vs turno anterior',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-ex-paradas', 12, { base: 20, tendencia: 16, ruido: 0.15, min: 5 }),
+    },
+    {
+      id: 'ex-refugo',
+      label: 'Refugo / Perdas',
+      valor: formatPercent(1.42, 2),
+      delta: formatPontosPercentuais(0.28, 2),
+      deltaGoodWhen: 'down',
+      sublabel: 'vs turno anterior',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-ex-refugo', 12, { base: 1.15, tendencia: 0.28, ruido: 0.06, decimais: 2 }),
+    },
+    {
+      id: 'ex-ordens',
+      label: 'Ordens em Execução',
+      valor: formatNumero(18),
+      delta: '+2',
+      deltaGoodWhen: 'up',
+      sublabel: 'rede · vs turno anterior',
+      sparkline: serieSparkline('kpi-ex-ordens', 12, { base: 16, tendencia: 2, ruido: 0.08, decimais: 0, min: 12 }),
     },
   ],
   '/gemeo': [

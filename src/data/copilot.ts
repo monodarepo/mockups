@@ -71,23 +71,22 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/execucao': {
     tela: '/execucao',
-    saudacao: 'Bom dia, {nome}. O Turno A tem 4 ordens em execução e 1 linha parada.',
+    saudacao: 'Bom dia, {nome}. O Turno A está com 4 linhas rodando e 1 parada.',
     resumo:
-      'A OF-045678 avança a 68% na L12, mas a L08 opera com aderência de 45% e a L15 segue parada por falta de blister.',
+      'A OF-045678 avança a 68% na L12. A L08 preocupa: aderência de 45%. A L05 acumula microparadas nas últimas 2 h.',
     riscos: [
-      '23 microparadas na L08 desde as 06:00 — aderência do turno comprometida.',
-      'OF-045681 (Dorflex) a 38% com microparadas na alimentação de drágeas.',
-      'L15 parada consome disponibilidade sem produção desde 20/mai.',
+      'L08 com aderência abaixo do esperado (45%).',
+      'Aumento de microparadas na L05 nas últimas 2 h.',
     ],
     causas: [
-      'Tensionamento da esteira da L08 em correção pela OT-245683 (em execução).',
-      'Peso alvo da Neosaldina próximo ao limite superior da especificação.',
+      'Ajustes frequentes por variação de peso alvo na L08.',
+      'Instabilidade no alimentador da calandra na L05.',
     ],
     acoes: [
-      'Acompanhar a conclusão da OT-245683 prevista para 14:00.',
-      'Registrar causa raiz das microparadas para o Agente de Execução aprender o padrão.',
+      'Ajustar velocidade alvo da L08 em +6% por 30 min.',
+      'Inspecionar o alimentador da calandra da L05.',
     ],
-    botoes: ['Abrir OF-045679', 'Registrar causa de microparada'],
+    botoes: ['Simular Recuperação', 'Acionar Manutenção', 'Ajustar Prioridade'],
   },
   '/gemeo': {
     tela: '/gemeo',
