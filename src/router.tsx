@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, createHashRouter } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { VisaoGeralPage } from '@/features/visao-geral/VisaoGeralPage'
 import { PlanejamentoPage } from '@/features/planejamento/PlanejamentoPage'
@@ -15,7 +15,10 @@ import { AgentesPage } from '@/features/agentes/AgentesPage'
 import { ConfiguracoesPage } from '@/features/configuracoes/ConfiguracoesPage'
 import { KitPage } from '@/features/kit/KitPage'
 
-export const router = createBrowserRouter(
+// O preview autocontido (arquivo único) navega por hash — o app normal usa history.
+const criarRouter = import.meta.env.VITE_APP_ROUTER === 'hash' ? createHashRouter : createBrowserRouter
+
+export const router = criarRouter(
   [
     {
       path: '/',
