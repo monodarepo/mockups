@@ -111,6 +111,8 @@ export function AlertasPage() {
         titulo: 'Severidade',
         render: (alerta) => <StatusPill status={alerta.severidade} pulsar={alerta.severidade === 'Crítica'} />,
         valor: (alerta) => ({ Crítica: 0, Alta: 1, Média: 2, Baixa: 3 })[alerta.severidade],
+        valorTexto: (alerta) => alerta.severidade,
+        filtravel: true,
       },
       {
         id: 'alerta',
@@ -128,7 +130,7 @@ export function AlertasPage() {
         render: (alerta) => alerta.linhaId ?? 'Fábrica',
         valor: (alerta) => alerta.linhaId ?? '',
       },
-      { id: 'categoria', titulo: 'Categoria', render: (alerta) => alerta.area, valor: (alerta) => alerta.area },
+      { id: 'categoria', titulo: 'Categoria', render: (alerta) => alerta.area, valor: (alerta) => alerta.area, filtravel: true },
       {
         id: 'impacto',
         titulo: 'Impacto',
@@ -156,6 +158,7 @@ export function AlertasPage() {
           return <StatusPill status={status} pulsar={status === 'Escalado'} />
         },
         valor: (alerta) => statusDe(alerta),
+        filtravel: true,
       },
     ],
     [statusDe],
@@ -225,7 +228,7 @@ export function AlertasPage() {
     <>
       <PageHeader
         titulo="Alertas e Decisões"
-        descricao="Centralize eventos críticos, priorize ações e acelere decisões operacionais em tempo real."
+        descricao="Centralize eventos críticos, priorize por impacto e decida dentro do prazo de cada alçada."
       />
 
       <FilterBar />
@@ -252,6 +255,7 @@ export function AlertasPage() {
                 linhaDestacada={destaque}
                 acao={{ rotulo: (alerta) => alerta.acaoRecomendada, onClick: aoAcaoContextual }}
                 ordenacaoInicial={{ coluna: 'severidade', direcao: 'asc' }}
+                busca
               />
             ) : (
               <EmptyState

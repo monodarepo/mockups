@@ -15,6 +15,9 @@ export const TURNO_A_FIM = new Date(2025, 4, 19, 14, 0)
 /** Carimbo do rodapé: 19/05/2025 10:18. */
 export const ATUALIZADO_EM = new Date(2025, 4, 19, 10, 18)
 
+/** "Agora" da simulação — referência da hora relativa do rodapé ("há 2 min"). */
+export const AGORA = new Date(2025, 4, 19, 10, 20)
+
 /** Semana de planejamento: 20–26/mai/2025. */
 export const SEMANA_PLANEJAMENTO_INICIO = new Date(2025, 4, 20)
 export const SEMANA_PLANEJAMENTO_FIM = new Date(2025, 4, 26)

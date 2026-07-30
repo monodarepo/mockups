@@ -329,8 +329,10 @@ const colunasOrdens: ColunaDataTable<OrdemProducao>[] = [
     titulo: 'Fábrica',
     render: (o) => fabricas.find((f) => f.id === o.fabricaId)?.nome ?? o.fabricaId,
     valor: (o) => o.fabricaId,
+    valorTexto: (o) => fabricas.find((f) => f.id === o.fabricaId)?.nome ?? o.fabricaId,
+    filtravel: true,
   },
-  { id: 'linha', titulo: 'Linha Sugerida', render: (o) => o.linhaId, valor: (o) => o.linhaId },
+  { id: 'linha', titulo: 'Linha Sugerida', render: (o) => o.linhaId, valor: (o) => o.linhaId, filtravel: true },
   {
     id: 'inicio',
     titulo: 'Início',
@@ -351,6 +353,7 @@ const colunasOrdens: ColunaDataTable<OrdemProducao>[] = [
     titulo: 'Status',
     render: (o) => <StatusPill status={o.status} pulsar={o.situacao === 'Em risco'} />,
     valor: (o) => o.status,
+    filtravel: true,
   },
   {
     id: 'prontidao',
@@ -441,7 +444,7 @@ export function PlanejamentoPage() {
     <>
       <PageHeader
         titulo="Planejamento da Produção"
-        descricao="Planeje, simule e otimize sua produção de ponta a ponta."
+        descricao="Planeje, simule e otimize a produção da semana de ponta a ponta."
       />
 
       {/* Barra de contexto — o Select de fábrica lê e grava o filtro global */}
@@ -635,6 +638,7 @@ export function PlanejamentoPage() {
                     chave={(o) => o.id}
                     alturaMax={420}
                     ordenacaoInicial={{ coluna: 'inicio', direcao: 'asc' }}
+                    busca
                   />
                 ) : (
                   <EmptyState
@@ -835,6 +839,7 @@ export function PlanejamentoPage() {
           linhas={ordens}
           chave={(ordem) => ordem.id}
           ordenacaoInicial={{ coluna: 'inicio', direcao: 'asc' }}
+          busca
         />
       </Modal>
 

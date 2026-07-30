@@ -33,13 +33,15 @@ export function SectionCard({ titulo, contagem, info, acao, direita, children, c
           ) : null}
           {info ? (
             <Tooltip conteudo={info}>
-              <button
-                type="button"
-                aria-label={`Sobre ${titulo}`}
+              {/* Gatilho de tooltip por hover/foco (padrão do KpiCard) — não é botão: não promete clique. */}
+              <span
+                tabIndex={0}
+                role="note"
+                aria-label={`Sobre ${titulo}: ${info}`}
                 className="rounded-full text-muted transition-colors duration-150 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Info size={14} aria-hidden="true" />
-              </button>
+              </span>
             </Tooltip>
           ) : null}
         </div>

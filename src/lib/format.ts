@@ -125,3 +125,12 @@ export function formatDataHora(data: Date): string {
 export function formatDataHoraLonga(data: Date): string {
   return `${formatData(data)} · ${formatHora(data)}`
 }
+
+/** Hora relativa ao "agora" da simulação: "há 2 min", "há 1 h", "agora". */
+export function formatHoraRelativa(data: Date, referencia: Date): string {
+  const minutos = Math.round((referencia.getTime() - data.getTime()) / 60000)
+  if (minutos < 1) return 'agora'
+  if (minutos < 60) return `há ${minutos} min`
+  const horas = Math.floor(minutos / 60)
+  return `há ${formatNumero(horas)} h`
+}

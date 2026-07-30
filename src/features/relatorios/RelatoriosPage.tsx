@@ -239,6 +239,7 @@ export function RelatoriosPage() {
         titulo: 'Período',
         render: (item) => item.periodicidade,
         valor: (item) => item.periodicidade,
+        filtravel: true,
       },
       {
         id: 'geracao',
@@ -356,7 +357,7 @@ export function RelatoriosPage() {
     <>
       <PageHeader
         titulo="Relatórios"
-        descricao="Acompanhe, analise e distribua relatórios operacionais, táticos e executivos em tempo real."
+        descricao="Gere, acompanhe e distribua relatórios operacionais, táticos e executivos."
         acoes={
           <>
             <Button tamanho="sm" onClick={() => setModalCriar(true)}>
@@ -379,7 +380,7 @@ export function RelatoriosPage() {
               }
             >
               <Download size={14} aria-hidden="true" />
-              Exportar
+              Exportar biblioteca
             </Button>
           </>
         }

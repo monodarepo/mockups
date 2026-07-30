@@ -64,6 +64,8 @@ const colunasLista: ColunaDataTable<Linha>[] = [
     titulo: 'Fábrica',
     render: (linha) => fabricas.find((f) => f.id === linha.fabricaId)?.nome ?? linha.fabricaId,
     valor: (linha) => linha.fabricaId,
+    valorTexto: (linha) => fabricas.find((f) => f.id === linha.fabricaId)?.nome ?? linha.fabricaId,
+    filtravel: true,
   },
   { id: 'linha', titulo: 'Linha', render: (linha) => linha.nome, valor: (linha) => linha.id },
   {
@@ -73,6 +75,8 @@ const colunasLista: ColunaDataTable<Linha>[] = [
       <StatusPill status={rotuloStatusLinha[linha.status]} pulsar={linha.status === 'critico'} />
     ),
     valor: (linha) => pesoStatusLinha[linha.status],
+    valorTexto: (linha) => rotuloStatusLinha[linha.status],
+    filtravel: true,
   },
   {
     id: 'utilizacao',

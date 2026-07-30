@@ -158,12 +158,14 @@ export function QualidadePage() {
           <StatusPill status={item.status} tone={toneDoStatusLote[item.status]} pulsar={item.status === 'Em investigação'} />
         ),
         valor: (item) => item.status,
+        filtravel: true,
       },
       {
         id: 'prioridade',
         titulo: 'Prioridade',
         render: (item) => <StatusPill status={item.prioridade} />,
         valor: (item) => item.prioridade,
+        filtravel: true,
       },
       {
         id: 'espera',
@@ -223,7 +225,7 @@ export function QualidadePage() {
     <>
       <PageHeader
         titulo="Qualidade"
-        descricao="Monitore desvios, liberação de lotes e desempenho da qualidade em tempo real."
+        descricao="Monitore desvios, acelere a liberação de lotes e proteja o desempenho da qualidade."
         acoes={
           <>
             <MenuAcoes

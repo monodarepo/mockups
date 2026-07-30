@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
@@ -473,7 +473,7 @@ function CorpoOt({ ot }: { ot: OrdemManutencao }) {
  * app (store.abrirFicha), roteado pelo prefixo do ID.
  */
 export function FichaUniversal() {
-  const ficha = useAppStore((s) => s.fichaAberta)
+  const fichaAtual = useAppStore((s) => s.fichaAberta)
   const fecharFicha = useAppStore((s) => s.fecharFicha)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
   const priorizarLote = useAppStore((s) => s.priorizarLote)
@@ -483,6 +483,13 @@ export function FichaUniversal() {
   const filaOts = useAppStore((s) => s.filaOts)
   const irPara = useIrPara()
 
+  // A última ficha permanece renderizada durante a transição de saída —
+  // sem flash de painel vazio ao fechar.
+  const ultimaFicha = useRef(fichaAtual)
+  if (fichaAtual) ultimaFicha.current = fichaAtual
+  const ficha = fichaAtual ?? ultimaFicha.current
+  const aberta = Boolean(fichaAtual)
+
   if (!ficha) return <Drawer aberto={false} onFechar={fecharFicha} titulo="Ficha" children={null} />
 
   if (ficha.tipo === 'ordem') {
@@ -490,7 +497,7 @@ export function FichaUniversal() {
     const produto = ordem ? produtoPorId(ordem.produtoId) : undefined
     return (
       <Drawer
-        aberto
+        aberto={aberta}
         onFechar={fecharFicha}
         titulo={ficha.id}
         descricao={`Ordem de produção · ${produto?.nome ?? ''}`}
@@ -524,7 +531,7 @@ export function FichaUniversal() {
     const material = materialPorId(ficha.id)
     return (
       <Drawer
-        aberto
+        aberto={aberta}
         onFechar={fecharFicha}
         titulo={material?.nome ?? ficha.id}
         descricao={`Material · ${ficha.id}`}
@@ -560,7 +567,7 @@ export function FichaUniversal() {
     const lote = lotes.find((item) => item.id === ficha.id)
     return (
       <Drawer
-        aberto
+        aberto={aberta}
         onFechar={fecharFicha}
         titulo={`Lote ${ficha.id}`}
         descricao={`Fila de liberação de QA · ${lote ? (produtoPorId(lote.produtoId)?.nome ?? '') : ''}`}
@@ -587,7 +594,7 @@ export function FichaUniversal() {
     const ativo = equipamentoPorId(ficha.id)
     return (
       <Drawer
-        aberto
+        aberto={aberta}
         onFechar={fecharFicha}
         titulo={ativo?.nome ?? ficha.id}
         descricao={`Ativo monitorado · ${ativo?.tipo ?? ''}`}
@@ -620,7 +627,7 @@ export function FichaUniversal() {
   const ot = filaOts.find((item) => item.id === ficha.id) ?? otPorId(ficha.id)
   return (
     <Drawer
-      aberto
+      aberto={aberta}
       onFechar={fecharFicha}
       titulo={ficha.id}
       descricao={`Ordem de manutenção · ${ot ? (equipamentoPorId(ot.ativoId)?.nome ?? '') : ''}`}

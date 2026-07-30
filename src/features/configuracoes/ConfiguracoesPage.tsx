@@ -176,7 +176,7 @@ export function ConfiguracoesPage() {
       { id: 'quando', titulo: 'Quando', render: (e) => <span className="tabular-nums text-muted">{e.quando}</span>, valor: (e) => e.quando },
       { id: 'usuario', titulo: 'Usuário', render: (e) => <span className="font-medium text-ink">{e.usuario}</span>, valor: (e) => e.usuario },
       { id: 'acao', titulo: 'Ação', render: (e) => e.acao, valor: (e) => e.acao },
-      { id: 'origem', titulo: 'Origem', render: (e) => <Badge tone="neutral">{e.origem}</Badge>, valor: (e) => e.origem },
+      { id: 'origem', titulo: 'Origem', render: (e) => <Badge tone="neutral">{e.origem}</Badge>, valor: (e) => e.origem, filtravel: true },
     ],
     [],
   )
@@ -397,7 +397,7 @@ export function ConfiguracoesPage() {
 
       {aba === 'auditoria' ? (
         <SectionCard titulo={`Auditoria (${eventosAuditoria.length})`} info="Trilha de auditoria — eventos mais recentes." corpoSemPadding>
-          <DataTable rotulo="Trilha de auditoria" colunas={colunasAuditoria} linhas={eventosAuditoria} chave={(e) => e.id} />
+          <DataTable rotulo="Trilha de auditoria" colunas={colunasAuditoria} linhas={eventosAuditoria} chave={(e) => e.id} busca />
         </SectionCard>
       ) : null}
 

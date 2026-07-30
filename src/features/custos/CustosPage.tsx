@@ -276,7 +276,7 @@ export function CustosPage() {
     <>
       <PageHeader
         titulo="Custos e Performance"
-        descricao="Monitore custos industriais, produtividade e impacto financeiro em tempo real."
+        descricao="Monitore custos industriais, produtividade e impacto financeiro por linha e por turno."
       />
 
       <FilterBar />

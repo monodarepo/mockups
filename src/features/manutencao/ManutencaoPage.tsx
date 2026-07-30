@@ -245,18 +245,21 @@ export function ManutencaoPage() {
         titulo: 'Tipo',
         render: (item) => <span className="text-muted">{item.tipo}</span>,
         valor: (item) => item.tipo,
+        filtravel: true,
       },
       {
         id: 'prioridade',
         titulo: 'Prioridade',
         render: (item) => <StatusPill status={item.prioridade} />,
         valor: (item) => item.prioridade,
+        filtravel: true,
       },
       {
         id: 'status',
         titulo: 'Status',
         render: (item) => <StatusPill status={item.status} pulsar={item.status === 'Atrasada'} />,
         valor: (item) => item.status,
+        filtravel: true,
       },
       {
         id: 'janela',
@@ -283,7 +286,7 @@ export function ManutencaoPage() {
     <>
       <PageHeader
         titulo="Manutenção"
-        descricao="Monitore a saúde dos ativos, antecipe falhas e otimize intervenções em tempo real."
+        descricao="Monitore a saúde dos ativos, antecipe falhas e planeje intervenções nas janelas certas."
       />
 
       <FilterBar />
@@ -379,6 +382,7 @@ export function ManutencaoPage() {
             onLinhaClick={(item) => setAtivoSelecionadoId(item.ativoId)}
             linhaSelecionada={filaRecorte.find((ot) => ot.ativoId === ativoSelecionadoId)?.id}
             linhaDestacada={destaque}
+            busca
           />
         ) : (
           <EmptyState

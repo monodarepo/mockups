@@ -225,6 +225,7 @@ export function MateriaisPage() {
         titulo: 'Categoria',
         render: (item) => <span className="text-muted">{item.categoria}</span>,
         valor: (item) => item.categoria,
+        filtravel: true,
       },
       {
         id: 'estoque',
@@ -249,6 +250,7 @@ export function MateriaisPage() {
         titulo: 'Status',
         render: (item) => <StatusPill status={item.status} pulsar={item.status === 'Crítico'} />,
         valor: (item) => item.status,
+        filtravel: true,
       },
       {
         id: 'acao',
@@ -353,7 +355,7 @@ export function MateriaisPage() {
     <>
       <PageHeader
         titulo="Materiais"
-        descricao="Monitore disponibilidade de insumos, antecipe faltas e assegure prontidão operacional em tempo real."
+        descricao="Monitore a disponibilidade de insumos, antecipe faltas e proteja as ordens da semana."
       />
 
       <FilterBar />
@@ -397,6 +399,7 @@ export function MateriaisPage() {
                 onLinhaClick={(item) => setMaterialSelecionadoId(item.id)}
                 linhaSelecionada={materialSelecionadoId}
                 linhaDestacada={destaque}
+                busca
               />
             ) : (
               <EmptyState

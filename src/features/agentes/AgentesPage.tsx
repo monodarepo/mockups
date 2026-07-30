@@ -490,7 +490,7 @@ export function AgentesPage() {
     <>
       <PageHeader
         titulo="Agentes de IA"
-        descricao="Orquestre agentes inteligentes, acompanhe automações e governe decisões operacionais em tempo real."
+        descricao="Orquestre agentes inteligentes, acompanhe automações e governe decisões com alçadas claras."
         acoes={
           <>
             <Button tamanho="sm" onClick={() => setModalNovoAgente(true)}>
