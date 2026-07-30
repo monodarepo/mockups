@@ -4,7 +4,7 @@
  */
 export * from './types'
 export * from './constants'
-export * from './personas'
+export * from './visoes'
 export * from './navigation'
 export * from './fabricas'
 export * from './produtos'

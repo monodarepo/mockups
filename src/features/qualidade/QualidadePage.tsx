@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FileText } from 'lucide-react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -64,18 +64,12 @@ function PictogramaComprimido() {
 }
 
 export function QualidadePage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
   // Ordem da fila vive em estado local — "Priorizar lote" move o lote ao topo.
   const [ordemFila, setOrdemFila] = useState<string[]>(() => lotes.map((lote) => lote.id))
   const [loteSelecionadoId, setLoteSelecionadoId] = useState('2456789A')
-
-  // Persona desta tela: Camila Azevedo, PCP.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const filaLotes = useMemo(
     () => ordemFila.map((id) => lotePorId(id)).filter((lote): lote is Lote => lote !== undefined),
@@ -167,7 +161,7 @@ export function QualidadePage() {
             type="button"
             onClick={(evento) => {
               evento.stopPropagation()
-              addToast({ titulo: item.proximaAcao, descricao: `Lote ${item.id} — encaminhado ao analista ${item.analista}.`, tone: 'info' })
+              addToast({ titulo: item.proximaAcao, descricao: `Lote ${item.id} — encaminhado ao time ${item.analista}.`, tone: 'info' })
             }}
             className="rounded font-medium text-primary transition-colors duration-150 hover:text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
@@ -186,7 +180,7 @@ export function QualidadePage() {
     else if (rotulo === 'Acionar Qualidade') {
       addToast({
         titulo: 'Qualidade acionada',
-        descricao: 'Analista sênior alocado à fila — investigação do 2456791C assumida.',
+        descricao: 'Time de investigação alocado à fila — desvio do 2456791C assumido.',
         tone: 'success',
       })
     }
@@ -384,11 +378,11 @@ export function QualidadePage() {
               <dd className="font-semibold text-ink">{linhaPorId(lote.linhaId)?.nome ?? lote.linhaId}</dd>
             </div>
             <div>
-              <dt className="text-caption text-muted">Operador</dt>
+              <dt className="text-caption text-muted">Operação</dt>
               <dd className="font-semibold text-ink">{ordemDoLote?.operador ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-caption text-muted">Analista QA</dt>
+              <dt className="text-caption text-muted">Time QA</dt>
               <dd className="font-semibold text-ink">{lote.analista}</dd>
             </div>
             <div>

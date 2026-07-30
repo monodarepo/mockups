@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Bell, ChevronDown, HelpCircle } from 'lucide-react'
+import { Bell, Check, ChevronDown, Eye, HelpCircle } from 'lucide-react'
+import { cn } from '@/lib/cn'
 import { itemPorRota } from '@/data/navigation'
 import { useAppStore } from '@/store'
 import { Button, IconButton } from '@/components/ui/Button'
@@ -7,12 +9,91 @@ import { ContadorBadge } from '@/components/ui/Badge'
 
 const NOTIFICACOES = 8
 
+/** Chip do header que troca a visão ativa (papel funcional) da plataforma. */
+function SeletorVisao() {
+  const visao = useAppStore((s) => s.visao)
+  const visoes = useAppStore((s) => s.visoes)
+  const setVisao = useAppStore((s) => s.setVisao)
+  const [aberto, setAberto] = useState(false)
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={aberto}
+        onClick={() => setAberto((v) => !v)}
+        className={cn(
+          'flex items-center gap-2 rounded-lg border border-line bg-card py-1.5 pl-2 pr-2.5',
+          'transition-colors duration-150 hover:bg-neutral-soft',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        )}
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-soft text-primary">
+          <Eye size={15} aria-hidden="true" />
+        </span>
+        <span className="text-body-sm font-semibold text-ink">
+          Visão: <span className="text-primary-strong">{visao.rotuloCurto}</span>
+        </span>
+        <ChevronDown
+          size={15}
+          aria-hidden="true"
+          className={cn('text-muted transition-transform duration-150', aberto && 'rotate-180')}
+        />
+      </button>
+
+      {aberto ? (
+        <>
+          <button
+            type="button"
+            aria-label="Fechar seletor de visão"
+            className="fixed inset-0 z-20 cursor-default"
+            onClick={() => setAberto(false)}
+          />
+          <ul
+            role="listbox"
+            aria-label="Trocar visão"
+            className="absolute right-0 top-full z-30 mt-1 w-80 rounded-xl border border-line bg-card p-1 shadow-pop"
+          >
+            {visoes.map((opcao) => {
+              const ativa = opcao.id === visao.id
+              return (
+                <li key={opcao.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={ativa}
+                    onClick={() => {
+                      setVisao(opcao.id)
+                      setAberto(false)
+                    }}
+                    className={cn(
+                      'flex w-full items-start gap-2.5 rounded-lg px-3 py-2 text-left transition-colors duration-150',
+                      'hover:bg-app focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                      ativa && 'bg-primary-soft/60',
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 leading-tight">
+                      <span className={cn('block text-body-sm font-semibold', ativa ? 'text-primary-strong' : 'text-ink')}>
+                        {opcao.nome}
+                      </span>
+                      <span className="block text-caption text-muted">{opcao.descricao}</span>
+                    </span>
+                    {ativa ? <Check size={15} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" /> : null}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </>
+      ) : null}
+    </div>
+  )
+}
+
 export function Header() {
   const { pathname } = useLocation()
   const rota = itemPorRota(pathname)
-  const persona = useAppStore((s) => s.persona)
-  const personas = useAppStore((s) => s.personas)
-  const setPersona = useAppStore((s) => s.setPersona)
   const alternarCopiloto = useAppStore((s) => s.alternarCopiloto)
   const mostrarToast = useAppStore((s) => s.mostrarToast)
 
@@ -66,31 +147,7 @@ export function Header() {
 
         <div className="ml-1 h-8 w-px bg-line" aria-hidden="true" />
 
-        <div className="relative flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 transition-colors duration-150 hover:bg-neutral-soft">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-body-sm font-semibold text-primary-strong">
-            {persona.iniciais}
-          </span>
-          <div className="text-left leading-tight">
-            <p className="text-body-sm font-semibold text-ink">{persona.nome}</p>
-            <p className="text-caption text-muted">{persona.papel}</p>
-          </div>
-          <ChevronDown size={16} className="text-muted" aria-hidden="true" />
-          <label className="sr-only" htmlFor="seletor-persona">
-            Trocar persona
-          </label>
-          <select
-            id="seletor-persona"
-            value={persona.id}
-            onChange={(evento) => setPersona(evento.target.value)}
-            className="absolute inset-0 cursor-pointer opacity-0 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            {personas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome} — {p.papel}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SeletorVisao />
       </div>
     </header>
   )

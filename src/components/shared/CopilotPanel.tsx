@@ -95,7 +95,7 @@ function MensagemChat({
 }
 
 export function CopilotPanel({ conteudo, onAcao, onAceitarAcao, acoesAceitas = [] }: CopilotPanelProps) {
-  const persona = useAppStore((s) => s.persona)
+  const visao = useAppStore((s) => s.visao)
   const aberto = useAppStore((s) => s.copilotoAberto)
   const alternarCopiloto = useAppStore((s) => s.alternarCopiloto)
   const conversa = useAppStore((s) => s.conversas[conteudo.tela] ?? [])
@@ -106,8 +106,6 @@ export function CopilotPanel({ conteudo, onAcao, onAceitarAcao, acoesAceitas = [
   // Digitação progressiva da resposta mais recente: {id da mensagem, nº de caracteres}.
   const [digitacao, setDigitacao] = useState<{ id: number; chars: number } | null>(null)
   const fimConversaRef = useRef<HTMLDivElement>(null)
-
-  const saudacao = conteudo.saudacao.replace('{nome}', persona.tratamento)
 
   useEffect(() => {
     if (!digitacao) return
@@ -182,8 +180,11 @@ export function CopilotPanel({ conteudo, onAcao, onAceitarAcao, acoesAceitas = [
         <div className="min-h-0 overflow-hidden">
           <div className="flex flex-col gap-4 border-t border-line px-4 pb-4 pt-3.5">
             <div>
-              <p className="text-body-sm font-medium text-ink">{saudacao}</p>
-              <p className="mt-1 text-body-sm leading-snug text-muted">{conteudo.resumo}</p>
+              {/* Contexto do painel: acompanha a visão ativa escolhida no header. */}
+              <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-muted">
+                Resumo — {visao.nome}
+              </p>
+              <p className="mt-1 text-body-sm leading-snug text-ink">{conteudo.resumo}</p>
             </div>
 
             <BlocoCopilot

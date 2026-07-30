@@ -115,7 +115,7 @@ export const acoesAgentes: AcaoAgente[] = [
     impacto: '+1,2% de OEE',
     status: 'Em análise',
     criadaEm: dt(19, 8, 42),
-    responsavel: 'Juliana R.',
+    responsavel: 'Alçada: PCP',
   },
   {
     id: 'ACA-002',
@@ -126,7 +126,7 @@ export const acoesAgentes: AcaoAgente[] = [
     impactoValor: 780_000,
     status: 'Pendente',
     criadaEm: dt(19, 8, 31),
-    responsavel: 'Camila A.',
+    responsavel: 'Alçada: Suprimentos',
   },
   {
     id: 'ACA-003',
@@ -137,7 +137,7 @@ export const acoesAgentes: AcaoAgente[] = [
     impactoValor: 48_000,
     status: 'Aprovada',
     criadaEm: dt(19, 8, 17),
-    responsavel: 'Marcos O.',
+    responsavel: 'Alçada: Manutenção',
   },
   {
     id: 'ACA-004',
@@ -147,7 +147,7 @@ export const acoesAgentes: AcaoAgente[] = [
     impacto: 'reduz risco de desvio',
     status: 'Executada',
     criadaEm: dt(19, 7, 58),
-    responsavel: 'Beatriz Q.',
+    responsavel: 'Alçada: Qualidade',
   },
 ]
 

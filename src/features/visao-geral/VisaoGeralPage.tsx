@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addDays } from 'date-fns'
 import { CalendarRange, Search } from 'lucide-react'
@@ -82,7 +82,6 @@ const colunasLista: ColunaDataTable<Linha>[] = [
 
 export function VisaoGeralPage() {
   const navigate = useNavigate()
-  const setPersona = useAppStore((s) => s.setPersona)
   const setFiltro = useAppStore((s) => s.setFiltro)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
@@ -92,11 +91,6 @@ export function VisaoGeralPage() {
   const [fabricaSelecionada, setFabricaSelecionada] = useState('Todas as fábricas')
   const [ajusteAprovado, setAjusteAprovado] = useState(false)
   const panoramaRef = useRef<HTMLDivElement>(null)
-
-  // Persona por perspectiva: Ricardo Martins — Diretor de Operações ou de Supply.
-  useEffect(() => {
-    setPersona(perspectiva === 'supply' ? 'ricardo-supply' : 'ricardo')
-  }, [setPersona, perspectiva])
 
   const periodoRotulo = `${formatDiaMes(HOJE)} – ${formatData(addDays(HOJE, 6))}`
 

@@ -164,7 +164,6 @@ export const composicaoEstoque = [
 export const copilotSupply: ConteudoCopilot = {
   tela: '/supply',
   perguntasSugeridas: ['Qual a cobertura do Ibuprofeno?', 'Quais produtos podem romper?', 'Qual o impacto financeiro em risco?'],
-  saudacao: 'Bom dia, {nome}. O abastecimento fecha a semana com OTIF de 94,2%.',
   resumo:
     'OTIF subiu 2,8 p.p. e a cobertura de estoque chegou a 23 dias. Atenção às rupturas projetadas de Ibuprofeno API e Paracetamol API na semana W24.',
   riscos: [

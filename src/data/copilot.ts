@@ -10,7 +10,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/': {
     tela: '/',
     perguntasSugeridas: ['Quais os maiores riscos da semana?', 'Quais produtos podem romper?', 'Qual o impacto financeiro em risco?'],
-    saudacao: 'Bom dia, {nome}. Este é o resumo executivo da rede em 19/mai.',
     resumo:
       'As três fábricas operam com OEE de 78,6% e aderência de 92,1%. O ponto de atenção é Jacareí: a P27 concentra as ordens em risco da semana.',
     riscos: [
@@ -34,7 +33,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/planejamento': {
     tela: '/planejamento',
     perguntasSugeridas: ['Compare os cenários da semana', 'Quais SKUs correm risco de ruptura?', 'Quais os maiores riscos da semana?'],
-    saudacao: 'Bom dia, {nome}. O horizonte W21–W25 pede três decisões.',
     resumo:
       '18 SKUs com risco de ruptura nas próximas 2 semanas. A L12 entra em sobrecarga na semana W24 e há 18 h de setup recuperáveis agrupando campanhas similares.',
     riscos: [
@@ -55,7 +53,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/sequenciamento': {
     tela: '/sequenciamento',
     perguntasSugeridas: ['Qual sequência minimiza setups?', 'Simule a parada da L12', 'Por que o OEE caiu?'],
-    saudacao: 'Bom dia, {nome}. Estes são os insights da sequência da semana.',
     resumo:
       'A sequência vigente tem 28 setups (312 h). Reagrupar a família Analgésicos elimina 3 setups, libera 10,7 h de capacidade e captura R$ 210 mil.',
     riscos: [
@@ -75,7 +72,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/execucao': {
     tela: '/execucao',
     perguntasSugeridas: ['Por que a velocidade da L08 caiu?', 'Qual o risco de atraso da OF-045678?', 'Prepare o resumo do turno'],
-    saudacao: 'Bom dia, {nome}. O Turno A está com 4 linhas rodando e 1 parada.',
     resumo:
       'A OF-045678 avança a 68% na L12. A L08 preocupa: aderência de 45%. A L05 acumula microparadas nas últimas 2 h.',
     riscos: [
@@ -95,7 +91,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/gemeo': {
     tela: '/gemeo',
     perguntasSugeridas: ['Simule a parada da L12', 'Por que o Cenário B não venceu?', 'Quais SKUs correm risco de ruptura?'],
-    saudacao: 'Bom dia, {nome}. A planta opera com 1 linha parada e 3 em atenção.',
     resumo:
       'O gêmeo reflete a planta às 10:18: L15 parada pelo blister, L12 com vibração crítica e L08 com aderência de 45%. Na comparação vigente, o Cenário A entrega 97% de atendimento com risco Baixo.',
     riscos: [
@@ -114,7 +109,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/qualidade': {
     tela: '/qualidade',
     perguntasSugeridas: ['Como está a fila de QA?', 'Por que a L08 está com microparadas?', 'Prepare o resumo da reunião diária'],
-    saudacao: 'Bom dia, {nome}. A fila de QA tem 6 lotes e 1 bloqueio ativo.',
     resumo:
       'O lote 2456789A (Buscopan) está com parâmetros dentro da faixa e aguarda apenas o laudo. O 2456793E (Apracur) segue bloqueado após reprovação.',
     riscos: [
@@ -134,7 +128,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/manutencao': {
     tela: '/manutencao',
     perguntasSugeridas: ['Qual o risco de falha da compressora?', 'Simule a parada da L12', 'Qual o plano de recuperação da OF-045678?'],
-    saudacao: 'Bom dia, {nome}. Dois ativos exigem atenção imediata.',
     resumo:
       'A Compressora L12 opera em estado crítico (78% de falha em 7 dias) e a Seladora L15 aguarda peça. A preventiva do HVAC AHU-03 está atrasada.',
     riscos: [
@@ -157,7 +150,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/materiais': {
     tela: '/materiais',
     perguntasSugeridas: ['Qual a cobertura do Ibuprofeno?', 'Quando a L15 volta a operar?', 'Quais produtos podem romper?'],
-    saudacao: 'Bom dia, {nome}. Dois materiais críticos pressionam o plano.',
     resumo:
       'Ibuprofeno API cobre 1,4 dia e o Blister Alu/Alu 10cp, 1,7 dia. A Sacarose está bloqueada aguardando CoA. Valor em risco: R$ 475 mil.',
     riscos: [
@@ -177,7 +169,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/custos': {
     tela: '/custos',
     perguntasSugeridas: ['Por que o OEE caiu?', 'Qual o impacto financeiro em risco?', 'Qual sequência minimiza setups?'],
-    saudacao: 'Bom dia, {nome}. O custo por unidade subiu 4,3% no turno.',
     resumo:
       'O turno acumula R$ 2,48 mi — 3,0% abaixo do orçado —, mas o custo unitário está em R$ 1,84 pressionado pelo setup prolongado da L12 e pelas perdas da L08.',
     riscos: [
@@ -200,7 +191,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/alertas': {
     tela: '/alertas',
     perguntasSugeridas: ['Qual o impacto financeiro em risco?', 'Simule a parada da L12', 'Qual o plano de recuperação da OF-045678?'],
-    saudacao: 'Bom dia, {nome}. Há decisões críticas vencendo na próxima hora.',
     resumo:
       'O impacto em risco na rede chega a R$ 1,82 mi nas últimas 24 h. Os sete alertas de Anápolis somam R$ 1,34 mi — dois críticos na L12.',
     riscos: [
@@ -220,7 +210,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/relatorios': {
     tela: '/relatorios',
     perguntasSugeridas: ['Prepare o resumo da reunião diária', 'Quais os maiores riscos da semana?', 'Por que o OEE caiu?'],
-    saudacao: 'Bom dia, {nome}. O resumo executivo está pronto para gerar.',
     resumo:
       'As leituras executivas cresceram 18,5% na semana e o tempo médio de geração melhorou 0,6 min. Três insights críticos aguardam distribuição.',
     riscos: [
@@ -243,7 +232,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/agentes': {
     tela: '/agentes',
     perguntasSugeridas: ['O que os agentes propuseram hoje?', 'Qual a cobertura do Ibuprofeno?', 'Quais os maiores riscos da semana?'],
-    saudacao: 'Bom dia, {nome}. A rede de agentes automatizou 148 ações hoje.',
     resumo:
       'Doze agentes ativos operam com assertividade de 94,8%. A decisão de maior impacto — antecipar a compra de Ibuprofeno API — evita R$ 780 mil e aguarda sua aprovação.',
     riscos: [
@@ -267,7 +255,6 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/configuracoes': {
     tela: '/configuracoes',
     perguntasSugeridas: ['O que os agentes propuseram hoje?', 'Prepare o resumo da reunião diária', 'Qual o impacto financeiro em risco?'],
-    saudacao: 'Bom dia, {nome}. A configuração da plataforma está saudável.',
     resumo:
       'Três personas ativas, seis integrações conectadas e dois agentes operando em autonomia N4. A última sincronização com o SAP foi às 10:12.',
     riscos: [
@@ -354,7 +341,7 @@ export const bancoQA: ParQA[] = [
     id: 'qa-09',
     palavrasChave: ['status da of-045678', 'como está a of-045678', 'buscopan l12', 'risco de atraso da of-045678', 'atraso da of-045678'],
     resposta:
-      'OF-045678 (Buscopan Composto, L12): em execução com 68% de progresso — 820.560 de 1.200.000 comprimidos. Janela: 20/mai, 08:00 a 22/mai, 16:00. Prontidão de materiais em 100%, operador João Santos. Risco ativo: cobertura de Ibuprofeno API de 1,4 dia; alerta AL-006 escalado com impacto de R$ 510 mil.',
+      'OF-045678 (Buscopan Composto, L12): em execução com 68% de progresso — 820.560 de 1.200.000 comprimidos. Janela: 20/mai, 08:00 a 22/mai, 16:00. Prontidão de materiais em 100%, responsável: Operação L12 · Turno A. Risco ativo: cobertura de Ibuprofeno API de 1,4 dia; alerta AL-006 escalado com impacto de R$ 510 mil.',
     fontes: ['MES L12', 'SAP PP'],
   },
   {

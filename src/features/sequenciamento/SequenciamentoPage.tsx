@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   CalendarRange,
   Clock,
@@ -104,7 +104,6 @@ const colunasOrdensCriticas: ColunaDataTable<OrdemProducao>[] = [
 ]
 
 export function SequenciamentoPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const setFiltro = useAppStore((s) => s.setFiltro)
   const filtros = useAppStore((s) => s.filtros)
   const addToast = useAppStore((s) => s.addToast)
@@ -121,11 +120,6 @@ export function SequenciamentoPage() {
   const [deslocamentos, setDeslocamentos] = useState<Record<string, number>>({})
   const [ajusteAprovado, setAjusteAprovado] = useState(false)
   const ganttScrollRef = useRef<HTMLDivElement>(null)
-
-  // Persona desta tela: Camila Azevedo, PCP.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const linhasAnapolis = useMemo(() => fabricas.find((f) => f.id === 'anapolis')?.linhas ?? [], [])
   const linhasVisiveis = useMemo(

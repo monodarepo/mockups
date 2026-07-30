@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   CheckCheck,
   CheckCircle2,
@@ -60,7 +60,6 @@ const iconeDaEtapa: Record<EtapaFluxoDecisao['id'], typeof Radar> = {
 type StatusExibido = StatusAlerta | 'Aprovado' | 'Rejeitado'
 
 export function AlertasPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const pendencias = useAppStore((s) => s.pendencias)
   const aprovados = useAppStore((s) => s.aprovados)
@@ -73,11 +72,6 @@ export function AlertasPage() {
   const [alertaAberto, setAlertaAberto] = useState<Alerta | null>(null)
   const [rejeitandoId, setRejeitandoId] = useState<string | null>(null)
   const [motivoRejeicao, setMotivoRejeicao] = useState('')
-
-  // Persona desta tela: Camila Azevedo (Operações/PCP).
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const statusDe = useMemo(() => {
     return (alerta: Alerta): StatusExibido => {
@@ -207,7 +201,7 @@ export function AlertasPage() {
       {
         id: 'AP-CENARIO',
         decisao: `${cenario?.nome ?? cenarioAtivo} — plano da semana 20 – 26/mai`,
-        responsavel: 'Camila Azevedo',
+        responsavel: 'Alçada: PCP',
         prazoRotulo: 'Hoje 11:00',
       },
       ...proximasAprovacoes,

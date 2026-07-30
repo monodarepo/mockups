@@ -14,7 +14,7 @@ export const lotes: Lote[] = [
     esperaMinutos: 138, // 2h18
     inicio: hj(6, 15),
     proximaAcao: 'Revisar resultados',
-    analista: 'Fernanda Ribeiro',
+    analista: 'QA Físico-químico',
     parametros: [
       { nome: 'Peso médio', valor: '401,2 mg', faixa: '380 – 420 mg', situacao: 'Dentro da faixa' },
       { nome: 'Dureza', valor: '9,2 Kgf', faixa: '6 – 12 Kgf', situacao: 'Dentro da faixa' },
@@ -38,7 +38,7 @@ export const lotes: Lote[] = [
     esperaMinutos: 65,
     inicio: hj(7, 5),
     proximaAcao: 'Enviar CoA',
-    analista: 'Otávio Sales',
+    analista: 'QA Documentação',
     observacao: 'Relatório de produção pendente de assinatura do supervisor.',
   },
   {
@@ -51,7 +51,7 @@ export const lotes: Lote[] = [
     esperaMinutos: 212, // 3h32
     inicio: hj(6, 12),
     proximaAcao: 'Investigar desvio',
-    analista: 'Fernanda Ribeiro',
+    analista: 'QA Investigação',
     observacao: 'Variação de peso próxima ao limite superior — mesma causa das microparadas da L08.',
   },
   {
@@ -64,7 +64,7 @@ export const lotes: Lote[] = [
     resultado: 'Aprovado',
     inicio: hj(6, 30),
     proximaAcao: 'Liberar lote',
-    analista: 'Juliana Prates',
+    analista: 'QA Liberação',
     observacao: 'Liberado às 09:40 sem desvios.',
   },
   {
@@ -77,7 +77,7 @@ export const lotes: Lote[] = [
     resultado: 'Reprovado',
     inicio: hj(4, 40),
     proximaAcao: 'Tratar desvio',
-    analista: 'Otávio Sales',
+    analista: 'QA Investigação',
     observacao: 'Teor fora da especificação — investigação de causa raiz aberta.',
   },
   {
@@ -89,7 +89,7 @@ export const lotes: Lote[] = [
     esperaMinutos: 48,
     inicio: hj(8, 20),
     proximaAcao: 'Revisar resultados',
-    analista: 'Juliana Prates',
+    analista: 'QA Liberação',
   },
 ]
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Activity,
   BookOpen,
@@ -205,7 +205,6 @@ function CardAgente({ agente }: { agente: AgenteIA }) {
 }
 
 export function AgentesPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
@@ -214,11 +213,6 @@ export function AgentesPage() {
   const [decisoesEmAprovacao, setDecisoesEmAprovacao] = useState(9)
   const [statusAcoes, setStatusAcoes] = useState<Record<string, StatusAcaoAgente>>({})
   const desempenhoRef = useRef<HTMLDivElement | null>(null)
-
-  // Persona desta tela: Camila Azevedo.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const statusDaAcao = (acao: AcaoAgente): StatusAcaoAgente => statusAcoes[acao.id] ?? acao.status
   const aguardaDecisao = (status: StatusAcaoAgente) => status === 'Pendente' || status === 'Em análise'

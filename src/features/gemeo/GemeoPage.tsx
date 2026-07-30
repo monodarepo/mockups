@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
@@ -80,16 +80,10 @@ function CampoDrawer({ rotulo, children }: { rotulo: string; children: React.Rea
 
 export function GemeoPage() {
   const navigate = useNavigate()
-  const setPersona = useAppStore((s) => s.setPersona)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
   const aplicarCenario = useAppStore((s) => s.aplicarCenario)
 
   const [areaSelecionada, setAreaSelecionada] = useState<string | null>(null)
-
-  // Persona desta tela: Camila Azevedo.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const detalhe: DetalheAreaGemeo | undefined = areaSelecionada
     ? detalhesAreasGemeo[areaSelecionada]

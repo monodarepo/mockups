@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CalendarRange, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react'
 import {
@@ -191,7 +191,6 @@ const colunasOrdens: ColunaDataTable<OrdemProducao>[] = [
 
 export function PlanejamentoPage() {
   const navigate = useNavigate()
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
   const cenarioAtivo = useAppStore((s) => s.cenarioAtivo)
@@ -201,11 +200,6 @@ export function PlanejamentoPage() {
   const [horizonte, setHorizonte] = useState('Semanal')
   const [deslocamentoPeriodo, setDeslocamentoPeriodo] = useState(0)
   const [cargaRedistribuida, setCargaRedistribuida] = useState(false)
-
-  // Persona desta tela: Camila Azevedo, PCP.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const inicioPeriodo = addDays(new Date(2025, 4, 20), deslocamentoPeriodo * 28)
   const fimPeriodo = addDays(inicioPeriodo, 27)

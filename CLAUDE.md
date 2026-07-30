@@ -80,8 +80,11 @@ Fios da história da demo (coerentes em todas as telas e no copiloto):
 (2) Compressora L12 com vibração 12,3 mm/s e 78% de probabilidade de falha em 7 dias;
 (3) L08 com aderência de 45% por microparadas (variação de peso alvo);
 (fio secundário) L15 parada por criticidade do Blister Alu/Alu 10cp (62% de prontidão).
-Personas: Camila Azevedo (PCP) — padrão · Ricardo Martins (Diretor de Operações) · Marina
-Oliveira (Administradora).
+Visões (papéis funcionais): Visão Executiva (diretoria industrial) · Visão PCP (planejamento e
+sequenciamento — PADRÃO) · Visão Operações (execução, qualidade, manutenção, materiais) ·
+Visão Administração (configurações e governança).
+Nenhum dado exibe nome de pessoa. Operadores, responsáveis e aprovadores são sempre papéis
+funcionais (ex.: "Operação L12 · Turno A", "Alçada: Suprimentos").
 Linha do tempo única da simulação: hoje = 19/mai/2025, Turno A (06:00 – 14:00); semana de
 planejamento 20–26/mai/2025. Nenhuma tela usa outra data-base.
 

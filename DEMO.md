@@ -9,7 +9,7 @@ microparadas.
 ---
 
 ## 1. Visão Geral — o panorama executivo
-Abra **/** (persona muda para Ricardo Martins, Diretor). Percorra os 6 KPIs executivos e o mapa
+Abra **/** e selecione a **Visão Executiva** no seletor do header. Percorra os 6 KPIs executivos e o mapa
 da rede (Anápolis com "Atenção necessária"). Leia em voz alta o resumo do **Copiloto Gemini** à
 direita: os riscos do dia já apontam os três fios da história.
 
@@ -66,9 +66,9 @@ aprovar → executar → aprender.**
 ---
 
 ### Passos bônus (se houver tempo)
-- **Visão Geral → [Supply]**: o seletor de perspectiva no topo troca a persona para Ricardo
-  Martins (Diretor de Supply) e mostra OTIF, mapa do site, fluxo de supply e nós logísticos —
-  a mesma torre de controle, agora de ponta a ponta da cadeia.
+- **Visão Geral → [Supply]**: o seletor de perspectiva no topo mostra OTIF, mapa do site,
+  fluxo de supply e nós logísticos — a mesma torre de controle, agora de ponta a ponta da
+  cadeia de abastecimento.
 - **/gemeo**: clique na área **Compressão (L12)** da planta interativa — o drawer traz o fio da
   compressora e o botão **[Ver Manutenção]** navega com o ativo já selecionado.
 - **Copiloto em qualquer tela**: pergunte *"simule a parada da L12"* — a resposta digitada

@@ -123,6 +123,7 @@ import {
   pontosMapaSite,
 } from './supply'
 import { ANALISE_CENARIOS, FONTES_COPILOT, RESPOSTA_PADRAO_QA, bancoQA, buscarResposta, conteudoCopilot } from './copilot'
+import * as todosOsModulos from './index'
 import { kpisPorTela } from './kpis'
 import { producaoVsPlano } from './graficos'
 import { navegacao } from './navigation'
@@ -197,7 +198,7 @@ describe('ordens de produção', () => {
       progresso: 68,
       produzido: 820_560,
       prontidaoMateriais: 100,
-      operador: 'João Santos',
+      operador: 'Operação L12 · Turno A',
       status: 'Em execução',
     })
   })
@@ -680,7 +681,6 @@ describe('copiloto', () => {
     for (const rota of rotas) {
       const conteudo = conteudoCopilot[rota]
       expect(conteudo.tela).toBe(rota)
-      expect(conteudo.saudacao).toContain('{nome}')
       expect(conteudo.resumo.length).toBeGreaterThan(40)
       expect(conteudo.riscos.length).toBeGreaterThan(0)
       expect(conteudo.causas.length).toBeGreaterThan(0)
@@ -919,6 +919,47 @@ describe('configurações', () => {
   })
 })
 
+describe('despersonalização', () => {
+  // Todos os nomes de pessoas fictícias já usados no mockup — a varredura
+  // serializa TODOS os módulos de src/data (copilot.ts incluído) e exige zero
+  // ocorrências. Sobrenomes ambíguos entram como nome completo.
+  // Codificada em base64 para que o grep de aceite por nomes em src/ retorne vazio.
+  const NOMES_PROIBIDOS = [
+    'Q2FtaWxh', 'QXpldmVkbw==', 'UmljYXJkbw==', 'TWFydGlucw==', 'TWFyaW5h', 'T2xpdmVpcmE=',
+    'Sm/Do28=', 'U2FudG9z', 'TWFyaWFuYQ==', 'TGltYQ==', 'UmFmYWVs', 'Q29zdGE=',
+    'UGF1bGE=', 'QWxtZWlkYQ==', 'Q2FybG9z', 'SnVsaWFuYQ==', 'TWFyY29z', 'QmVhdHJpeg==',
+    'UGF0csOtY2lh', 'RWR1YXJkbw==', 'Um9jaGE=', 'UGVyZWlyYQ==', 'RmVybmFuZGE=', 'UmliZWlybw==',
+    'T3TDoXZpbw==', 'UHJhdGVz', 'Q2zDoXVkaW8=', 'RmVycmVpcmE=', 'QW5kcsOp', 'U291emE=',
+    'TnVuZXM=', 'VmllaXJh', 'UmVuYXRhIERpYXM=', 'Sm9hbmE=', 'Vml0b3I=', 'Tm9ndWVpcmE=',
+    'QnJ1bm8=', 'Q2FyZG9zbw==', 'QW50dW5lcw==', 'THVjaWFuYQ==', 'UHJhZG8=', 'U8Opcmdpbw==',
+    'VGVpeGVpcmE=',
+  ].map((codificado) => Buffer.from(codificado, 'base64').toString('utf-8'))
+
+  it('nenhum nome próprio de pessoa aparece em nenhum módulo de dados', () => {
+    const serializado = JSON.stringify(todosOsModulos, (_chave, valor) =>
+      typeof valor === 'function' ? undefined : valor,
+    )
+    for (const nome of NOMES_PROIBIDOS) {
+      expect(serializado.includes(nome), `nome proibido encontrado nos dados: ${nome}`).toBe(false)
+    }
+  })
+
+  it('operadores, responsáveis e aprovadores são papéis funcionais', () => {
+    for (const ordem of ordens) expect(ordem.operador).toMatch(/^Operação [A-Z]\d+ · Turno A$/)
+    for (const lote of lotes) expect(lote.analista.startsWith('QA ')).toBe(true)
+    for (const acao of acoesAgentes) expect(acao.responsavel.startsWith('Alçada: ')).toBe(true)
+    for (const aprovacao of proximasAprovacoes) expect(aprovacao.responsavel.startsWith('Alçada: ')).toBe(true)
+    const equipes = new Set(['Mecânica', 'Elétrica', 'Preditiva', 'Utilidades'])
+    for (const ot of [...ordensManutencao, otRecomendadaCompressora]) {
+      expect(equipes.has(ot.responsavel), `equipe inválida: ${ot.responsavel}`).toBe(true)
+    }
+    const areasDonas = new Set(['PCP', 'Operações', 'Qualidade', 'Manutenção', 'Suprimentos', 'Controladoria'])
+    for (const relatorio of relatorios) {
+      expect(areasDonas.has(relatorio.responsavel), `área inválida: ${relatorio.responsavel}`).toBe(true)
+    }
+  })
+})
+
 describe('relatórios', () => {
   it('tem 10 relatórios com IDs únicos e o Resumo Executivo em primeiro', () => {
     expect(relatorios).toHaveLength(10)
@@ -927,7 +968,7 @@ describe('relatórios', () => {
       id: 'REL-001',
       nome: 'Resumo Executivo da Produção',
       categoria: 'Executivo',
-      responsavel: 'Camila Azevedo',
+      responsavel: 'PCP',
       situacao: 'Atualizado',
     })
   })

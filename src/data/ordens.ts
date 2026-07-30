@@ -23,7 +23,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 68,
     produzido: 820_560,
     prontidaoMateriais: 100,
-    operador: 'João Santos',
+    operador: 'Operação L12 · Turno A',
     observacao: 'Cobertura de Ibuprofeno API em 1,4 dia — risco de parada por material.',
   },
   {
@@ -41,7 +41,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 45,
     produzido: 360_000,
     prontidaoMateriais: 98,
-    operador: 'Mariana Lima',
+    operador: 'Operação L08 · Turno A',
     observacao: 'Aderência de 45% por microparadas — variação de peso alvo.',
   },
   {
@@ -59,7 +59,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 76,
     produzido: 456_000,
     prontidaoMateriais: 100,
-    operador: 'Rafael Costa',
+    operador: 'Operação L03 · Turno A',
   },
   {
     id: 'OF-045681',
@@ -76,7 +76,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 38,
     produzido: 380_000,
     prontidaoMateriais: 97,
-    operador: 'Paula Almeida',
+    operador: 'Operação L05 · Turno A',
     observacao: 'Microparadas recorrentes na alimentação de drágeas.',
   },
   {
@@ -94,7 +94,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 62,
-    operador: 'Carlos Oliveira',
+    operador: 'Operação L15 · Turno A',
     observacao: 'Falta de material: Blister Alu/Alu 10cp com prontidão de 62%.',
   },
   {
@@ -112,7 +112,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 64,
-    operador: 'Rafael Costa',
+    operador: 'Operação L03 · Turno A',
     observacao: 'Cápsula gelatina programada para chegar em 26/mai, 09:00 — início sob risco.',
   },
   {
@@ -130,7 +130,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 82,
-    operador: 'Paula Almeida',
+    operador: 'Operação L05 · Turno A',
   },
   {
     id: 'OF-045686',
@@ -147,7 +147,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 90,
-    operador: 'Mariana Lima',
+    operador: 'Operação L08 · Turno A',
   },
   {
     id: 'OF-045687',
@@ -164,7 +164,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 74,
-    operador: 'Vitor Nogueira',
+    operador: 'Operação L08 · Turno A',
     observacao: 'Prontidão limitada pela cobertura de Ibuprofeno API.',
   },
   // ── Demais ordens da semana ────────────────────────────────────────────────
@@ -183,7 +183,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 92,
-    operador: 'Bruno Cardoso',
+    operador: 'Operação L03 · Turno A',
   },
   {
     id: 'OF-045688',
@@ -200,7 +200,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 96,
-    operador: 'Fernanda Rocha',
+    operador: 'Operação P23 · Turno A',
   },
   {
     id: 'OF-045689',
@@ -217,7 +217,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 100,
-    operador: 'Diego Antunes',
+    operador: 'Operação P26 · Turno A',
   },
   {
     id: 'OF-045690',
@@ -234,7 +234,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 85,
-    operador: 'Luciana Prado',
+    operador: 'Operação P28 · Turno A',
   },
   {
     id: 'OF-045691',
@@ -251,7 +251,7 @@ export const ordens: OrdemProducao[] = [
     progresso: 0,
     produzido: 0,
     prontidaoMateriais: 70,
-    operador: 'Sérgio Teixeira',
+    operador: 'Operação P30 · Turno A',
   },
 ]
 

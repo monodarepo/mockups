@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Area,
   ComposedChart,
@@ -70,17 +70,11 @@ function StatRodape({ label, valor, destaque }: { label: string; valor: string; 
 }
 
 export function CustosPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
   const [modoGrafico, setModoGrafico] = useState<'hora' | 'acumulado'>('hora')
   const ordensRef = useRef<HTMLDivElement | null>(null)
-
-  // Persona desta tela: Camila Azevedo.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   // Acumulados do turno — derivados da própria série horária.
   const totais = useMemo(() => {

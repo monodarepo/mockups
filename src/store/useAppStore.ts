@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { personaPadrao, personas, type Persona } from '@/data/personas'
+import { visaoPadrao, visoes, type Visao } from '@/data/visoes'
 import {
   TURNO_A_FIM,
   TURNO_A_INICIO,
@@ -43,10 +43,10 @@ const filtrosIniciais: Filtros = {
 }
 
 interface AppState {
-  // Persona
-  persona: Persona
-  personas: Persona[]
-  setPersona: (id: string) => void
+  // Visão ativa (papel funcional do usuário)
+  visao: Visao
+  visoes: Visao[]
+  setVisao: (id: string) => void
 
   // Filtros globais (FilterBar lê e grava aqui)
   filtros: Filtros
@@ -115,10 +115,10 @@ export const useAppStore = create<AppState>((set) => {
   ]
 
   return {
-    persona: personaPadrao,
-    personas,
-    setPersona: (id) =>
-      set((estado) => ({ persona: estado.personas.find((p) => p.id === id) ?? estado.persona })),
+    visao: visaoPadrao,
+    visoes,
+    setVisao: (id) =>
+      set((estado) => ({ visao: estado.visoes.find((v) => v.id === id) ?? estado.visao })),
 
     filtros: filtrosIniciais,
     setFiltro: (chave, valor) =>

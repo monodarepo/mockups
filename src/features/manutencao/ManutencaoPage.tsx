@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -134,7 +134,6 @@ function CampoAtivo({
 }
 
 export function ManutencaoPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
@@ -147,11 +146,6 @@ export function ManutencaoPage() {
     return ativoParam && equipamentoPorId(ativoParam) ? ativoParam : 'eq-compressora-l12'
   })
   const [janela, setJanela] = useState<JanelaCondicao>('24h')
-
-  // Persona desta tela: Camila Azevedo.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const ativo = equipamentoPorId(ativoSelecionadoId) ?? equipamentoPorId('eq-compressora-l12')!
   const tendencia = useMemo(() => tendenciaCondicao(ativo.id, janela), [ativo.id, janela])

@@ -157,7 +157,6 @@ function MenuHeader({ rotulo, icone, itens }: { rotulo: string; icone: React.Rea
 
 export function ExecucaoPage() {
   const navigate = useNavigate()
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
@@ -167,11 +166,6 @@ export function ExecucaoPage() {
   const [modalTurno, setModalTurno] = useState(false)
   const [decorrido, setDecorrido] = useState(TURNO_DECORRIDO_INICIAL_SEG)
   const timerRef = useRef<number | null>(null)
-
-  // Persona desta tela: Camila Azevedo, PCP.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   // Contador vivo do turno — parte de 04:27:18 a cada carga (determinístico).
   useEffect(() => {
@@ -275,15 +269,10 @@ export function ExecucaoPage() {
       },
       {
         id: 'operador',
-        titulo: 'Operador / Turno',
+        titulo: 'Responsável',
         render: (item) => {
           const ordemLinha = ordemPorId(item.ordemId)
-          return (
-            <span className="leading-tight">
-              <span className="block text-ink">{ordemLinha?.operador ?? '—'}</span>
-              <span className="block text-caption text-muted">{item.turno}</span>
-            </span>
-          )
+          return <span className="text-ink">{ordemLinha?.operador ?? '—'}</span>
         },
         valor: (item) => ordemPorId(item.ordemId)?.operador ?? '',
       },

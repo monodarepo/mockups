@@ -530,7 +530,7 @@ export interface AcaoAgente {
   impactoValor?: number
   status: StatusAcaoAgente
   criadaEm: Date
-  /** Decisor humano responsável: "Camila A.". */
+  /** Alçada humana responsável pela decisão: "Alçada: Suprimentos". */
   responsavel: string
 }
 
@@ -812,8 +812,7 @@ export interface EventoAuditoria {
 export interface ConteudoCopilot {
   /** Rota da tela: '/', '/planejamento'… */
   tela: string
-  /** Saudação com o marcador {nome}, substituído pela persona atual. */
-  saudacao: string
+  /** Resumo da situação — o cabeçalho de contexto vem da visão ativa do store. */
   resumo: string
   riscos: string[]
   causas: string[]

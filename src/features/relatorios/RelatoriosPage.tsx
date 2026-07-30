@@ -65,7 +65,6 @@ function BadgeFormato({ formato }: { formato: Relatorio['formato'] }) {
 }
 
 export function RelatoriosPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
 
   const [abaCategoria, setAbaCategoria] = useState('Todos')
@@ -74,11 +73,6 @@ export function RelatoriosPage() {
   /** Progresso da geração do resumo executivo (null = ocioso). */
   const [progressoGeracao, setProgressoGeracao] = useState<number | null>(null)
   const timerRef = useRef<number | null>(null)
-
-  // Persona desta tela: Camila Azevedo.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   // Barra de progresso de ~2 s antes de abrir o preview do resumo executivo.
   useEffect(() => {

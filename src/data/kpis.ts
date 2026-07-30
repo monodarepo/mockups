@@ -9,7 +9,7 @@ import {
 import type { KpiCardData } from './types'
 import { agentes } from './agentes'
 import { cenarios, eventosSimulaveis } from './cenarios'
-import { personas } from './personas'
+import { visoes } from './visoes'
 
 // ── Valores derivados dos próprios mocks — uma única fonte de verdade ────────
 
@@ -220,7 +220,7 @@ export function kpisAlertas(pendencias: number): KpiCardData[] {
  * Valores já formatados em pt-BR; sparklines determinísticas por seed.
  */
 export const kpisPorTela: Record<string, KpiCardData[]> = {
-  // Visão executiva da rede (3 fábricas) — persona Ricardo Martins.
+  // Visão executiva da rede (3 fábricas).
   '/': [
     {
       id: 'vg-oee',
@@ -783,11 +783,11 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
       sparkline: serieSparkline('kpi-cf-usuarios', 12, { base: 44, tendencia: 4, ruido: 0.04, decimais: 0 }),
     },
     {
-      id: 'cf-personas',
-      label: 'Personas configuradas',
-      valor: formatNumero(personas.length),
-      sublabel: 'PCP, Diretoria e Administração',
-      sparkline: serieSparkline('kpi-cf-personas', 12, { base: 3, ruido: 0.1, decimais: 0, min: 1 }),
+      id: 'cf-visoes',
+      label: 'Visões configuradas',
+      valor: formatNumero(visoes.length),
+      sublabel: 'Executiva, PCP, Operações e Administração',
+      sparkline: serieSparkline('kpi-cf-visoes', 12, { base: 3, ruido: 0.1, decimais: 0, min: 1 }),
     },
     {
       id: 'cf-integracoes',

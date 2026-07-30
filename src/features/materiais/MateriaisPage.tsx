@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageFooter } from '@/components/shared/PageFooter'
@@ -149,16 +149,10 @@ function CampoDetalhe({
 }
 
 export function MateriaisPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
   const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
   const [materialSelecionadoId, setMaterialSelecionadoId] = useState('MAT-API-001')
-
-  // Persona desta tela: Camila Azevedo, PCP.
-  useEffect(() => {
-    setPersona('camila')
-  }, [setPersona])
 
   const material = materialPorId(materialSelecionadoId) ?? materiais[0]
   const risco = riscoRuptura(material)

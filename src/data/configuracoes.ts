@@ -65,7 +65,7 @@ export const perfisUsuarios: PerfilUsuarios[] = [
 
 export const configuracoesRapidas: ConfiguracaoRapida[] = [
   { id: 'cr-parametros', titulo: 'Parâmetros do Sistema', descricao: 'Fuso, idioma, retenção de dados e janelas de manutenção.' },
-  { id: 'cr-dashboards', titulo: 'Dashboards', descricao: 'Painéis padrão por persona e telas compartilhadas.' },
+  { id: 'cr-dashboards', titulo: 'Dashboards', descricao: 'Painéis padrão por visão e telas compartilhadas.' },
   { id: 'cr-kpis', titulo: 'KPIs e Metas', descricao: 'Metas de OEE, aderência, qualidade e custo por linha.' },
   { id: 'cr-alertas', titulo: 'Alertas', descricao: 'Limiares, SLAs de decisão e regras de escalonamento.' },
   { id: 'cr-backup', titulo: 'Backup & Recuperação', descricao: 'Cópias diárias 01:00 · retenção de 35 dias.' },
@@ -93,9 +93,9 @@ export const canaisNotificacao: CanalNotificacao[] = [
 
 export const eventosAuditoria: EventoAuditoria[] = [
   { id: 'aud-01', quando: '19/05 10:15', usuario: 'Sistema', acao: 'Verificação de integridade da trilha concluída', origem: 'Plataforma' },
-  { id: 'aud-02', quando: '19/05 10:02', usuario: 'Camila Azevedo', acao: 'Aprovou ação do Agente de Materiais (ACA-002)', origem: 'Agentes IA' },
-  { id: 'aud-03', quando: '19/05 09:41', usuario: 'Ricardo Martins', acao: 'Exportou o Resumo Executivo da Produção', origem: 'Relatórios' },
-  { id: 'aud-04', quando: '19/05 08:17', usuario: 'Marcos Oliveira', acao: 'Aprovou OT corretiva na L12 (troca de rolamento)', origem: 'Manutenção' },
-  { id: 'aud-05', quando: '18/05 22:15', usuario: 'Marina Oliveira', acao: 'Deploy da versão v2.8.1 concluído', origem: 'Plataforma' },
-  { id: 'aud-06', quando: '18/05 18:40', usuario: 'Marina Oliveira', acao: 'Atualizou limite de alçada das ações N4', origem: 'Configurações' },
+  { id: 'aud-02', quando: '19/05 10:02', usuario: 'Alçada: Suprimentos', acao: 'Aprovou ação do Agente de Materiais (ACA-002)', origem: 'Agentes IA' },
+  { id: 'aud-03', quando: '19/05 09:41', usuario: 'Diretoria Industrial', acao: 'Exportou o Resumo Executivo da Produção', origem: 'Relatórios' },
+  { id: 'aud-04', quando: '19/05 08:17', usuario: 'Alçada: Manutenção', acao: 'Aprovou OT corretiva na L12 (troca de rolamento)', origem: 'Manutenção' },
+  { id: 'aud-05', quando: '18/05 22:15', usuario: 'Administração', acao: 'Deploy da versão v2.8.1 concluído', origem: 'Plataforma' },
+  { id: 'aud-06', quando: '18/05 18:40', usuario: 'Administração', acao: 'Atualizou limite de alçada das ações N4', origem: 'Configurações' },
 ]

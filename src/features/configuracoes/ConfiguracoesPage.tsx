@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Bell,
   CheckCircle2,
@@ -82,15 +82,9 @@ function BlocoLista({
 }
 
 export function ConfiguracoesPage() {
-  const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
 
   const [aba, setAba] = useState('visao-geral')
-
-  // Persona desta tela: Marina Oliveira, Administradora.
-  useEffect(() => {
-    setPersona('marina')
-  }, [setPersona])
 
   const aoAcaoCopilot = (rotulo: string) => {
     if (rotulo === 'Revisar autonomia') setAba('ia')

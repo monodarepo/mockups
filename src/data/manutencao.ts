@@ -12,7 +12,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Atrasada',
     janelaInicio: dt(21, 8),
     janelaFim: dt(21, 16),
-    responsavel: 'Cláudio Ferreira',
+    responsavel: 'Utilidades',
     descricao: 'Preventiva vencida em 12/mai — troca de filtros e aferição do diferencial de pressão. Reprogramada para 21/mai.',
   },
   {
@@ -23,7 +23,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Em execução',
     janelaInicio: dt(19, 10),
     janelaFim: dt(19, 14),
-    responsavel: 'André Souza',
+    responsavel: 'Mecânica',
     descricao: 'Ajuste do tensionamento e troca de roletes — origem das microparadas da L08.',
   },
   {
@@ -34,7 +34,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Planejada',
     janelaInicio: dt(23, 8),
     janelaFim: dt(23, 10),
-    responsavel: 'Beatriz Nunes',
+    responsavel: 'Utilidades',
     descricao: 'Inspeção de selo mecânico e verificação de vazão do circuito CIP.',
   },
   {
@@ -45,7 +45,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Aguardando peça',
     janelaInicio: dt(20, 6),
     janelaFim: dt(20, 14),
-    responsavel: 'Marcos Vieira',
+    responsavel: 'Elétrica',
     descricao: 'Substituição da resistência de selagem — peça com chegada prevista para 20/mai, 06:00.',
   },
   {
@@ -56,7 +56,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Planejada',
     janelaInicio: dt(24, 8),
     janelaFim: dt(24, 12),
-    responsavel: 'Beatriz Nunes',
+    responsavel: 'Mecânica',
     descricao: 'Lubrificação dos mancais e verificação de torque do acionamento.',
   },
   {
@@ -67,7 +67,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Concluída',
     janelaInicio: dt(18, 8),
     janelaFim: dt(18, 10),
-    responsavel: 'Cláudio Ferreira',
+    responsavel: 'Utilidades',
     descricao: 'Inspeção trimestral de enchimento e ventiladores — sem desvios.',
   },
   {
@@ -78,7 +78,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Planejada',
     janelaInicio: dt(25, 6),
     janelaFim: dt(25, 9),
-    responsavel: 'André Souza',
+    responsavel: 'Preditiva',
     descricao: 'Análise de vibração dos discos dosadores conforme plano preditivo.',
   },
   {
@@ -89,7 +89,7 @@ export const ordensManutencao: OrdemManutencao[] = [
     status: 'Aberta',
     janelaInicio: dt(21, 22),
     janelaFim: dt(22, 4),
-    responsavel: 'Renata Dias',
+    responsavel: 'Preditiva',
     descricao: 'Troca do rolamento do eixo principal — vibração em 12,3 mm/s e probabilidade de falha de 78% em 7 dias.',
   },
 ]
@@ -173,7 +173,7 @@ export const otRecomendadaCompressora: OrdemManutencao = {
   status: 'Programada',
   janelaInicio: dt(21, 2),
   janelaFim: dt(21, 5),
-  responsavel: 'Renata Dias',
+  responsavel: 'Preditiva',
   descricao:
     'Substituição do rolamento do eixo principal na janela de menor impacto (quarta, 02:00 – 05:00) — recomendação do Agente de Manutenção.',
 }
