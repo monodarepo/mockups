@@ -9,7 +9,8 @@ export function AppShell() {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        {/* relative: contém descendentes absolutos (ex.: rótulos sr-only) dentro do scroll. */}
+        <main className="relative flex-1 overflow-y-auto">
           <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-6 py-5">
             <Outlet />
           </div>

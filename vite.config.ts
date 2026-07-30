@@ -13,4 +13,15 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Mantém o bundle da aplicação enxuto e o build sem avisos de chunk.
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          recharts: ['recharts'],
+        },
+      },
+    },
+  },
 })

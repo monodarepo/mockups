@@ -48,3 +48,19 @@ export const PERIODOS = [
   'Semana de planejamento',
 ] as const
 export type Periodo = (typeof PERIODOS)[number]
+
+/** Faixa de datas de cada opção de período, ancorada em 19/mai/2025. */
+export function faixaDoPeriodo(periodo: Periodo): { inicio: Date; fim: Date } {
+  switch (periodo) {
+    case 'Turno atual':
+      return { inicio: TURNO_A_INICIO, fim: TURNO_A_FIM }
+    case 'Hoje':
+      return { inicio: new Date(2025, 4, 19, 0, 0), fim: new Date(2025, 4, 19, 23, 59) }
+    case 'Últimos 7 dias':
+      return { inicio: new Date(2025, 4, 13, 0, 0), fim: new Date(2025, 4, 19, 23, 59) }
+    case 'Últimos 30 dias':
+      return { inicio: new Date(2025, 3, 20, 0, 0), fim: new Date(2025, 4, 19, 23, 59) }
+    case 'Semana de planejamento':
+      return { inicio: SEMANA_PLANEJAMENTO_INICIO, fim: new Date(2025, 4, 26, 23, 59) }
+  }
+}

@@ -4,7 +4,7 @@ import { useAppStore, type Toast as ToastData } from '@/store'
 import { toneHex, type Tone } from '@/lib/colors'
 import { IconButton } from './Button'
 
-const DURACAO_MS = 4200
+const DURACAO_MS = 4000
 
 function iconePorTom(tone: Tone) {
   if (tone === 'danger' || tone === 'warning') return AlertTriangle

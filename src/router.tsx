@@ -13,6 +13,7 @@ import { AlertasPage } from '@/features/alertas/AlertasPage'
 import { RelatoriosPage } from '@/features/relatorios/RelatoriosPage'
 import { AgentesPage } from '@/features/agentes/AgentesPage'
 import { ConfiguracoesPage } from '@/features/configuracoes/ConfiguracoesPage'
+import { KitPage } from '@/features/kit/KitPage'
 
 export const router = createBrowserRouter(
   [
@@ -33,6 +34,8 @@ export const router = createBrowserRouter(
         { path: 'relatorios', element: <RelatoriosPage /> },
         { path: 'agentes', element: <AgentesPage /> },
         { path: 'configuracoes', element: <ConfiguracoesPage /> },
+        // Rota temporária de validação visual dos componentes compartilhados.
+        { path: '_kit', element: <KitPage /> },
       ],
     },
   ],
