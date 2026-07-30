@@ -111,6 +111,8 @@ const statusTone: Record<string, Tone> = {
   aberto: 'info',
   planejada: 'info',
   planejado: 'info',
+  programada: 'info',
+  programado: 'info',
   'em análise': 'info',
   'em analise': 'info',
   'em execução': 'info',

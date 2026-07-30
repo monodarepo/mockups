@@ -138,18 +138,21 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
     resumo:
       'A Compressora L12 opera em estado crítico (78% de falha em 7 dias) e a Seladora L15 aguarda peça. A preventiva do HVAC AHU-03 está atrasada.',
     riscos: [
-      'Falha da Compressora L12 pararia a OF-045678 — impacto de R$ 180 mil.',
-      'HVAC AHU-03 com preventiva vencida compromete a classificação de área.',
+      'Vibração crítica na Compressora L12 pode causar parada não planejada da OF-045678.',
+      'Preventiva atrasada no HVAC AHU-03 — vencida em 12/mai, reprogramada para 21/mai.',
+      'Consumo anômalo de energia na Embalagem L15.',
     ],
     causas: [
-      'Rolamento do eixo principal da compressora com desgaste acelerado (▲35% de vibração).',
-      'Janela da preventiva do HVAC perdida em 12/mai por prioridade da corretiva da L08.',
+      'Desgaste no mancal traseiro da compressora (▲35% de vibração).',
+      'Filtro de ar saturado no AHU-03.',
+      'Aumento de atrito na esteira da L15.',
     ],
     acoes: [
-      'Aprovar a OT-245689 na janela noturna de 21/mai — peças disponíveis em estoque.',
-      'Executar a OT-245682 (HVAC) em 21/mai, 08:00, antes da auditoria interna.',
+      'Intervir na Compressora L12 nas próximas 2 h — janela de menor impacto: quarta, 02:00 – 05:00.',
+      'Reprogramar a preventiva do AHU-03 para hoje.',
+      'Inspecionar a esteira da L15 no fim do Turno A.',
     ],
-    botoes: ['Aprovar OT-245689', 'Ver saúde da Compressora L12'],
+    botoes: ['Simular impacto', 'Acionar manutenção', 'Priorizar OT'],
   },
   '/materiais': {
     tela: '/materiais',
@@ -174,22 +177,25 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/custos': {
     tela: '/custos',
     perguntasSugeridas: ['Por que o OEE caiu?', 'Qual o impacto financeiro em risco?', 'Qual sequência minimiza setups?'],
-    saudacao: 'Bom dia, {nome}. As perdas do dia somam R$ 620 mil.',
+    saudacao: 'Bom dia, {nome}. O custo por unidade subiu 4,3% no turno.',
     resumo:
-      'O custo do dia está 3,2% acima do orçamento. Microparadas da L08 e a parada da L15 respondem por 62% das perdas.',
+      'O turno acumula R$ 2,48 mi — 3,0% abaixo do orçado —, mas o custo unitário está em R$ 1,84 pressionado pelo setup prolongado da L12 e pelas perdas da L08.',
     riscos: [
-      'Perdas de produção em R$ 620 mil (▲18% vs média da semana).',
-      'Custo de setup em R$ 184 mil — sequência atual desperdiça 45 h.',
+      'Consumo acima do padrão na L12 — +12% vs plano.',
+      'Perdas por refugo na L08 em alta: +0,42 p.p.',
+      'Custo de energia +9% vs média semanal.',
     ],
     causas: [
-      'L08 com aderência de 45% converte capacidade paga em perda.',
-      'L15 parada mantém custo fixo sem produção desde 20/mai.',
+      'Setup prolongado na L12 entre 09:00 e 10:00.',
+      'Instabilidade no envase da L08.',
+      'Pico de demanda de energia entre 11:00 e 13:00.',
     ],
     acoes: [
-      'Aplicar a sequência otimizada — reduz o custo de setup em R$ 26 mil na semana.',
-      'Retomar a L15 com o blister substituto para diluir o custo fixo.',
+      'Reprogramar a produção da L12 para reduzir o custo unitário.',
+      'Acelerar a troca de ferramentas na L12.',
+      'Priorizar lotes de maior margem nas linhas críticas.',
     ],
-    botoes: ['Ver perdas por linha', 'Comparar com orçamento'],
+    botoes: ['Simular impacto', 'Acionar plano', 'Ver produtos críticos'],
   },
   '/alertas': {
     tela: '/alertas',

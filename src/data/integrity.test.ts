@@ -49,7 +49,26 @@ import {
   tendenciaQualidade24h,
 } from './lotes'
 import { equipamentos } from './equipamentos'
-import { ordensManutencao } from './manutencao'
+import {
+  PRONTIDAO_MANUTENCAO_SCORE,
+  SLA_OTS_PERCENT,
+  TECNICOS_DISPONIVEIS,
+  TECNICOS_TOTAL,
+  alertasPreditivos,
+  ordensManutencao,
+  otRecomendadaCompressora,
+  prontidaoManutencao,
+  tendenciaCondicao,
+} from './manutencao'
+import {
+  PRONTIDAO_FINANCEIRA_SCORE,
+  composicaoCustos,
+  driversCusto,
+  ordensImpactoFinanceiro,
+  performancePorLinha,
+  prontidaoFinanceira,
+  visaoFinanceiraTurno,
+} from './custos'
 import {
   alertas,
   fluxoDecisao,
@@ -389,6 +408,106 @@ describe('manutenção', () => {
     })
     const vibracao = compressora?.indicadores.find((indicador) => indicador.nome === 'Vibração')
     expect(vibracao).toMatchObject({ valor: 12.3, unidade: 'mm/s', variacaoPercent: 35 })
+  })
+
+  it('tem 5 alertas preditivos com ativos existentes e severidades válidas', () => {
+    expect(alertasPreditivos).toHaveLength(5)
+    semDuplicatas(alertasPreditivos.map((alerta) => alerta.id))
+    for (const alerta of alertasPreditivos) {
+      expect(['Crítica', 'Alta', 'Média', 'Baixa']).toContain(alerta.severidade)
+      expect(alerta.causaProvavel.length).toBeGreaterThan(10)
+      expect(alerta.proximaAcao.length).toBeGreaterThan(5)
+      if (alerta.ativoId) expect(idsEquipamentos.has(alerta.ativoId)).toBe(true)
+    }
+    expect(alertasPreditivos[0].severidade).toBe('Crítica')
+    expect(alertasPreditivos[0].ativoId).toBe('eq-compressora-l12')
+  })
+
+  it('prontidão da manutenção: 4 itens, técnicos 18/22, SLA 92 e score 89', () => {
+    expect(prontidaoManutencao.map((item) => item.item)).toEqual(['Preventiva', 'Preditiva', 'Corretiva', 'Peças'])
+    expect(TECNICOS_DISPONIVEIS).toBe(18)
+    expect(TECNICOS_TOTAL).toBe(22)
+    expect(SLA_OTS_PERCENT).toBe(92)
+    expect(PRONTIDAO_MANUTENCAO_SCORE).toBe(89)
+  })
+
+  it('a OT recomendada pelo agente é a 245690, Programada na janela de quarta 02:00 – 05:00', () => {
+    expect(otRecomendadaCompressora).toMatchObject({
+      id: 'OT-245690',
+      ativoId: 'eq-compressora-l12',
+      tipo: 'Preditiva',
+      prioridade: 'Alta',
+      status: 'Programada',
+    })
+    expect(otRecomendadaCompressora.janelaInicio.getDate()).toBe(21)
+    expect(otRecomendadaCompressora.janelaInicio.getDay()).toBe(3) // quarta-feira
+    expect(otRecomendadaCompressora.janelaInicio.getHours()).toBe(2)
+    expect(otRecomendadaCompressora.janelaFim.getHours()).toBe(5)
+    // Só entra na fila pela ação "Acionar manutenção" — não faz parte da carteira base.
+    expect(idsOTs.has(otRecomendadaCompressora.id)).toBe(false)
+  })
+
+  it('tendência de condição é determinística com 6/24/7 pontos e converge para a vibração atual', () => {
+    expect(tendenciaCondicao('eq-compressora-l12', '6h')).toHaveLength(6)
+    expect(tendenciaCondicao('eq-compressora-l12', '7d')).toHaveLength(7)
+    const primeira = tendenciaCondicao('eq-compressora-l12', '24h')
+    expect(primeira).toHaveLength(24)
+    expect(tendenciaCondicao('eq-compressora-l12', '24h')).toEqual(primeira)
+    const ultimo = primeira[primeira.length - 1]
+    expect(ultimo.vibracao).toBeGreaterThan(11)
+    expect(ultimo.vibracao).toBeLessThan(14)
+  })
+})
+
+describe('custos e performance', () => {
+  it('visão financeira cobre as 8 horas do Turno A com os acumulados da tela', () => {
+    expect(visaoFinanceiraTurno).toHaveLength(8)
+    expect(visaoFinanceiraTurno[0].label).toBe('06:00')
+    expect(visaoFinanceiraTurno[7].label).toBe('13:00')
+    const real = visaoFinanceiraTurno.reduce((soma, ponto) => soma + ponto.custoReal, 0)
+    const orcado = visaoFinanceiraTurno.reduce((soma, ponto) => soma + ponto.custoOrcado, 0)
+    const margem = visaoFinanceiraTurno.reduce((soma, ponto) => soma + ponto.margem, 0)
+    expect(real).toBe(2_482) // R$ 2,48 mi
+    expect(orcado).toBe(2_560) // R$ 2,56 mi — diferença −R$ 78 mil (−3,0%)
+    expect(margem).toBe(790) // R$ 790 mil → 31,8% do custo real
+    expect(Math.round((margem / real) * 1000) / 10).toBe(31.8)
+  })
+
+  it('composição de custos soma 100% e bate com o custo do turno', () => {
+    expect(composicaoCustos).toHaveLength(7)
+    const percentTotal = composicaoCustos.reduce((soma, item) => soma + item.percent, 0)
+    expect(Math.abs(percentTotal - 100)).toBeLessThan(0.1)
+    const valorTotal = composicaoCustos.reduce((soma, item) => soma + item.valor, 0)
+    expect(Math.abs(valorTotal - 2_482_000) / 2_482_000).toBeLessThan(0.005)
+  })
+
+  it('drivers de custo: top 6 em ordem decrescente', () => {
+    expect(driversCusto).toHaveLength(6)
+    for (let i = 1; i < driversCusto.length; i++) {
+      expect(driversCusto[i].valor).toBeLessThanOrEqual(driversCusto[i - 1].valor)
+    }
+    expect(driversCusto[0]).toMatchObject({ driver: 'Perdas por refugo', valor: 146_000, percent: 24 })
+  })
+
+  it('performance por linha cobre as 5 linhas de Anápolis com a L12 crítica', () => {
+    expect(performancePorLinha).toHaveLength(5)
+    for (const linha of performancePorLinha) expect(idsLinhas.has(linha.linhaId)).toBe(true)
+    expect(performancePorLinha[0]).toMatchObject({
+      linhaId: 'L12',
+      custoUnidade: 1.96,
+      situacao: 'Crítico',
+      impactoFinanceiro: -210_000,
+    })
+    expect(prontidaoFinanceira).toHaveLength(5)
+    expect(PRONTIDAO_FINANCEIRA_SCORE).toBe(84)
+  })
+
+  it('ordens de maior impacto referenciam âncoras e repetem a aderência do Planejamento', () => {
+    expect(ordensImpactoFinanceiro).toHaveLength(5)
+    for (const item of ordensImpactoFinanceiro) {
+      expect(idsOrdens.has(item.ordemId)).toBe(true)
+      expect(aderenciaPorOrdem[item.ordemId]).toBe(item.aderenciaPercent)
+    }
   })
 })
 

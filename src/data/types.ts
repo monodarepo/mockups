@@ -326,6 +326,7 @@ export interface Equipamento {
 export type StatusOT =
   | 'Aberta'
   | 'Planejada'
+  | 'Programada'
   | 'Em execução'
   | 'Aguardando peça'
   | 'Atrasada'
@@ -342,6 +343,82 @@ export interface OrdemManutencao {
   janelaFim: Date
   responsavel: string
   descricao: string
+}
+
+/** Alerta preditivo exibido na tela /manutencao. */
+export interface AlertaPreditivo {
+  id: string
+  severidade: SeveridadeAlerta
+  evento: string
+  causaProvavel: string
+  proximaAcao: string
+  ativoId?: string
+}
+
+export type JanelaCondicao = '6h' | '24h' | '7d'
+
+/** Ponto da tendência de condição do ativo (vibração, temperatura, energia). */
+export interface PontoCondicao {
+  label: string
+  vibracao: number
+  temperatura: number
+  energia: number
+}
+
+// ── Custos e performance ─────────────────────────────────────────────────────
+
+/** Ponto horário da visão financeira do turno, em R$ mil. */
+export interface PontoFinanceiroHora {
+  label: string
+  custoReal: number
+  custoOrcado: number
+  margem: number
+}
+
+export interface ComposicaoCusto {
+  id: string
+  categoria: string
+  percent: number
+  /** Valor no turno, em R$. */
+  valor: number
+}
+
+export interface DriverCusto {
+  id: string
+  driver: string
+  /** Desvio no turno, em R$. */
+  valor: number
+  percent: number
+}
+
+export interface PerformanceLinha {
+  linhaId: string
+  /** Custo por unidade, em R$. */
+  custoUnidade: number
+  oee: number
+  yieldPercent: number
+  refugoPercent: number
+  situacao: 'Crítico' | 'Atenção' | 'Normal'
+  /** Impacto financeiro vs padrão, em R$ (negativo = perda). */
+  impactoFinanceiro: number
+}
+
+export interface ItemProntidaoFinanceira {
+  item: string
+  /** Valor já formatado em pt-BR. */
+  valor: string
+}
+
+export interface OrdemImpactoFinanceiro {
+  ordemId: string
+  /** Custos em R$. */
+  custoReal: number
+  custoOrcado: number
+  margemPercent: number
+  /** Impacto financeiro em R$ (negativo = perda). */
+  impactoFinanceiro: number
+  aderenciaPercent: number
+  aderenciaDeltaPP: number
 }
 
 // ── Alertas e decisões ───────────────────────────────────────────────────────
