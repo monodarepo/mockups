@@ -1,10 +1,14 @@
 import { cn } from '@/lib/cn'
+import { Tooltip } from './Tooltip'
 
 export interface Aba {
   id: string
   rotulo: string
   /** Contagem opcional exibida ao lado do rótulo. */
   badge?: number
+  /** Aba indisponível — exibe tooltip explicando o motivo. */
+  desabilitada?: boolean
+  motivoDesabilitada?: string
 }
 
 interface TabsProps {
@@ -20,20 +24,23 @@ export function Tabs({ abas, ativa, onChange, className }: TabsProps) {
     <div role="tablist" className={cn('flex items-end gap-1 border-b border-line', className)}>
       {abas.map((aba) => {
         const ativo = aba.id === ativa
-        return (
+        const botao = (
           <button
-            key={aba.id}
+            key={aba.desabilitada ? undefined : aba.id}
             type="button"
             role="tab"
             aria-selected={ativo}
-            onClick={() => onChange(aba.id)}
+            aria-disabled={aba.desabilitada}
+            onClick={aba.desabilitada ? undefined : () => onChange(aba.id)}
             className={cn(
               '-mb-px inline-flex h-9 items-center gap-1.5 border-b-2 px-3 text-body-sm font-medium',
               'transition-colors duration-150',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
-              ativo
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted hover:border-line hover:text-ink',
+              aba.desabilitada
+                ? 'cursor-not-allowed border-transparent text-muted/50'
+                : ativo
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted hover:border-line hover:text-ink',
             )}
           >
             {aba.rotulo}
@@ -48,6 +55,13 @@ export function Tabs({ abas, ativa, onChange, className }: TabsProps) {
               </span>
             ) : null}
           </button>
+        )
+        return aba.desabilitada ? (
+          <Tooltip key={aba.id} conteudo={aba.motivoDesabilitada ?? 'Próxima fase'}>
+            {botao}
+          </Tooltip>
+        ) : (
+          <span key={aba.id}>{botao}</span>
         )
       })}
     </div>

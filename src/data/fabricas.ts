@@ -39,7 +39,13 @@ export const fabricas: Fabrica[] = [
       { id: 'P30', nome: 'P30 — Comprimidos', tipo: 'Comprimidos', fabricaId: 'jacarei', capacidadeUtilizada: 76, oee: 72, status: 'normal' },
     ],
   },
+  // Plantas do horizonte de planejamento — sem linhas detalhadas no mockup.
+  { id: 'itapecerica', nome: 'Itapecerica', uf: 'SP', linhas: [] },
+  { id: 'pouso-alegre', nome: 'Pouso Alegre', uf: 'MG', linhas: [] },
 ]
+
+/** Fábricas com linhas detalhadas (mapa, execução e sequenciamento). */
+export const fabricasOperacionais: Fabrica[] = fabricas.filter((fabrica) => fabrica.linhas.length > 0)
 
 /** Todas as linhas, em lista plana. */
 export const linhas: Linha[] = fabricas.flatMap((fabrica) => fabrica.linhas)

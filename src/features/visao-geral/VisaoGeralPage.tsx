@@ -23,6 +23,7 @@ import {
   alertas,
   conteudoCopilot,
   fabricas,
+  fabricasOperacionais,
   kpisPorTela,
   linhas,
   materiais,
@@ -240,7 +241,7 @@ export function VisaoGeralPage() {
             <div className="flex items-stretch gap-0 px-5 pb-4">
               <div className="min-w-0 flex-1">
                 {modoPanorama === 'mapa' ? (
-                  <FactoryMap fabricas={fabricas} onSelecionarFabrica={aoSelecionarFabrica} />
+                  <FactoryMap fabricas={fabricasOperacionais} onSelecionarFabrica={aoSelecionarFabrica} />
                 ) : (
                   <div className="overflow-hidden rounded-xl border border-line">
                     <DataTable
@@ -263,7 +264,9 @@ export function VisaoGeralPage() {
               <dl className="ml-5 flex w-[172px] shrink-0 flex-col justify-center gap-4 border-l border-line pl-5">
                 <div>
                   <dt className="text-caption text-muted">Fábricas</dt>
-                  <dd className="text-[22px] font-bold leading-7 text-ink">{formatNumero(fabricas.length)}</dd>
+                  <dd className="text-[22px] font-bold leading-7 text-ink">
+                    {formatNumero(fabricasOperacionais.length)}
+                  </dd>
                   <dd className="text-caption text-success">todas operando</dd>
                 </div>
                 <div>

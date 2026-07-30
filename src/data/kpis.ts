@@ -8,7 +8,6 @@ import {
 } from '@/lib/format'
 import type { KpiCardData } from './types'
 import { alertas } from './alertas'
-import { ordens } from './ordens'
 import { materiais } from './materiais'
 import { lotes } from './lotes'
 import { equipamentos } from './equipamentos'
@@ -16,7 +15,6 @@ import { ordensManutencao } from './manutencao'
 import { acoesAgentes, agentes } from './agentes'
 import { cenarios, eventosSimulaveis } from './cenarios'
 import { relatorios } from './relatorios'
-import { linhas } from './fabricas'
 import { personas } from './personas'
 
 // ── Valores derivados dos próprios mocks — uma única fonte de verdade ────────
@@ -24,10 +22,6 @@ import { personas } from './personas'
 const impactoMateriais = alertas
   .filter((a) => a.area === 'Materiais')
   .reduce((soma, a) => soma + a.impactoEstimado, 0)
-
-const linhasAnapolis = linhas.filter((l) => l.fabricaId === 'anapolis')
-const utilizacaoMediaAnapolis =
-  linhasAnapolis.reduce((soma, l) => soma + l.capacidadeUtilizada, 0) / linhasAnapolis.length
 
 const coberturaMediaMateriais =
   materiais.reduce((soma, m) => soma + m.coberturaDias, 0) / materiais.length
@@ -256,57 +250,60 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
   ],
   '/planejamento': [
     {
-      id: 'pl-atendimento',
-      label: 'Atendimento projetado',
-      valor: formatPercent(planoBase.atendimentoPercent, 0),
-      delta: formatPontosPercentuais(-1.5),
+      id: 'pl-aderencia',
+      label: 'Aderência ao Plano',
+      valor: formatPercent(92.4),
+      delta: formatPontosPercentuais(4.3),
       deltaGoodWhen: 'up',
-      sublabel: 'plano-base · vs semana anterior',
-      sparkline: serieSparkline('kpi-pl-atendimento', 12, { base: 95, tendencia: -1, ruido: 0.015 }),
+      sublabel: 'vs plano anterior',
+      sparkline: serieSparkline('kpi-pl-aderencia', 12, { base: 87.5, tendencia: 4.6, ruido: 0.012 }),
     },
     {
-      id: 'pl-ordens',
-      label: 'Ordens na semana',
-      valor: formatNumero(ordens.length),
-      sublabel: '20 – 26/mai · 3 fábricas',
-      sparkline: serieSparkline('kpi-pl-ordens', 12, { base: 14, ruido: 0.1, decimais: 0, min: 10 }),
-    },
-    {
-      id: 'pl-setup',
-      label: 'Horas de setup',
-      valor: `${formatNumero(planoBase.horasSetup)} h`,
-      delta: formatPercentAssinado(6.7),
-      deltaGoodWhen: 'down',
-      sublabel: 'plano-base · vs padrão',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-pl-setup', 12, { base: 300, tendencia: 20, ruido: 0.05 }),
+      id: 'pl-atendimento',
+      label: 'Atendimento da Demanda',
+      valor: formatPercent(96.7),
+      delta: formatPontosPercentuais(2.1),
+      deltaGoodWhen: 'up',
+      sublabel: 'vs plano anterior',
+      sparkline: serieSparkline('kpi-pl-atendimento', 12, { base: 94.4, tendencia: 2.2, ruido: 0.008 }),
     },
     {
       id: 'pl-utilizacao',
-      label: 'Utilização média',
-      valor: formatPercent(utilizacaoMediaAnapolis),
-      sublabel: 'linhas de Anápolis',
-      sparkline: serieSparkline('kpi-pl-utilizacao', 12, { base: 85, tendencia: 2, ruido: 0.02 }),
-    },
-    {
-      id: 'pl-ruptura',
-      label: 'SKUs em risco de ruptura',
-      valor: formatNumero(planoBase.skusComRuptura),
-      delta: '+3',
-      deltaGoodWhen: 'down',
-      sublabel: 'plano-base · vs semana anterior',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-pl-ruptura', 12, { base: 9, tendencia: 3, ruido: 0.15, decimais: 0, min: 4 }),
-    },
-    {
-      id: 'pl-cobertura',
-      label: 'Cobertura média de materiais',
-      valor: `${formatNumero(coberturaMediaMateriais, 1)} dias`,
-      delta: '-0,8 dia',
+      label: 'Utilização da Capacidade',
+      valor: formatPercent(87.1),
+      delta: formatPontosPercentuais(5.7),
       deltaGoodWhen: 'up',
-      sublabel: 'vs última semana',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-pl-cobertura', 12, { base: 5.6, tendencia: -0.8, ruido: 0.05 }),
+      sublabel: 'vs plano anterior',
+      sparkline: serieSparkline('kpi-pl-utilizacao', 12, { base: 81, tendencia: 5.8, ruido: 0.015 }),
+    },
+    {
+      id: 'pl-skus-risco',
+      label: 'SKUs em Risco',
+      valor: formatNumero(18),
+      delta: '-6',
+      deltaGoodWhen: 'down',
+      sublabel: 'próximas 2 semanas',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-pl-skus-risco', 12, { base: 24, tendencia: -5.5, ruido: 0.1, decimais: 0, min: 12 }),
+    },
+    {
+      id: 'pl-estoque',
+      label: 'Estoque Projetado',
+      valor: `${formatNumero(24.6, 1)} dias`,
+      delta: `-${formatNumero(2.4, 1)} dias`,
+      deltaGoodWhen: 'up',
+      sublabel: 'média do horizonte',
+      sparkline: serieSparkline('kpi-pl-estoque', 12, { base: 27, tendencia: -2.5, ruido: 0.02 }),
+    },
+    {
+      id: 'pl-setup',
+      label: 'Setup Planejado',
+      valor: `${formatNumero(312)} h`,
+      delta: '-18 h',
+      deltaGoodWhen: 'down',
+      sublabel: 'vs plano anterior',
+      tone: 'success',
+      sparkline: serieSparkline('kpi-pl-setup', 12, { base: 330, tendencia: -17, ruido: 0.02 }),
     },
   ],
   '/sequenciamento': kpisSequenciamento(false),

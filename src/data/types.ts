@@ -399,6 +399,48 @@ export interface AcaoAgente {
   criadaEm: Date
 }
 
+// ── Planejamento (horizonte semanal W21–W25) ─────────────────────────────────
+
+export interface SemanaCarga {
+  semana: string
+  /** Faixa de datas exibida no tooltip: "20 – 26/mai". */
+  faixa: string
+  /** Carga planejada em horas (barra azul). */
+  carga: number
+  /** Capacidade adicional aprovada em horas (barra verde). */
+  adicional: number
+  /** Horas acima da capacidade disponível (barra vermelha). */
+  excedente: number
+}
+
+export interface CoberturaFabrica {
+  fabrica: string
+  /** Dias de cobertura por semana (W21–W25). */
+  valores: number[]
+  total?: boolean
+}
+
+export interface SkuRisco {
+  /** Código SKU no formato 101.123. */
+  codigo: string
+  produto: string
+  fabrica: string
+  risco: 'Alto' | 'Médio' | 'Baixo'
+  ruptura: Date
+}
+
+export interface PlanoLinha {
+  linhaId: string
+  /** Horas planejadas por semana (W21–W25). */
+  horas: number[]
+}
+
+export interface CampanhaCalendario {
+  familia: FamiliaProduto
+  semana: string
+  rotulo: string
+}
+
 // ── Gêmeo da fábrica (simulação) ─────────────────────────────────────────────
 
 export interface EventoSimulavel {

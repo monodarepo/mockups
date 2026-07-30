@@ -34,23 +34,23 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/planejamento': {
     tela: '/planejamento',
     perguntasSugeridas: ['Compare os cenários da semana', 'Quais SKUs correm risco de ruptura?', 'Quais os maiores riscos da semana?'],
-    saudacao: 'Bom dia, {nome}. O plano da semana 20–26/mai precisa de ajustes.',
+    saudacao: 'Bom dia, {nome}. O horizonte W21–W25 pede três decisões.',
     resumo:
-      'O plano-base atende 94% da demanda com 320 h de setup e 12 SKUs em risco de ruptura. O Cenário A eleva o atendimento a 97% com custo de R$ 180 mil.',
+      '18 SKUs com risco de ruptura nas próximas 2 semanas. A L12 entra em sobrecarga na semana W24 e há 18 h de setup recuperáveis agrupando campanhas similares.',
     riscos: [
-      '12 SKUs com risco de ruptura no plano-base, concentrados em Analgésicos.',
-      'Cobertura de Ibuprofeno API limita a carga da L12 a partir de 21/mai.',
-      'L15 sem programação firme enquanto o blister Alu/Alu não é liberado.',
+      '18 SKUs em risco de ruptura nas próximas 2 semanas — Buscopan e Neosaldina no topo.',
+      'L12 em sobrecarga na W24: 120 h acima da capacidade disponível.',
+      'Materiais críticos com atraso: 5 itens, liderados pelo Ibuprofeno API.',
     ],
     causas: [
       'Demanda de Analgésicos 9% acima do previsto no S&OP de abril.',
-      'Plano atual não considera transferência de campanha entre plantas.',
+      'Campanhas da mesma família espalhadas no horizonte geram setups extras.',
     ],
     acoes: [
-      'Aplicar o Cenário A: transferir o Advil para Goiânia e liberar hora extra no sábado.',
-      'Replanejar a L15 assim que o substituto do blister for homologado.',
+      'Agrupar campanhas similares — reduz 18 h de setup no horizonte.',
+      'Redistribuir a carga da W24 entre Goiânia e Pouso Alegre.',
     ],
-    botoes: ['Comparar cenários', 'Aplicar Cenário A'],
+    botoes: ['Otimizar Sequência', 'Simular Cenário de Manutenção', 'Redistribuir Carga entre Fábricas'],
   },
   '/sequenciamento': {
     tela: '/sequenciamento',

@@ -22,6 +22,15 @@ import {
   motivosParada,
   prontidaoOperacional,
 } from './execucao'
+import {
+  CAPACIDADE_DISPONIVEL_H,
+  aderenciaPorOrdem,
+  calendarioCampanhas,
+  cargaVsCapacidade,
+  coberturaEstoque,
+  planoPorLinha,
+  skusRisco,
+} from './planejamento'
 import { materiais } from './materiais'
 import { lotes } from './lotes'
 import { equipamentos } from './equipamentos'
@@ -60,8 +69,9 @@ function semDuplicatas(ids: string[]) {
 }
 
 describe('fábricas e linhas', () => {
-  it('tem 3 fábricas e 13 linhas com IDs únicos', () => {
-    expect(fabricas).toHaveLength(3)
+  it('tem 5 fábricas (3 operacionais) e 13 linhas com IDs únicos', () => {
+    expect(fabricas).toHaveLength(5)
+    expect(fabricas.filter((fabrica) => fabrica.linhas.length > 0)).toHaveLength(3)
     expect(linhas).toHaveLength(13)
     semDuplicatas(linhas.map((linha) => linha.id))
   })
@@ -411,6 +421,37 @@ describe('KPIs por tela', () => {
         expect(card.sparkline.length).toBeGreaterThanOrEqual(8)
       }
     }
+  })
+})
+
+describe('planejamento', () => {
+  it('carga vs capacidade cobre W21–W25 com excedente apenas na W24', () => {
+    expect(cargaVsCapacidade).toHaveLength(5)
+    for (const semana of cargaVsCapacidade) {
+      if (semana.semana === 'W24') {
+        expect(semana.excedente).toBeGreaterThan(0)
+        expect(semana.carga + semana.adicional + semana.excedente).toBeGreaterThan(CAPACIDADE_DISPONIVEL_H)
+      } else {
+        expect(semana.excedente).toBe(0)
+        expect(semana.carga + semana.adicional).toBeLessThanOrEqual(CAPACIDADE_DISPONIVEL_H)
+      }
+    }
+  })
+
+  it('cobertura, SKUs em risco, plano por linha e calendário estão consistentes', () => {
+    expect(coberturaEstoque).toHaveLength(5)
+    for (const linha of coberturaEstoque) expect(linha.valores).toHaveLength(5)
+    expect(coberturaEstoque[coberturaEstoque.length - 1].total).toBe(true)
+    expect(skusRisco).toHaveLength(5)
+    expect(planoPorLinha).toHaveLength(linhas.length)
+    for (const plano of planoPorLinha) {
+      expect(idsLinhas.has(plano.linhaId)).toBe(true)
+      expect(plano.horas).toHaveLength(5)
+    }
+    for (const campanha of calendarioCampanhas) {
+      expect(['W21', 'W22', 'W23', 'W24', 'W25']).toContain(campanha.semana)
+    }
+    for (const ordemId of Object.keys(aderenciaPorOrdem)) expect(idsOrdens.has(ordemId)).toBe(true)
   })
 })
 
