@@ -319,10 +319,50 @@ export interface Alerta {
   responsavel: string
   status: StatusAlerta
   acaoRecomendada: string
+  causaProvavel: string
+  impactoOperacional: string
+  /** Alternativas à recomendação principal. */
+  alternativas: string[]
   ordemId?: string
   materialId?: string
   ativoId?: string
   loteId?: string
+}
+
+/** Etapa do funil "Fluxo de Decisão" da central de alertas. */
+export interface EtapaFluxoDecisao {
+  id: 'detectado' | 'analisando' | 'recomendado' | 'aprovado' | 'executando' | 'resolvido'
+  rotulo: string
+  valor: number
+  /** Variação vs 1 h atrás, com sinal. */
+  deltaHora: string
+  deltaGoodWhen: 'up' | 'down'
+}
+
+export interface RiscoCategoria {
+  id: string
+  categoria: string
+  valor: number
+  percent: number
+}
+
+export interface QuadranteMatriz {
+  id: string
+  rotulo: string
+  quantidade: number
+  tone: 'danger' | 'warning' | 'success' | 'info'
+}
+
+export interface ItemProntidaoDecisao {
+  item: string
+  percent: number
+}
+
+export interface AprovacaoAgendada {
+  id: string
+  decisao: string
+  responsavel: string
+  prazoRotulo: string
 }
 
 // ── Agentes IA ───────────────────────────────────────────────────────────────

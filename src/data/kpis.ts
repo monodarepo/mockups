@@ -21,12 +21,9 @@ import { personas } from './personas'
 
 // ── Valores derivados dos próprios mocks — uma única fonte de verdade ────────
 
-const impactoTotalAlertas = alertas.reduce((soma, a) => soma + a.impactoEstimado, 0)
 const impactoMateriais = alertas
   .filter((a) => a.area === 'Materiais')
   .reduce((soma, a) => soma + a.impactoEstimado, 0)
-const slaMedioAlertas = alertas.reduce((soma, a) => soma + a.slaHoras, 0) / alertas.length
-const alertasEscalados = alertas.filter((a) => a.status === 'Escalado').length
 
 const linhasAnapolis = linhas.filter((l) => l.fabricaId === 'anapolis')
 const utilizacaoMediaAnapolis =
@@ -120,6 +117,74 @@ export function kpisSequenciamento(otimizada: boolean): KpiCardData[] {
       sublabel: 'identificado pelo otimizador',
       tone: 'success',
       sparkline: serieSparkline('kpi-sq-ganho', 12, { base: 1080, tendencia: 280, ruido: 0.06 }),
+    },
+  ]
+}
+
+/**
+ * KPIs de /alertas — "Decisões Pendentes" é reativo ao store: aprovar ou
+ * rejeitar em qualquer tela decrementa o valor (badge da sidebar idem).
+ */
+export function kpisAlertas(pendencias: number): KpiCardData[] {
+  return [
+    {
+      id: 'al-criticos',
+      label: 'Alertas Críticos',
+      valor: formatNumero(14),
+      delta: '+3',
+      deltaGoodWhen: 'down',
+      sublabel: 'rede · vs ontem',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-al-criticos', 12, { base: 11, tendencia: 3, ruido: 0.12, decimais: 0, min: 6 }),
+    },
+    {
+      id: 'al-pendentes',
+      label: 'Decisões Pendentes',
+      valor: formatNumero(pendencias),
+      delta: '+2',
+      deltaGoodWhen: 'down',
+      sublabel: 'aguardando aprovação',
+      tone: 'warning',
+      sparkline: serieSparkline('kpi-al-pendentes', 12, { base: 10, tendencia: 2, ruido: 0.1, decimais: 0, min: 6 }),
+    },
+    {
+      id: 'al-impacto',
+      label: 'Impacto Financeiro em Risco',
+      valor: formatMoedaCompacta(1_820_000),
+      delta: `+${formatMoedaCompacta(320_000)}`,
+      deltaGoodWhen: 'down',
+      sublabel: 'últimas 24 h',
+      tone: 'danger',
+      sparkline: serieSparkline('kpi-al-impacto-risco', 12, { base: 1450, tendencia: 340, ruido: 0.05 }),
+    },
+    {
+      id: 'al-ordens',
+      label: 'Ordens Afetadas',
+      valor: formatNumero(27),
+      delta: '+4',
+      deltaGoodWhen: 'down',
+      sublabel: 'rede · vs ontem',
+      sparkline: serieSparkline('kpi-al-ordens-afetadas', 12, { base: 22, tendencia: 4.5, ruido: 0.08, decimais: 0, min: 16 }),
+    },
+    {
+      id: 'al-slas',
+      label: 'SLAs Próximos do Vencimento',
+      valor: formatNumero(6),
+      delta: '+2',
+      deltaGoodWhen: 'down',
+      sublabel: 'vencem nas próximas 4 h',
+      tone: 'warning',
+      sparkline: serieSparkline('kpi-al-slas', 12, { base: 4, tendencia: 2, ruido: 0.2, decimais: 0, min: 1 }),
+    },
+    {
+      id: 'al-concluidas',
+      label: 'Ações Concluídas',
+      valor: formatNumero(31),
+      delta: '+8',
+      deltaGoodWhen: 'up',
+      sublabel: 'hoje · vs média diária',
+      tone: 'success',
+      sparkline: serieSparkline('kpi-al-concluidas', 12, { base: 24, tendencia: 7, ruido: 0.1, decimais: 0, min: 15 }),
     },
   ]
 }
@@ -601,68 +666,7 @@ export const kpisPorTela: Record<string, KpiCardData[]> = {
       sparkline: serieSparkline('kpi-cs-orcamento', 12, { base: 2, tendencia: 1.2, ruido: 0.2 }),
     },
   ],
-  '/alertas': [
-    {
-      id: 'al-pendencias',
-      label: 'Decisões pendentes',
-      valor: formatNumero(12),
-      sublabel: 'fila de aprovação',
-      tone: 'warning',
-      sparkline: serieSparkline('kpi-al-pendencias', 12, { base: 10, tendencia: 2, ruido: 0.1, decimais: 0, min: 6 }),
-    },
-    {
-      id: 'al-ativos',
-      label: 'Alertas ativos',
-      valor: formatNumero(alertas.length),
-      delta: '+2',
-      deltaGoodWhen: 'down',
-      sublabel: 'vs último turno',
-      sparkline: serieSparkline('kpi-al-ativos', 12, { base: 5, tendencia: 2, ruido: 0.15, decimais: 0, min: 2 }),
-    },
-    {
-      id: 'al-escalados',
-      label: 'Escalados',
-      valor: formatNumero(alertasEscalados),
-      sublabel: 'AL-006 · SLA às 11:18',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-al-escalados', 12, { base: 0.6, ruido: 0.6, decimais: 0, min: 0, max: 2 }),
-    },
-    {
-      id: 'al-impacto',
-      label: 'Impacto total',
-      valor: formatMoedaCompacta(impactoTotalAlertas),
-      delta: formatPercentAssinado(28),
-      deltaGoodWhen: 'down',
-      sublabel: 'vs última semana',
-      tone: 'danger',
-      sparkline: serieSparkline('kpi-al-impacto', 12, { base: 900, tendencia: 420, ruido: 0.08 }),
-    },
-    {
-      id: 'al-sla',
-      label: 'SLA médio',
-      valor: `${formatNumero(slaMedioAlertas, 1)} h`,
-      sublabel: 'janela média para decidir',
-      sparkline: serieSparkline('kpi-al-sla', 12, { base: 7, ruido: 0.1 }),
-    },
-    {
-      id: 'al-resolvidos',
-      label: 'Resolvidos hoje',
-      valor: formatNumero(5),
-      sublabel: 'desde 00:00',
-      tone: 'success',
-      sparkline: serieSparkline('kpi-al-resolvidos', 12, { base: 4, tendencia: 1.5, ruido: 0.2, decimais: 0, min: 0 }),
-    },
-    {
-      id: 'al-resposta',
-      label: 'Tempo médio de resposta',
-      valor: '42 min',
-      delta: '-6 min',
-      deltaGoodWhen: 'down',
-      sublabel: 'vs última semana',
-      tone: 'success',
-      sparkline: serieSparkline('kpi-al-resposta', 12, { base: 48, tendencia: -6, ruido: 0.06 }),
-    },
-  ],
+  '/alertas': kpisAlertas(12),
   '/relatorios': [
     {
       id: 'rl-disponiveis',

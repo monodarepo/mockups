@@ -19,8 +19,8 @@ interface DataTableProps<T> {
   chave: (linha: T) => string
   /** Descrição da tabela para leitores de tela. */
   rotulo: string
-  /** Coluna de ação por linha (botão-texto à direita). */
-  acao?: { rotulo: string; onClick: (linha: T) => void }
+  /** Coluna de ação por linha (botão-texto à direita); rótulo pode variar por linha. */
+  acao?: { rotulo: string | ((linha: T) => string); onClick: (linha: T) => void }
   /** Altura máxima em px — ativa scroll interno com header fixo. */
   alturaMax?: number
   ordenacaoInicial?: { coluna: string; direcao: 'asc' | 'desc' }
@@ -176,14 +176,18 @@ export function DataTable<T>({
                 <td className="whitespace-nowrap px-3 text-right">
                   <button
                     type="button"
-                    onClick={() => acao.onClick(linha)}
+                    onClick={(evento) => {
+                      // Não dispara a seleção de linha junto com a ação.
+                      evento.stopPropagation()
+                      acao.onClick(linha)
+                    }}
                     className={cn(
                       'text-body-sm font-medium text-primary transition-colors duration-150',
                       'rounded hover:text-primary-hover hover:underline',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                     )}
                   >
-                    {acao.rotulo}
+                    {typeof acao.rotulo === 'function' ? acao.rotulo(linha) : acao.rotulo}
                   </button>
                 </td>
               ) : null}

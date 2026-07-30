@@ -26,7 +26,14 @@ import { materiais } from './materiais'
 import { lotes } from './lotes'
 import { equipamentos } from './equipamentos'
 import { ordensManutencao } from './manutencao'
-import { alertas } from './alertas'
+import {
+  alertas,
+  fluxoDecisao,
+  matrizPrioridadeUrgencia,
+  prontidaoDecisao,
+  proximasAprovacoes,
+  topRiscosCategorias,
+} from './alertas'
 import { acoesAgentes, agentes } from './agentes'
 import { MELHOR_CENARIO_ID, cenarios, eventosSimulaveis } from './cenarios'
 import { relatorios } from './relatorios'
@@ -283,6 +290,22 @@ describe('alertas', () => {
   it('o impacto somado bate com o KPI de impacto (R$ 1,34 mi)', () => {
     const total = alertas.reduce((soma, alerta) => soma + alerta.impactoEstimado, 0)
     expect(total).toBe(1_338_000)
+  })
+
+  it('todo alerta tem os campos do drawer preenchidos', () => {
+    for (const alerta of alertas) {
+      expect(alerta.causaProvavel.length).toBeGreaterThan(10)
+      expect(alerta.impactoOperacional.length).toBeGreaterThan(10)
+      expect(alerta.alternativas.length).toBeGreaterThanOrEqual(2)
+    }
+  })
+
+  it('dados da central: funil, categorias (R$ 1,82 mi), matriz (32) e agenda', () => {
+    expect(fluxoDecisao.map((etapa) => etapa.valor)).toEqual([14, 9, 7, 5, 6, 18])
+    expect(topRiscosCategorias.reduce((soma, risco) => soma + risco.valor, 0)).toBe(1_820_000)
+    expect(matrizPrioridadeUrgencia.reduce((soma, quadrante) => soma + quadrante.quantidade, 0)).toBe(32)
+    expect(prontidaoDecisao).toHaveLength(5)
+    expect(proximasAprovacoes).toHaveLength(5)
   })
 })
 

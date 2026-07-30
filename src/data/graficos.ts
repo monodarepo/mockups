@@ -1,4 +1,4 @@
-import { serieDiaria } from '@/lib/series'
+import { serieDiaria, serieHoraria } from '@/lib/series'
 import { HOJE } from './constants'
 
 export interface PontoProducaoPlano {
@@ -31,4 +31,28 @@ export const producaoVsPlano: PontoProducaoPlano[] = serieReal.map((ponto, indic
   label: ponto.label,
   real: indice === serieReal.length - 1 ? 2_094 : ponto.valor,
   plano: indice === seriePlano.length - 1 ? 1_968 : seriePlano[indice].valor,
+}))
+
+export interface PontoImpactoAlertas {
+  label: string
+  /** Impacto acumulado em R$ mil. */
+  valor: number
+}
+
+const serieImpacto = serieHoraria('alertas-impacto-24h', new Date(2025, 4, 18, 11, 0), {
+  horas: 24,
+  base: 1_380,
+  tendencia: 430,
+  ruido: 0.03,
+  decimais: 0,
+  min: 1_100,
+})
+
+/**
+ * Impacto financeiro em risco nas últimas 24 h (R$ mil), terminando em
+ * R$ 1,82 mi às 10:00 de 19/mai — o rótulo destacado do card.
+ */
+export const impactoAlertas24h: PontoImpactoAlertas[] = serieImpacto.map((ponto, indice) => ({
+  label: ponto.label,
+  valor: indice === serieImpacto.length - 1 ? 1_820 : ponto.valor,
 }))

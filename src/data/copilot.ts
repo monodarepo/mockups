@@ -184,21 +184,22 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/alertas': {
     tela: '/alertas',
-    saudacao: 'Bom dia, {nome}. Há 12 decisões pendentes na fila.',
+    saudacao: 'Bom dia, {nome}. Há decisões críticas vencendo na próxima hora.',
     resumo:
-      'Sete alertas ativos somam R$ 1,34 mi de impacto. O risco de atraso da OF-045678 (R$ 510 mil) está escalado com SLA de 1 h.',
+      'O impacto em risco na rede chega a R$ 1,82 mi nas últimas 24 h. Os sete alertas de Anápolis somam R$ 1,34 mi — dois críticos na L12.',
     riscos: [
-      'OF-045678 com SLA de decisão vencendo às 11:18.',
-      'Dois alertas críticos concentrados na L12 — material e ativo.',
+      'AL-006 (risco de atraso da OF-045678) escalado com SLA vencendo às 11:18.',
+      'Materiais concentram R$ 720 mil do risco — Ibuprofeno API e blister Alu/Alu.',
     ],
     causas: [
-      'Falta de Ibuprofeno API e vibração da compressora convergem na mesma linha.',
+      'Falta de Ibuprofeno API e vibração da compressora convergem na L12.',
+      'Fila de aprovação cresceu 2 itens na última hora — gargalo em Aprovações (80%).',
     ],
     acoes: [
-      'Decidir primeiro o alerta escalado AL-006 — simular recuperação antes de aprovar.',
-      'Aprovar a transferência de API (AL-001) para eliminar a causa comum.',
+      'Decidir primeiro o AL-006: simule o impacto e aprove o plano combinado.',
+      'Aprovar a transferência de API (AL-001) elimina a causa comum de dois alertas.',
     ],
-    botoes: ['Ver escalados', 'Simular recuperação'],
+    botoes: ['Simular impacto', 'Convocar war room', 'Aprovar plano'],
   },
   '/relatorios': {
     tela: '/relatorios',

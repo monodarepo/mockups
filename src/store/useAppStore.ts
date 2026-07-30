@@ -126,7 +126,7 @@ export const useAppStore = create<AppState>((set) => {
           pendencias: Math.max(0, estado.pendencias - 1),
           toasts: empilharToast(estado, {
             titulo: 'Aprovado',
-            descricao: `${id} aprovado e enviado para execução.`,
+            descricao: 'Encaminhado ao Agente de Execução.',
             tone: 'success',
           }),
         }
@@ -139,7 +139,7 @@ export const useAppStore = create<AppState>((set) => {
           pendencias: Math.max(0, estado.pendencias - 1),
           toasts: empilharToast(estado, {
             titulo: 'Rejeitado',
-            descricao: `${id} rejeitado: ${motivo}`,
+            descricao: 'Registrado na trilha de auditoria.',
             tone: 'neutral',
           }),
         }
