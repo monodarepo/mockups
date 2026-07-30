@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { ToastHost } from '@/components/ui/Toast'
+import { SimuladorCenarios } from '@/components/shared/SimuladorCenarios'
 
 export function AppShell() {
   return (
@@ -16,6 +17,7 @@ export function AppShell() {
           </div>
         </main>
       </div>
+      <SimuladorCenarios />
       <ToastHost />
     </div>
   )

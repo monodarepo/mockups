@@ -9,6 +9,7 @@ import type { ConteudoCopilot, ParQA } from './types'
 export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/': {
     tela: '/',
+    perguntasSugeridas: ['Quais os maiores riscos da semana?', 'Quais produtos podem romper?', 'Qual o impacto financeiro em risco?'],
     saudacao: 'Bom dia, {nome}. Este é o resumo executivo da rede em 19/mai.',
     resumo:
       'As três fábricas operam com OEE de 78,6% e aderência de 92,1%. O ponto de atenção é Jacareí: a P27 concentra as ordens em risco da semana.',
@@ -32,6 +33,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/planejamento': {
     tela: '/planejamento',
+    perguntasSugeridas: ['Compare os cenários da semana', 'Quais SKUs correm risco de ruptura?', 'Quais os maiores riscos da semana?'],
     saudacao: 'Bom dia, {nome}. O plano da semana 20–26/mai precisa de ajustes.',
     resumo:
       'O plano-base atende 94% da demanda com 320 h de setup e 12 SKUs em risco de ruptura. O Cenário A eleva o atendimento a 97% com custo de R$ 180 mil.',
@@ -52,6 +54,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/sequenciamento': {
     tela: '/sequenciamento',
+    perguntasSugeridas: ['Qual sequência minimiza setups?', 'Simule a parada da L12', 'Por que o OEE caiu?'],
     saudacao: 'Bom dia, {nome}. Estes são os insights da sequência da semana.',
     resumo:
       'A sequência vigente tem 28 setups (312 h). Reagrupar a família Analgésicos elimina 3 setups, libera 10,7 h de capacidade e captura R$ 210 mil.',
@@ -71,6 +74,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/execucao': {
     tela: '/execucao',
+    perguntasSugeridas: ['Por que a velocidade da L08 caiu?', 'Qual o risco de atraso da OF-045678?', 'Prepare o resumo do turno'],
     saudacao: 'Bom dia, {nome}. O Turno A está com 4 linhas rodando e 1 parada.',
     resumo:
       'A OF-045678 avança a 68% na L12. A L08 preocupa: aderência de 45%. A L05 acumula microparadas nas últimas 2 h.',
@@ -90,6 +94,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/gemeo': {
     tela: '/gemeo',
+    perguntasSugeridas: ['Simule a parada da L12', 'Por que o Cenário B não venceu?', 'Quais SKUs correm risco de ruptura?'],
     saudacao: 'Bom dia, {nome}. O gêmeo está calibrado com dados de 10:18.',
     resumo:
       'Cinco eventos estão prontos para simulação. Na comparação vigente, o Cenário A entrega 97% de atendimento com risco Baixo — o melhor resultado.',
@@ -108,6 +113,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/qualidade': {
     tela: '/qualidade',
+    perguntasSugeridas: ['Como está a fila de QA?', 'Por que a L08 está com microparadas?', 'Prepare o resumo da reunião diária'],
     saudacao: 'Bom dia, {nome}. A fila de QA tem 6 lotes e 1 bloqueio ativo.',
     resumo:
       'O lote 2456789A (Buscopan) está com parâmetros dentro da faixa e aguarda apenas o laudo. O 2456793E (Apracur) segue bloqueado após reprovação.',
@@ -127,6 +133,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/manutencao': {
     tela: '/manutencao',
+    perguntasSugeridas: ['Qual o risco de falha da compressora?', 'Simule a parada da L12', 'Qual o plano de recuperação da OF-045678?'],
     saudacao: 'Bom dia, {nome}. Dois ativos exigem atenção imediata.',
     resumo:
       'A Compressora L12 opera em estado crítico (78% de falha em 7 dias) e a Seladora L15 aguarda peça. A preventiva do HVAC AHU-03 está atrasada.',
@@ -146,6 +153,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/materiais': {
     tela: '/materiais',
+    perguntasSugeridas: ['Qual a cobertura do Ibuprofeno?', 'Quando a L15 volta a operar?', 'Quais produtos podem romper?'],
     saudacao: 'Bom dia, {nome}. Dois materiais críticos pressionam o plano.',
     resumo:
       'Ibuprofeno API cobre 1,4 dia e o Blister Alu/Alu 10cp, 1,7 dia. A Sacarose está bloqueada aguardando CoA. Valor em risco: R$ 475 mil.',
@@ -165,6 +173,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/custos': {
     tela: '/custos',
+    perguntasSugeridas: ['Por que o OEE caiu?', 'Qual o impacto financeiro em risco?', 'Qual sequência minimiza setups?'],
     saudacao: 'Bom dia, {nome}. As perdas do dia somam R$ 620 mil.',
     resumo:
       'O custo do dia está 3,2% acima do orçamento. Microparadas da L08 e a parada da L15 respondem por 62% das perdas.',
@@ -184,6 +193,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/alertas': {
     tela: '/alertas',
+    perguntasSugeridas: ['Qual o impacto financeiro em risco?', 'Simule a parada da L12', 'Qual o plano de recuperação da OF-045678?'],
     saudacao: 'Bom dia, {nome}. Há decisões críticas vencendo na próxima hora.',
     resumo:
       'O impacto em risco na rede chega a R$ 1,82 mi nas últimas 24 h. Os sete alertas de Anápolis somam R$ 1,34 mi — dois críticos na L12.',
@@ -203,6 +213,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/relatorios': {
     tela: '/relatorios',
+    perguntasSugeridas: ['Prepare o resumo da reunião diária', 'Quais os maiores riscos da semana?', 'Por que o OEE caiu?'],
     saudacao: 'Bom dia, {nome}. O resumo da reunião diária está pronto para gerar.',
     resumo:
       'Oito relatórios disponíveis, três gerados hoje. O painel executivo da semana destaca R$ 1,34 mi em risco mapeado.',
@@ -220,6 +231,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/agentes': {
     tela: '/agentes',
+    perguntasSugeridas: ['O que os agentes propuseram hoje?', 'Qual a cobertura do Ibuprofeno?', 'Quais os maiores riscos da semana?'],
     saudacao: 'Bom dia, {nome}. Os agentes propuseram 4 ações hoje.',
     resumo:
       'Nove agentes ativos concluíram 173 tarefas hoje com SLA médio de 97,7%. A ação de maior impacto — antecipar a compra de Ibuprofeno API — evita R$ 780 mil.',
@@ -238,6 +250,7 @@ export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   },
   '/configuracoes': {
     tela: '/configuracoes',
+    perguntasSugeridas: ['O que os agentes propuseram hoje?', 'Prepare o resumo da reunião diária', 'Qual o impacto financeiro em risco?'],
     saudacao: 'Bom dia, {nome}. A configuração da plataforma está saudável.',
     resumo:
       'Três personas ativas, seis integrações conectadas e dois agentes operando em autonomia N4. A última sincronização com o SAP foi às 10:12.',
@@ -291,10 +304,11 @@ export const bancoQA: ParQA[] = [
     resposta:
       'Simulação de parada de 8 h na L12: o atendimento da semana cai de 94% para 91%, a OF-045678 atrasa 6 h e o impacto financeiro estimado é de R$ 510 mil. Mitigação recomendada: antecipar a preditiva (OT-245689) para 21/mai à noite e transferir o Advil para Goiânia — o atraso cai para zero com custo de R$ 180 mil.',
     fontes: ['MES L12', 'Histórico de manutenção'],
+    acao: { rotulo: 'Abrir simulador', tipo: 'abrir-simulador', eventoId: 'EV-001' },
   },
   {
     id: 'qa-05',
-    palavrasChave: ['cenário b', 'por que o cenário', 'cenário recomendado', 'comparação de cenários'],
+    palavrasChave: ['cenário b', 'por que o cenário', 'cenário recomendado', 'comparação de cenários', 'compare os cenários'],
     resposta:
       'O recomendado é o Cenário A, não o B. O Cenário B (só hora extra no sábado) custa menos — R$ 95 mil contra R$ 180 mil — mas deixa 6 SKUs em ruptura e risco Médio. O Cenário A adiciona a transferência de campanha para Goiânia: atendimento de 97%, 4 SKUs em ruptura, OEE projetado de 73% e risco Baixo. O ganho de atendimento paga o custo adicional.',
     fontes: ['SAP PP'],
@@ -322,7 +336,7 @@ export const bancoQA: ParQA[] = [
   },
   {
     id: 'qa-09',
-    palavrasChave: ['status da of-045678', 'como está a of-045678', 'buscopan l12'],
+    palavrasChave: ['status da of-045678', 'como está a of-045678', 'buscopan l12', 'risco de atraso da of-045678', 'atraso da of-045678'],
     resposta:
       'OF-045678 (Buscopan Composto, L12): em execução com 68% de progresso — 820.560 de 1.200.000 comprimidos. Janela: 20/mai, 08:00 a 22/mai, 16:00. Prontidão de materiais em 100%, operador João Santos. Risco ativo: cobertura de Ibuprofeno API de 1,4 dia; alerta AL-006 escalado com impacto de R$ 510 mil.',
     fontes: ['MES L12', 'SAP PP'],
@@ -343,7 +357,7 @@ export const bancoQA: ParQA[] = [
   },
   {
     id: 'qa-12',
-    palavrasChave: ['aderência da l08', 'microparadas', 'por que a l08'],
+    palavrasChave: ['aderência da l08', 'microparadas', 'por que a l08', 'velocidade da l08'],
     resposta:
       'A L08 opera com aderência de 45% por causa de 23 microparadas desde as 06:00. Causa raiz: variação de peso alvo da Neosaldina, que dispara ajustes frequentes, agravada pelo tensionamento da esteira transportadora. A OT-245683 (corretiva) está em execução com conclusão prevista para 14:00; o lote 2456791C está em investigação pela mesma causa.',
     fontes: ['MES L12', 'LIMS', 'POP-042'],
@@ -380,4 +394,37 @@ export const bancoQA: ParQA[] = [
 
 /** Resposta usada quando nenhuma palavra-chave corresponde à pergunta. */
 export const RESPOSTA_PADRAO_QA =
-  'Não encontrei essa informação nos dados do turno. Reformule citando uma linha (L03–L15), uma ordem (OF-045678…) ou um material, ou abra a tela correspondente no menu lateral.'
+  'Ainda não tenho essa análise no mockup. Posso falar sobre: riscos da semana, OEE, setups, rupturas, cenários e manutenção.'
+
+/** Análise de trade-offs exibida no passo de comparação do Simulador de Cenários. */
+export const ANALISE_CENARIOS: [string, string] = [
+  'O Cenário A entrega o maior atendimento (97%) e o melhor OEE projetado (73%) ao custo incremental de R$ 180 mil: a transferência do Advil para Goiânia libera 45 h na L08 e a hora extra de sábado absorve o atraso da L12. É a opção recomendada quando a prioridade é proteger o nível de serviço das contas-chave.',
+  'O Cenário B custa quase metade (R$ 95 mil), mas mantém 6 SKUs em risco de ruptura e OEE de 71% — o ganho fica limitado ao que a hora extra alcança sem redistribuir carga. Se o caixa da semana pesar mais que o atendimento, ele é defensável. A decisão é sua.',
+]
+
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+/**
+ * Matching por palavras-chave (sem acentos, caixa baixa). Em caso de mais de
+ * um match, vence a palavra-chave mais longa — a mais específica.
+ */
+export function buscarResposta(pergunta: string): ParQA | null {
+  const perguntaNormalizada = normalizar(pergunta)
+  let melhor: ParQA | null = null
+  let melhorPeso = 0
+  for (const par of bancoQA) {
+    for (const palavraChave of par.palavrasChave) {
+      const chave = normalizar(palavraChave)
+      if (perguntaNormalizada.includes(chave) && chave.length > melhorPeso) {
+        melhor = par
+        melhorPeso = chave.length
+      }
+    }
+  }
+  return melhor
+}

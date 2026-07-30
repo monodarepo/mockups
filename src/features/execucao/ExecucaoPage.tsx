@@ -159,12 +159,12 @@ export function ExecucaoPage() {
   const navigate = useNavigate()
   const setPersona = useAppStore((s) => s.setPersona)
   const addToast = useAppStore((s) => s.addToast)
+  const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
   const [ordemSelecionada, setOrdemSelecionada] = useState('OF-045678')
   const [modoGrafico, setModoGrafico] = useState<'hora' | 'acumulado'>('hora')
   const [acoesAceitas, setAcoesAceitas] = useState<string[]>([])
   const [modalTurno, setModalTurno] = useState(false)
-  const [modalSimular, setModalSimular] = useState(false)
   const [decorrido, setDecorrido] = useState(TURNO_DECORRIDO_INICIAL_SEG)
   const timerRef = useRef<number | null>(null)
 
@@ -298,7 +298,7 @@ export function ExecucaoPage() {
   }
 
   const aoAcaoCopilot = (rotulo: string) => {
-    if (rotulo === 'Simular Recuperação') setModalSimular(true)
+    if (rotulo === 'Simular Recuperação') abrirSimulador('EV-001')
     else if (rotulo === 'Acionar Manutenção') {
       addToast({ titulo: 'Manutenção acionada', descricao: 'OT-245683 priorizada — equipe notificada.', tone: 'success' })
       navigate('/manutencao')
@@ -639,21 +639,6 @@ export function ExecucaoPage() {
         </p>
       </Modal>
 
-      <Modal
-        aberto={modalSimular}
-        onFechar={() => setModalSimular(false)}
-        titulo="Simular Recuperação"
-        descricao="Gêmeo da Fábrica — simulação de eventos sobre o plano da semana"
-        rodape={
-          <Button variante="outline" tamanho="sm" onClick={() => setModalSimular(false)}>
-            Fechar
-          </Button>
-        }
-      >
-        <p className="rounded-lg bg-primary-soft px-4 py-6 text-center text-body font-medium text-primary-strong">
-          Simulador de recuperação — disponível no Prompt 8
-        </p>
-      </Modal>
 
       <PageFooter />
     </>

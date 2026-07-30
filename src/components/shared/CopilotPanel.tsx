@@ -1,14 +1,15 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { AlertTriangle, CheckCircle2, ChevronDown, Search, SendHorizontal, Sparkles, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button, IconButton } from '@/components/ui/Button'
 import { useAppStore } from '@/store'
-import type { ConteudoCopilot } from '@/data/types'
+import { RESPOSTA_PADRAO_QA, buscarResposta } from '@/data/copilot'
+import type { ConteudoCopilot, MensagemCopilot } from '@/data/types'
 
-/** Resposta provisória do assistente até a integração do banco de Q&A. */
-const ECO_PROVISORIO = 'Disponível no Prompt 8'
+/** Velocidade do efeito de digitação da resposta (~25 ms por caractere). */
+const MS_POR_CARACTERE = 25
 
 interface CopilotPanelProps {
   conteudo: ConteudoCopilot
@@ -49,20 +50,103 @@ function BlocoCopilot({
   )
 }
 
+/** Bolha de mensagem do chat, com digitação progressiva nas respostas novas. */
+function MensagemChat({
+  mensagem,
+  digitando,
+  onAbrirSimulador,
+}: {
+  mensagem: MensagemCopilot
+  digitando: number | null
+  onAbrirSimulador: (eventoId: string) => void
+}) {
+  const doUsuario = mensagem.autor === 'usuario'
+  const completa = digitando === null
+  const texto = completa ? mensagem.texto : mensagem.texto.slice(0, digitando)
+
+  return (
+    <div className={cn('flex', doUsuario ? 'justify-end' : 'justify-start')}>
+      <div
+        className={cn(
+          'max-w-[92%] rounded-xl px-3 py-2 text-body-sm leading-snug',
+          doUsuario ? 'bg-primary text-white' : 'bg-app text-ink',
+        )}
+      >
+        {texto}
+        {!completa ? <span aria-hidden="true" className="animate-pulse-live">▌</span> : null}
+        {completa && mensagem.fontes?.length ? (
+          <p className="mt-1.5 border-t border-line pt-1.5 text-caption text-muted">
+            Fontes: {mensagem.fontes.join(' · ')}
+          </p>
+        ) : null}
+        {completa && mensagem.acao ? (
+          <Button
+            variante="outline"
+            tamanho="sm"
+            className="mt-2 h-7 w-full bg-card px-2.5"
+            onClick={() => onAbrirSimulador(mensagem.acao?.eventoId ?? '')}
+          >
+            {mensagem.acao.rotulo}
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 export function CopilotPanel({ conteudo, onAcao, onAceitarAcao, acoesAceitas = [] }: CopilotPanelProps) {
   const persona = useAppStore((s) => s.persona)
   const aberto = useAppStore((s) => s.copilotoAberto)
   const alternarCopiloto = useAppStore((s) => s.alternarCopiloto)
+  const conversa = useAppStore((s) => s.conversas[conteudo.tela] ?? [])
+  const registrarMensagem = useAppStore((s) => s.registrarMensagem)
+  const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+
   const [pergunta, setPergunta] = useState('')
-  const [eco, setEco] = useState<string | null>(null)
+  // Digitação progressiva da resposta mais recente: {id da mensagem, nº de caracteres}.
+  const [digitacao, setDigitacao] = useState<{ id: number; chars: number } | null>(null)
+  const fimConversaRef = useRef<HTMLDivElement>(null)
 
   const saudacao = conteudo.saudacao.replace('{nome}', persona.tratamento)
 
+  useEffect(() => {
+    if (!digitacao) return
+    const alvo = conversa.find((mensagem) => mensagem.id === digitacao.id)
+    if (!alvo || digitacao.chars >= alvo.texto.length) {
+      setDigitacao(null)
+      return
+    }
+    const timer = window.setTimeout(
+      () => setDigitacao({ id: digitacao.id, chars: digitacao.chars + 1 }),
+      MS_POR_CARACTERE,
+    )
+    return () => window.clearTimeout(timer)
+  }, [digitacao, conversa])
+
+  // Mantém a conversa rolada para o fim enquanto a resposta é digitada.
+  useEffect(() => {
+    fimConversaRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [conversa.length, digitacao?.chars])
+
+  const enviar = (texto: string) => {
+    const perguntaLimpa = texto.trim()
+    if (!perguntaLimpa || digitacao) return
+    registrarMensagem(conteudo.tela, { autor: 'usuario', texto: perguntaLimpa })
+    const par = buscarResposta(perguntaLimpa)
+    const resposta = registrarMensagem(conteudo.tela, {
+      autor: 'copiloto',
+      texto: par?.resposta ?? RESPOSTA_PADRAO_QA,
+      fontes: par?.fontes,
+      acao: par?.acao,
+    })
+    const reduzMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!reduzMotion) setDigitacao({ id: resposta.id, chars: 0 })
+    setPergunta('')
+  }
+
   const aoPerguntar = (evento: FormEvent) => {
     evento.preventDefault()
-    if (!pergunta.trim()) return
-    setEco(ECO_PROVISORIO)
-    setPergunta('')
+    enviar(pergunta)
   }
 
   return (
@@ -179,11 +263,42 @@ export function CopilotPanel({ conteudo, onAcao, onAceitarAcao, acoesAceitas = [
               ))}
             </div>
 
-            {eco ? (
-              <p role="status" className="rounded-lg bg-primary-soft px-3 py-2 text-caption font-medium text-primary-strong">
-                {eco}
-              </p>
+            {conversa.length > 0 ? (
+              <div
+                role="log"
+                aria-label="Conversa com o assistente"
+                className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-xl border border-line p-2.5"
+              >
+                {conversa.map((mensagem) => (
+                  <MensagemChat
+                    key={mensagem.id}
+                    mensagem={mensagem}
+                    digitando={digitacao?.id === mensagem.id ? digitacao.chars : null}
+                    onAbrirSimulador={(eventoId) => abrirSimulador(eventoId)}
+                  />
+                ))}
+                <div ref={fimConversaRef} />
+              </div>
             ) : null}
+
+            <div className="flex flex-wrap gap-1.5">
+              {conteudo.perguntasSugeridas.map((sugestao) => (
+                <button
+                  key={sugestao}
+                  type="button"
+                  onClick={() => enviar(sugestao)}
+                  disabled={digitacao !== null}
+                  className={cn(
+                    'rounded-pill border border-line bg-app px-2.5 py-1 text-caption text-muted',
+                    'transition-colors duration-150 hover:border-primary/50 hover:text-primary',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    'disabled:cursor-not-allowed disabled:opacity-50',
+                  )}
+                >
+                  {sugestao}
+                </button>
+              ))}
+            </div>
 
             <form onSubmit={aoPerguntar} className="flex items-center gap-2">
               <label className="sr-only" htmlFor="pergunta-copiloto">

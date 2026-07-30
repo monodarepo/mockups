@@ -13,8 +13,6 @@ import { StatusPill } from '@/components/shared/StatusPill'
 import { ProgressBar } from '@/components/shared/ProgressBar'
 import { DataTable, type ColunaDataTable } from '@/components/shared/DataTable'
 import { Select } from '@/components/ui/Select'
-import { Modal } from '@/components/ui/Modal'
-import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
 import { colors, type Tone } from '@/lib/colors'
 import { formatData, formatDiaMes, formatHora, formatMoedaCompacta, formatNumero, formatPercent } from '@/lib/format'
@@ -85,10 +83,10 @@ export function VisaoGeralPage() {
   const setPersona = useAppStore((s) => s.setPersona)
   const setFiltro = useAppStore((s) => s.setFiltro)
   const addToast = useAppStore((s) => s.addToast)
+  const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
   const [modoPanorama, setModoPanorama] = useState<'mapa' | 'lista'>('mapa')
   const [fabricaSelecionada, setFabricaSelecionada] = useState('Todas as fábricas')
-  const [simuladorAberto, setSimuladorAberto] = useState(false)
   const [ajusteAprovado, setAjusteAprovado] = useState(false)
   const panoramaRef = useRef<HTMLDivElement>(null)
 
@@ -173,7 +171,7 @@ export function VisaoGeralPage() {
   }
 
   const aoAcaoCopilot = (rotulo: string) => {
-    if (rotulo === 'Simular cenário') setSimuladorAberto(true)
+    if (rotulo === 'Simular cenário') abrirSimulador()
     else if (rotulo === 'Aprovar ajuste') aprovarAjuste()
     else if (rotulo === 'Ver ordens críticas') navigate('/alertas')
   }
@@ -424,21 +422,6 @@ export function VisaoGeralPage() {
         </SectionCard>
       </div>
 
-      <Modal
-        aberto={simuladorAberto}
-        onFechar={() => setSimuladorAberto(false)}
-        titulo="Simulador de Cenários"
-        descricao="Gêmeo da Fábrica — simulação de eventos sobre o plano da semana"
-        rodape={
-          <Button variante="outline" tamanho="sm" onClick={() => setSimuladorAberto(false)}>
-            Fechar
-          </Button>
-        }
-      >
-        <p className="rounded-lg bg-primary-soft px-4 py-6 text-center text-body font-medium text-primary-strong">
-          Simulador de Cenários — disponível no Prompt 8
-        </p>
-      </Modal>
 
       <PageFooter />
     </>

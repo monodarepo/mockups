@@ -406,6 +406,8 @@ export interface EventoSimulavel {
   id: string
   nome: string
   descricao: string
+  /** Impacto preliminar em 1 linha — exibido no card do simulador. */
+  impactoPreliminar: string
 }
 
 export type RiscoCenario = 'Baixo' | 'Médio' | 'Alto'
@@ -458,6 +460,15 @@ export interface ConteudoCopilot {
   impactos?: string[]
   /** Rótulos dos 2–3 botões de ação contextuais. */
   botoes: string[]
+  /** 3 chips de perguntas sugeridas acima do input — todas com match no banco Q&A. */
+  perguntasSugeridas: string[]
+}
+
+/** Ação opcional oferecida junto com uma resposta do assistente. */
+export interface AcaoRespostaQA {
+  rotulo: string
+  tipo: 'abrir-simulador'
+  eventoId: string
 }
 
 export interface ParQA {
@@ -465,6 +476,16 @@ export interface ParQA {
   palavrasChave: string[]
   resposta: string
   fontes: string[]
+  acao?: AcaoRespostaQA
+}
+
+/** Mensagem do chat do copiloto — o histórico por tela vive no store. */
+export interface MensagemCopilot {
+  id: number
+  autor: 'usuario' | 'copiloto'
+  texto: string
+  fontes?: string[]
+  acao?: AcaoRespostaQA
 }
 
 // ── KPIs por tela ────────────────────────────────────────────────────────────

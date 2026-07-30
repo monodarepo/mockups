@@ -19,7 +19,6 @@ import { DataTable, IdLink, type ColunaDataTable } from '@/components/shared/Dat
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { Modal } from '@/components/ui/Modal'
 import { Card } from '@/components/ui/Card'
 import { cn } from '@/lib/cn'
 import { formatDataNumerica, formatDiaMes, formatHora, formatMoedaCompacta, formatNumero } from '@/lib/format'
@@ -30,6 +29,7 @@ import {
   SEMANA_PLANEJAMENTO_INICIO,
   blocosSequencia,
   blocosSequenciaOtimizada,
+  cenarioPorId,
   conteudoCopilot,
   fabricas,
   impactoDaMudanca,
@@ -111,6 +111,8 @@ export function SequenciamentoPage() {
   const sequenciaOtimizada = useAppStore((s) => s.sequenciaOtimizada)
   const otimizarSequencia = useAppStore((s) => s.otimizarSequencia)
   const desfazerOtimizacao = useAppStore((s) => s.desfazerOtimizacao)
+  const cenarioAtivo = useAppStore((s) => s.cenarioAtivo)
+  const abrirSimulador = useAppStore((s) => s.abrirSimulador)
 
   const [linhaFiltro, setLinhaFiltro] = useState('Todas as linhas')
   const [zoom, setZoom] = useState<ZoomGantt>('dia')
@@ -118,7 +120,6 @@ export function SequenciamentoPage() {
   const [movimentoPendente, setMovimentoPendente] = useState<{ blocoId: string; deltaHoras: number } | null>(null)
   const [deslocamentos, setDeslocamentos] = useState<Record<string, number>>({})
   const [ajusteAprovado, setAjusteAprovado] = useState(false)
-  const [modalAberto, setModalAberto] = useState<'comparar' | 'simular' | null>(null)
   const ganttScrollRef = useRef<HTMLDivElement>(null)
 
   // Persona desta tela: Camila Azevedo, PCP.
@@ -199,7 +200,7 @@ export function SequenciamentoPage() {
 
   const aoAcaoCopilot = (rotulo: string) => {
     if (rotulo === 'Reagrupar Campanhas') executarOtimizacao()
-    else if (rotulo === 'Simular Parada') setModalAberto('simular')
+    else if (rotulo === 'Simular Parada') abrirSimulador('EV-001')
     else if (rotulo === 'Aprovar Ajuste') aprovarAjuste()
   }
 
@@ -246,6 +247,9 @@ export function SequenciamentoPage() {
           </span>
           <Badge tone={sequenciaOtimizada ? 'success' : 'neutral'}>Ativo</Badge>
         </span>
+        {cenarioAtivo !== 'cenario-base' ? (
+          <Badge tone="success">{cenarioPorId(cenarioAtivo)?.nome ?? cenarioAtivo} ativo</Badge>
+        ) : null}
 
         <span className="ml-auto flex items-center gap-2">
           {sequenciaOtimizada ? (
@@ -258,7 +262,7 @@ export function SequenciamentoPage() {
               {otimizando ? 'Otimizando sequência…' : 'Otimizar Sequência'}
             </Button>
           )}
-          <Button variante="outline" onClick={() => setModalAberto('comparar')}>
+          <Button variante="outline" onClick={() => abrirSimulador()}>
             Comparar Cenários
           </Button>
           <Button
@@ -429,21 +433,6 @@ export function SequenciamentoPage() {
         </SectionCard>
       </div>
 
-      <Modal
-        aberto={modalAberto !== null}
-        onFechar={() => setModalAberto(null)}
-        titulo={modalAberto === 'comparar' ? 'Comparar Cenários' : 'Simular Parada'}
-        descricao="Gêmeo da Fábrica — simulação de eventos sobre o plano da semana"
-        rodape={
-          <Button variante="outline" tamanho="sm" onClick={() => setModalAberto(null)}>
-            Fechar
-          </Button>
-        }
-      >
-        <p className="rounded-lg bg-primary-soft px-4 py-6 text-center text-body font-medium text-primary-strong">
-          {modalAberto === 'comparar' ? 'Comparação de cenários' : 'Simulador de paradas'} — disponível no Prompt 8
-        </p>
-      </Modal>
 
       <PageFooter />
     </>

@@ -37,7 +37,7 @@ import {
 import { acoesAgentes, agentes } from './agentes'
 import { MELHOR_CENARIO_ID, cenarios, eventosSimulaveis } from './cenarios'
 import { relatorios } from './relatorios'
-import { FONTES_COPILOT, bancoQA, conteudoCopilot } from './copilot'
+import { ANALISE_CENARIOS, FONTES_COPILOT, RESPOSTA_PADRAO_QA, bancoQA, buscarResposta, conteudoCopilot } from './copilot'
 import { kpisPorTela } from './kpis'
 import { producaoVsPlano } from './graficos'
 import { navegacao } from './navigation'
@@ -371,6 +371,29 @@ describe('copiloto', () => {
       expect(par.fontes.length).toBeGreaterThan(0)
       for (const fonte of par.fontes) expect(FONTES_COPILOT).toContain(fonte)
     }
+  })
+
+  it('toda pergunta sugerida tem match no banco Q&A — nunca cai no fallback', () => {
+    for (const rota of rotas) {
+      const conteudo = conteudoCopilot[rota]
+      expect(conteudo.perguntasSugeridas).toHaveLength(3)
+      for (const sugestao of conteudo.perguntasSugeridas) {
+        expect(buscarResposta(sugestao), `sem match: "${sugestao}" (${rota})`).not.toBeNull()
+      }
+    }
+    expect(buscarResposta('pergunta sem resposta alguma')).toBeNull()
+    expect(RESPOSTA_PADRAO_QA).toContain('Ainda não tenho essa análise')
+  })
+
+  it('"simule a parada da L12" oferece a ação de abrir o simulador no EV-001', () => {
+    const par = buscarResposta('Simule a parada da L12')
+    expect(par?.id).toBe('qa-04')
+    expect(par?.acao).toMatchObject({ tipo: 'abrir-simulador', eventoId: 'EV-001' })
+  })
+
+  it('análise de cenários tem 2 parágrafos e eventos têm impacto preliminar', () => {
+    expect(ANALISE_CENARIOS).toHaveLength(2)
+    for (const evento of eventosSimulaveis) expect(evento.impactoPreliminar.length).toBeGreaterThan(10)
   })
 })
 

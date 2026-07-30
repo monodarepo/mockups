@@ -37,6 +37,7 @@ import {
   impactoAlertas24h,
   kpisAlertas,
   matrizPrioridadeUrgencia,
+  cenarioPorId,
   produtoPorId,
   prontidaoDecisao,
   proximasAprovacoes,
@@ -66,11 +67,12 @@ export function AlertasPage() {
   const rejeitados = useAppStore((s) => s.rejeitados)
   const aprovarAlerta = useAppStore((s) => s.aprovarAlerta)
   const rejeitarAlerta = useAppStore((s) => s.rejeitarAlerta)
+  const abrirSimulador = useAppStore((s) => s.abrirSimulador)
+  const cenarioAtivo = useAppStore((s) => s.cenarioAtivo)
 
   const [alertaAberto, setAlertaAberto] = useState<Alerta | null>(null)
   const [rejeitandoId, setRejeitandoId] = useState<string | null>(null)
   const [motivoRejeicao, setMotivoRejeicao] = useState('')
-  const [simuladorAberto, setSimuladorAberto] = useState(false)
 
   // Persona desta tela: Camila Azevedo (Operações/PCP).
   useEffect(() => {
@@ -155,9 +157,17 @@ export function AlertasPage() {
     [statusDe],
   )
 
+  // Evento do simulador mais próximo do contexto do alerta.
+  const eventoDoAlerta = (alerta: Alerta): string | undefined => {
+    if (alerta.materialId === 'MAT-API-001') return 'EV-002'
+    if (alerta.linhaId === 'L12') return 'EV-001'
+    if (alerta.materialId === 'MAT-EMB-021') return 'EV-005'
+    return undefined
+  }
+
   const aoAcaoContextual = (alerta: Alerta) => {
     if (alerta.acaoRecomendada === 'Simular recuperação') {
-      setSimuladorAberto(true)
+      abrirSimulador(eventoDoAlerta(alerta))
       return
     }
     addToast({
@@ -181,13 +191,28 @@ export function AlertasPage() {
   }
 
   const aoAcaoCopilot = (rotulo: string) => {
-    if (rotulo === 'Simular impacto') setSimuladorAberto(true)
+    if (rotulo === 'Simular impacto') abrirSimulador()
     else if (rotulo === 'Convocar war room') {
       addToast({ titulo: 'War room convocada', descricao: 'Convite enviado a 6 participantes — sala Torre 2, 15:00.', tone: 'info' })
     } else if (rotulo === 'Aprovar plano') {
       addToast({ titulo: 'Plano aprovado', descricao: 'Ações distribuídas aos responsáveis pelo Agente de Execução.', tone: 'success' })
     }
   }
+
+  // Cenário aprovado no simulador entra na agenda de aprovações.
+  const aprovacoesAgenda = useMemo(() => {
+    if (cenarioAtivo === 'cenario-base') return proximasAprovacoes
+    const cenario = cenarioPorId(cenarioAtivo)
+    return [
+      {
+        id: 'AP-CENARIO',
+        decisao: `${cenario?.nome ?? cenarioAtivo} — plano da semana 20 – 26/mai`,
+        responsavel: 'Camila Azevedo',
+        prazoRotulo: 'Hoje 11:00',
+      },
+      ...proximasAprovacoes,
+    ]
+  }, [cenarioAtivo])
 
   const statusDoAberto = alertaAberto ? statusDe(alertaAberto) : null
   const decidido = statusDoAberto === 'Aprovado' || statusDoAberto === 'Rejeitado'
@@ -377,7 +402,7 @@ export function AlertasPage() {
 
         <SectionCard titulo="Próximas Aprovações" info="Decisões agendadas para as próximas 24 horas.">
           <ul className="flex flex-col gap-2.5">
-            {proximasAprovacoes.map((aprovacao) => (
+            {aprovacoesAgenda.map((aprovacao) => (
               <li key={aprovacao.id} className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate text-body-sm font-medium text-ink" title={aprovacao.decisao}>
@@ -407,7 +432,14 @@ export function AlertasPage() {
         rodape={
           alertaAberto ? (
             <>
-              <Button variante="outline" tamanho="sm" onClick={() => setSimuladorAberto(true)}>
+              <Button
+                variante="outline"
+                tamanho="sm"
+                onClick={() => {
+                  abrirSimulador(eventoDoAlerta(alertaAberto))
+                  setAlertaAberto(null)
+                }}
+              >
                 Simular
               </Button>
               <Button
@@ -528,22 +560,6 @@ export function AlertasPage() {
         />
       </Modal>
 
-      {/* Simulador — hook pronto para o Prompt 8 */}
-      <Modal
-        aberto={simuladorAberto}
-        onFechar={() => setSimuladorAberto(false)}
-        titulo="Simulador de Cenários"
-        descricao="Gêmeo da Fábrica — simulação de eventos sobre o plano da semana"
-        rodape={
-          <Button variante="outline" tamanho="sm" onClick={() => setSimuladorAberto(false)}>
-            Fechar
-          </Button>
-        }
-      >
-        <p className="rounded-lg bg-primary-soft px-4 py-6 text-center text-body font-medium text-primary-strong">
-          Simulador de Cenários — disponível no Prompt 8
-        </p>
-      </Modal>
 
       <PageFooter />
     </>

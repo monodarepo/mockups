@@ -8,6 +8,8 @@ import {
   type Periodo,
   type Turno,
 } from '@/data/constants'
+import { cenarioPorId } from '@/data/cenarios'
+import type { MensagemCopilot } from '@/data/types'
 import type { Tone } from '@/lib/colors'
 
 export interface Filtros {
@@ -73,6 +75,17 @@ interface AppState {
   otimizarSequencia: () => void
   desfazerOtimizacao: () => void
 
+  // Simulador de Cenários — overlay global, aberto de qualquer tela
+  simuladorAberto: boolean
+  /** Evento pré-selecionado ao abrir (ex.: EV-001 vindo do copiloto). */
+  simuladorEventoId: string | null
+  abrirSimulador: (eventoId?: string) => void
+  fecharSimulador: () => void
+
+  // Conversas do copiloto — histórico por tela, persistido na sessão
+  conversas: Record<string, MensagemCopilot[]>
+  registrarMensagem: (tela: string, mensagem: Omit<MensagemCopilot, 'id'>) => MensagemCopilot
+
   // Toasts
   toasts: Toast[]
   addToast: (toast: Omit<Toast, 'id'>) => void
@@ -83,6 +96,9 @@ interface AppState {
 
 /** Contador determinístico de toasts — evita Math.random e chaves instáveis. */
 let sequenciaToast = 0
+
+/** Contador determinístico de mensagens do copiloto. */
+let sequenciaMensagem = 0
 
 function jaResolvido(estado: AppState, id: string): boolean {
   return (
@@ -161,14 +177,21 @@ export const useAppStore = create<AppState>((set) => {
 
     cenarioAtivo: 'cenario-base',
     aplicarCenario: (id) =>
-      set((estado) => ({
-        cenarioAtivo: id,
-        toasts: empilharToast(estado, {
-          titulo: 'Cenário aplicado',
-          descricao: 'O plano da semana foi recalculado com o cenário selecionado.',
-          tone: 'success',
-        }),
-      })),
+      set((estado) => {
+        const nome = cenarioPorId(id)?.nome ?? id
+        // A aprovação do cenário resolve uma pendência — apenas na primeira vez.
+        const jaAprovado = estado.aprovados.includes(id)
+        return {
+          cenarioAtivo: id,
+          aprovados: jaAprovado ? estado.aprovados : [...estado.aprovados, id],
+          pendencias: jaAprovado ? estado.pendencias : Math.max(0, estado.pendencias - 1),
+          toasts: empilharToast(estado, {
+            titulo: `${nome} aplicado ao plano`,
+            descricao: 'Sequenciamento e planejamento recalculados para a semana 20 – 26/mai.',
+            tone: 'success',
+          }),
+        }
+      }),
 
     sequenciaOtimizada: false,
     otimizarSequencia: () =>
@@ -189,6 +212,23 @@ export const useAppStore = create<AppState>((set) => {
           tone: 'neutral',
         }),
       })),
+
+    simuladorAberto: false,
+    simuladorEventoId: null,
+    abrirSimulador: (eventoId) => set({ simuladorAberto: true, simuladorEventoId: eventoId ?? null }),
+    fecharSimulador: () => set({ simuladorAberto: false, simuladorEventoId: null }),
+
+    conversas: {},
+    registrarMensagem: (tela, mensagem) => {
+      const completa: MensagemCopilot = { ...mensagem, id: ++sequenciaMensagem }
+      set((estado) => ({
+        conversas: {
+          ...estado.conversas,
+          [tela]: [...(estado.conversas[tela] ?? []), completa],
+        },
+      }))
+      return completa
+    },
 
     toasts: [],
     addToast: (toast) => set((estado) => ({ toasts: empilharToast(estado, toast) })),
