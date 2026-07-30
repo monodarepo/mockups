@@ -9,25 +9,26 @@ import type { ConteudoCopilot, ParQA } from './types'
 export const conteudoCopilot: Record<string, ConteudoCopilot> = {
   '/': {
     tela: '/',
-    saudacao: 'Bom dia, {nome}. Este é o panorama do Turno A de 19/mai.',
+    saudacao: 'Bom dia, {nome}. Este é o resumo executivo da rede em 19/mai.',
     resumo:
-      'Anápolis opera com OEE de 68,4% e 4 ordens em execução. Três riscos combinados somam R$ 1,34 mi e exigem decisão nas próximas horas.',
+      'As três fábricas operam com OEE de 78,6% e aderência de 92,1%. O ponto de atenção é Jacareí: a P27 concentra as ordens em risco da semana.',
     riscos: [
-      'Ibuprofeno API com cobertura de 1,4 dia ameaça a OF-045678 na L12 — impacto de R$ 420 mil.',
-      'Compressora L12 com vibração de 12,3 mm/s e 78% de probabilidade de falha em 7 dias.',
-      'L08 com aderência de 45% por microparadas na esteira transportadora.',
+      '23 ordens em risco na rede, concentradas na P27 (Jacareí) — capacidade em 45%.',
+      '7 rupturas projetadas de matérias-primas críticas nos próximos 7 dias, lideradas pelo Ibuprofeno API (1,4 dia de cobertura).',
     ],
     causas: [
-      'Reposição do Ibuprofeno API atrasada no fornecedor PharmaQuímica (lead time de 12 dias).',
-      'Desgaste do rolamento do eixo principal da compressora, sem preditiva desde 14/mai.',
-      'Variação de peso alvo gera ajustes frequentes e microparadas na L08.',
+      'P27 opera abaixo de 50% da capacidade desde 15/mai por indisponibilidade de equipamento.',
+      'Consumo de Ibuprofeno API 15% acima do plano com lead time de reposição de 12 dias.',
     ],
     acoes: [
-      'Aprovar a transferência de Ibuprofeno API entre plantas antes das 12:00.',
-      'Antecipar a preditiva da Compressora L12 para a janela noturna de 21/mai.',
-      'Aplicar a sequência otimizada na L08 e revisar o peso alvo com a Qualidade.',
+      'Realocar capacidade da P24 para apoiar a P27 durante a semana 20–26/mai.',
+      'Antecipar a compra do insumo Ibuprofeno API antes de 20/mai.',
     ],
-    botoes: ['Ver plano de recuperação', 'Simular parada da L12', 'Aprovar transferência'],
+    impactos: [
+      'Redução de 18 das 23 ordens em risco da rede.',
+      'Ganho estimado de R$ 1,12 mi em atendimento preservado.',
+    ],
+    botoes: ['Simular cenário', 'Aprovar ajuste', 'Ver ordens críticas'],
   },
   '/planejamento': {
     tela: '/planejamento',
@@ -274,7 +275,7 @@ export const bancoQA: ParQA[] = [
     id: 'qa-02',
     palavrasChave: ['oee caiu', 'por que o oee', 'queda do oee'],
     resposta:
-      'O OEE global caiu 2,1 p.p. na semana, para 68,4%. A decomposição mostra: microparadas da L08 respondem por 1,2 p.p., a parada da L15 por falta de blister por 0,6 p.p. e a disponibilidade reduzida da Compressora L12 (72%) pelos 0,3 p.p. restantes.',
+      'O OEE de Anápolis caiu 2,1 p.p. na semana, para 68,4%. A decomposição mostra: microparadas da L08 respondem por 1,2 p.p., a parada da L15 por falta de blister por 0,6 p.p. e a disponibilidade reduzida da Compressora L12 (72%) pelos 0,3 p.p. restantes. Na visão de rede, o consolidado das três fábricas está em 78,6% (▲5,4 p.p.), sustentado por Goiânia.',
     fontes: ['MES L12', 'SAP PP'],
   },
   {

@@ -3,7 +3,9 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 interface SelectProps {
-  rotulo: string
+  /** Rótulo visível embutido no controle; omita e informe ariaLabel para um select "solto". */
+  rotulo?: string
+  ariaLabel?: string
   valor: string
   opcoes: readonly string[]
   onChange: (valor: string) => void
@@ -11,7 +13,7 @@ interface SelectProps {
 }
 
 /** Select compacto com rótulo embutido — padrão da FilterBar. */
-export function Select({ rotulo, valor, opcoes, onChange, className }: SelectProps) {
+export function Select({ rotulo, ariaLabel, valor, opcoes, onChange, className }: SelectProps) {
   const id = useId()
 
   return (
@@ -23,13 +25,16 @@ export function Select({ rotulo, valor, opcoes, onChange, className }: SelectPro
         className,
       )}
     >
-      <label htmlFor={id} className="shrink-0 text-caption text-muted">
-        {rotulo}
-      </label>
+      {rotulo ? (
+        <label htmlFor={id} className="shrink-0 text-caption text-muted">
+          {rotulo}
+        </label>
+      ) : null}
       <div className="relative flex min-w-0 items-center">
         <select
           id={id}
           value={valor}
+          aria-label={rotulo ? undefined : ariaLabel}
           onChange={(evento) => onChange(evento.target.value)}
           className="w-full appearance-none truncate bg-transparent pr-5 text-body-sm font-medium text-ink focus-visible:outline-none"
         >

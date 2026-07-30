@@ -19,7 +19,7 @@ export function TrendDelta({ delta, deltaGoodWhen = 'up', className }: TrendDelt
   return (
     <span
       className={cn(
-        'inline-flex items-baseline gap-1 text-caption font-semibold',
+        'inline-flex items-baseline gap-1 whitespace-nowrap text-caption font-semibold',
         bom ? 'text-success' : 'text-danger',
         className,
       )}

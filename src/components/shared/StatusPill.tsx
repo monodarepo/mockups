@@ -16,7 +16,7 @@ export function StatusPill({ status, tone, pulsar, className }: StatusPillProps)
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-caption font-semibold',
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-1 text-caption font-semibold',
         toneSoftClass[tomFinal],
         className,
       )}

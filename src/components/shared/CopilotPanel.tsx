@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { AlertTriangle, CheckCircle2, ChevronDown, Search, SendHorizontal, Sparkles } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ChevronDown, Search, SendHorizontal, Sparkles, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -116,6 +116,14 @@ export function CopilotPanel({ conteudo, onAcao }: CopilotPanelProps) {
               icone={<CheckCircle2 size={12} aria-hidden="true" />}
               itens={conteudo.acoes}
             />
+            {conteudo.impactos?.length ? (
+              <BlocoCopilot
+                titulo="Impacto esperado"
+                corTitulo="text-info-strong"
+                icone={<TrendingUp size={12} aria-hidden="true" />}
+                itens={conteudo.impactos}
+              />
+            ) : null}
 
             <div className="flex flex-col gap-2">
               {conteudo.botoes.map((rotulo, indice) => (

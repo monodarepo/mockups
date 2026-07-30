@@ -10,16 +10,18 @@ interface SectionCardProps {
   info?: string
   /** Ação à direita, padrão "Ver todos →". */
   acao?: { rotulo?: string; onClick: () => void }
+  /** Conteúdo customizado à direita do título (ex.: toggle Mapa/Lista). Tem precedência sobre acao. */
+  direita?: ReactNode
   children: ReactNode
   className?: string
   /** Remove o padding do corpo — para tabelas coladas nas bordas. */
   corpoSemPadding?: boolean
 }
 
-export function SectionCard({ titulo, info, acao, children, className, corpoSemPadding }: SectionCardProps) {
+export function SectionCard({ titulo, info, acao, direita, children, className, corpoSemPadding }: SectionCardProps) {
   return (
     <Card className={cn('flex min-w-0 flex-col', className)}>
-      <div className="flex items-center justify-between gap-4 px-5 pb-3 pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 pb-3 pt-4">
         <div className="flex min-w-0 items-center gap-1.5">
           <h2 className="truncate text-card-title font-semibold text-ink">{titulo}</h2>
           {info ? (
@@ -34,12 +36,14 @@ export function SectionCard({ titulo, info, acao, children, className, corpoSemP
             </Tooltip>
           ) : null}
         </div>
-        {acao ? (
+        {direita ? (
+          <div className="shrink-0">{direita}</div>
+        ) : acao ? (
           <button
             type="button"
             onClick={acao.onClick}
             className={cn(
-              'shrink-0 text-body-sm font-medium text-primary transition-colors duration-150',
+              'ml-auto shrink-0 whitespace-nowrap text-body-sm font-medium text-primary transition-colors duration-150',
               'rounded hover:text-primary-hover hover:underline',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
             )}

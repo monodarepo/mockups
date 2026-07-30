@@ -22,6 +22,8 @@ export interface Linha {
   fabricaId: string
   /** Capacidade utilizada em %. */
   capacidadeUtilizada: number
+  /** OEE da linha em % (0 quando parada). */
+  oee: number
   status: StatusLinha
 }
 
@@ -114,6 +116,8 @@ export interface Material {
   validadeLote?: Date
   coa?: StatusCoA
   status: StatusMaterial
+  /** Prontidão para as ordens da semana, em % (visão executiva). */
+  prontidaoPercent: number
   proximaAcao: string
   linhasAfetadas?: string[]
   ordensAfetadas?: string[]
@@ -343,6 +347,8 @@ export interface ConteudoCopilot {
   riscos: string[]
   causas: string[]
   acoes: string[]
+  /** Bloco opcional "IMPACTO ESPERADO" (azul) — usado na visão executiva. */
+  impactos?: string[]
   /** Rótulos dos 2–3 botões de ação contextuais. */
   botoes: string[]
 }

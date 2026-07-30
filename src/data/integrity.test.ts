@@ -16,6 +16,7 @@ import { MELHOR_CENARIO_ID, cenarios, eventosSimulaveis } from './cenarios'
 import { relatorios } from './relatorios'
 import { FONTES_COPILOT, bancoQA, conteudoCopilot } from './copilot'
 import { kpisPorTela } from './kpis'
+import { producaoVsPlano } from './graficos'
 import { navegacao } from './navigation'
 import { AREAS_ALERTA } from './types'
 
@@ -45,6 +46,15 @@ describe('fábricas e linhas', () => {
   it('toda linha aponta para a fábrica que a contém', () => {
     for (const fabrica of fabricas) {
       for (const linha of fabrica.linhas) expect(linha.fabricaId).toBe(fabrica.id)
+    }
+  })
+
+  it('OEE e capacidade das linhas ficam entre 0 e 100', () => {
+    for (const linha of linhas) {
+      expect(linha.oee).toBeGreaterThanOrEqual(0)
+      expect(linha.oee).toBeLessThanOrEqual(100)
+      expect(linha.capacidadeUtilizada).toBeGreaterThanOrEqual(0)
+      expect(linha.capacidadeUtilizada).toBeLessThanOrEqual(100)
     }
   })
 })
@@ -123,6 +133,15 @@ describe('materiais', () => {
       for (const linhaId of material.linhasAfetadas ?? []) expect(idsLinhas.has(linhaId)).toBe(true)
       for (const ordemId of material.ordensAfetadas ?? []) expect(idsOrdens.has(ordemId)).toBe(true)
     }
+  })
+
+  it('prontidão executiva dentro de 0–100 com os valores da Visão Geral', () => {
+    for (const material of materiais) {
+      expect(material.prontidaoPercent).toBeGreaterThanOrEqual(0)
+      expect(material.prontidaoPercent).toBeLessThanOrEqual(100)
+    }
+    expect(materiais.find((m) => m.id === 'MAT-API-001')?.prontidaoPercent).toBe(62)
+    expect(materiais.find((m) => m.id === 'MAT-EMB-021')?.prontidaoPercent).toBe(68)
   })
 })
 
@@ -276,6 +295,16 @@ describe('KPIs por tela', () => {
         expect(card.sparkline.length).toBeGreaterThanOrEqual(8)
       }
     }
+  })
+})
+
+describe('gráficos', () => {
+  it('produção vs plano cobre 7 dias e termina em 2.094/1.968', () => {
+    expect(producaoVsPlano).toHaveLength(7)
+    const ultimo = producaoVsPlano[producaoVsPlano.length - 1]
+    expect(ultimo.real).toBe(2_094)
+    expect(ultimo.plano).toBe(1_968)
+    expect(ultimo.label).toBe('19/mai')
   })
 })
 
